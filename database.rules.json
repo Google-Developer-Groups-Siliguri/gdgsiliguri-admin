@@ -1,0 +1,16 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "FAQs": { ".read": true },
+    "communityPartners": { ".read": true },
+    "eventDetails": { ".read": true },
+    "events": { ".read": true },
+    "feedbacks": { ".read": true },
+    "home": { ".read": true },
+    "schedule": { ".read": true },
+    "speakers": { ".read": true },
+    "sponsors": { ".read": true },
+    "teams": { ".read": true }
+  }
+}
