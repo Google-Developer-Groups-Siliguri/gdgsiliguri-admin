@@ -1,10 +1,13 @@
 import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getDatabase, type Database } from "firebase-admin/database";
+import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 import {
   EMULATOR_HOST,
   EMULATOR_PORTS,
   EMULATOR_PROJECT_ID,
   emulatorDatabaseUrl,
+  emulatorFirestoreDatabaseId,
   useEmulators,
 } from "./config";
 
@@ -53,4 +56,17 @@ export function adminTarget(): string {
   return useEmulators
     ? `emulators (${EMULATOR_PROJECT_ID})`
     : `PRODUCTION (${process.env.FIREBASE_ADMIN_PROJECT_ID})`;
+}
+
+let firestore: Firestore | undefined;
+
+export function adminFirestoreFor(app: App = adminApp()): Firestore {
+  if (firestore) return firestore;
+  firestore = useEmulators ? getFirestore(app, emulatorFirestoreDatabaseId()) : getFirestore(app);
+  firestore.settings({ ignoreUndefinedProperties: true });
+  return firestore;
+}
+
+export function adminDatabaseFor(app: App = adminApp()): Database {
+  return getDatabase(app);
 }

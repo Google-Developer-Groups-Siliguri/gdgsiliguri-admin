@@ -6,8 +6,21 @@ export const EMULATOR_PORTS = { auth: 9099, firestore: 8080, database: 9000 } as
 
 export const useEmulators = process.env.NEXT_PUBLIC_USE_EMULATORS === "true";
 
-export function emulatorDatabaseUrl(projectId = EMULATOR_PROJECT_ID): string {
-  return `http://${EMULATOR_HOST}:${EMULATOR_PORTS.database}?ns=${projectId}-default-rtdb`;
+export function emulatorNamespace(): string | null {
+  return useEmulators ? (process.env.EMULATOR_NAMESPACE ?? null) : null;
+}
+
+export function emulatorRtdbNamespace(): string {
+  const namespace = emulatorNamespace();
+  return namespace ? `${EMULATOR_PROJECT_ID}-${namespace}` : `${EMULATOR_PROJECT_ID}-default-rtdb`;
+}
+
+export function emulatorFirestoreDatabaseId(): string {
+  return emulatorNamespace() ?? "(default)";
+}
+
+export function emulatorDatabaseUrl(): string {
+  return `http://${EMULATOR_HOST}:${EMULATOR_PORTS.database}?ns=${emulatorRtdbNamespace()}`;
 }
 
 export function clientFirebaseConfig(): FirebaseOptions {

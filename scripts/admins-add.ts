@@ -1,8 +1,8 @@
 import "./lib/load-env";
 
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 
-import { adminApp } from "../src/lib/firebase/admin-app";
+import { adminFirestoreFor } from "../src/lib/firebase/admin-app";
 import { isRole, normalizeEmail } from "../src/lib/auth/roles";
 
 import { parseArgs } from "./lib/args";
@@ -19,7 +19,7 @@ async function main() {
 
   assertTargetAllowed(args);
   const email = normalizeEmail(rawEmail);
-  const ref = getFirestore(adminApp()).collection("admins").doc(email);
+  const ref = adminFirestoreFor().collection("admins").doc(email);
   const existing = await ref.get();
 
   if (existing.exists) {
@@ -31,7 +31,7 @@ async function main() {
     console.log(`Added ${email} as ${role}`);
   }
 
-  await getFirestore(adminApp())
+  await adminFirestoreFor()
     .collection("auditLog")
     .add({
       at: FieldValue.serverTimestamp(),

@@ -6,6 +6,7 @@ export async function signInWithGoogle(page: Page, user: { email: string; name: 
     page.getByRole("button", { name: "Sign in with Google" }).click(),
   ]);
   await popup.waitForLoadState();
+  const closed = popup.waitForEvent("close");
   const existing = popup.getByText(user.email, { exact: true });
   if (await existing.isVisible().catch(() => false)) {
     await existing.click();
@@ -16,7 +17,7 @@ export async function signInWithGoogle(page: Page, user: { email: string; name: 
     await inputs.nth(1).fill(user.name);
     await popup.getByRole("button", { name: "Sign in with Google.com" }).click();
   }
-  await popup.waitForEvent("close");
+  await closed;
 }
 
 export async function signInAs(page: Page, user: { email: string; name: string }, path = "/") {
