@@ -25,6 +25,7 @@
     "@material/material-color-utilities": "^0.4.0",
     "firebase": "^13.1.0",
     "firebase-admin": "^14.5.0",
+    "material-symbols": "^0.48.1",
     "next": "16.4.2",
     "radix-ui": "^1.8.1",
     "react": "19.3.0",
