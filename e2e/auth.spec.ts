@@ -18,15 +18,17 @@ test.describe("authentication", () => {
 
   test("an owner can sign in and out", async ({ page, context }) => {
     await signInAs(page, TEST_USERS.owner);
-    await expect(page).toHaveURL("/");
-    await expect(page.getByText(TEST_USERS.owner.email)).toBeVisible();
-    await expect(page.getByText("Role: owner")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
+    await page.getByRole("button", { name: `Account: ${TEST_USERS.owner.email}` }).click();
+    await expect(page.getByRole("menu").getByText("owner", { exact: true })).toBeVisible();
+    await page.keyboard.press("Escape");
 
     const session = (await context.cookies()).find((cookie) => cookie.name === "__session");
     expect(session?.httpOnly).toBe(true);
     expect(session?.sameSite).toBe("Lax");
 
-    await page.getByRole("button", { name: "Sign out" }).click();
+    await page.getByRole("button", { name: `Account: ${TEST_USERS.owner.email}` }).click();
+    await page.getByRole("menuitem", { name: "Sign out" }).click();
     await expect(page).toHaveURL("/login");
     await page.goto("/");
     await expect(page).toHaveURL("/login");
@@ -34,13 +36,15 @@ test.describe("authentication", () => {
 
   test("an editor signs in with the editor role", async ({ page }) => {
     await signInAs(page, TEST_USERS.editor);
-    await expect(page.getByText("Role: editor")).toBeVisible();
+    await page.getByRole("button", { name: `Account: ${TEST_USERS.editor.email}` }).click();
+    await expect(page.getByRole("menu").getByText("editor", { exact: true })).toBeVisible();
   });
 
   test("sign-in returns to the page that was requested", async ({ page }) => {
     await page.goto("/devfest/schedule");
     await signInWithGoogle(page, TEST_USERS.owner);
     await expect(page).toHaveURL("/devfest/schedule");
+    await expect(page.getByRole("heading", { level: 1, name: "Schedule" })).toBeVisible();
   });
 
   test("someone who is not an admin is turned away", async ({ page, context }) => {

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import { redirect } from "next/navigation";
 import { cache } from "react";
 
@@ -23,6 +24,7 @@ export class AuthorizationError extends Error {
 export const getCurrentAdmin = cache(async (): Promise<AdminUser | null> => {
   const sessionCookie = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!sessionCookie) return null;
+  await connection();
   try {
     const claims = await adminAuth().verifySessionCookie(sessionCookie, true);
     if (!claims.email) return null;

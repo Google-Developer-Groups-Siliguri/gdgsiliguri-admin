@@ -24,4 +24,5 @@ export async function signInAs(page: Page, user: { email: string; name: string }
   await page.goto(path);
   await expect(page).toHaveURL(/\/login/);
   await signInWithGoogle(page, user);
+  if (user.email !== "outsider@example.com") await expect(page).toHaveURL(path);
 }
