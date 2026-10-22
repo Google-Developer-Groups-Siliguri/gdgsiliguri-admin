@@ -15,7 +15,9 @@
     "import:rtdb": "tsx scripts/import-rtdb.ts",
     "admins:add": "tsx scripts/admins-add.ts",
     "theme:generate": "tsx scripts/generate-theme.ts",
-    "emulators:test": "scripts/emulators.sh"
+    "emulators:test": "scripts/emulators.sh",
+    "check:env": "tsx scripts/check-env.ts",
+    "check:env:live": "tsx scripts/check-env.ts --live"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
