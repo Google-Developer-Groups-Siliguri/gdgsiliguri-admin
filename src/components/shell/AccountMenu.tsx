@@ -57,7 +57,6 @@ export function AccountMenu({ user }: { user: ShellUser | null }) {
     setSigningOut(true);
     await fetch("/api/session/logout", { method: "POST" }).catch(() => undefined);
     router.replace("/login");
-    router.refresh();
   }
 
   return (

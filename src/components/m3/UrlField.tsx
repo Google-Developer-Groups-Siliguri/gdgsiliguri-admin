@@ -13,6 +13,7 @@ export type UrlFieldProps = {
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: string | false;
+  warning?: string | false;
   supportingText?: string;
   required?: boolean;
   disabled?: boolean;
@@ -35,6 +36,7 @@ export function UrlField({
   onChange,
   onBlur,
   error,
+  warning,
   supportingText,
   required,
   disabled,
@@ -58,6 +60,7 @@ export function UrlField({
         disabled={disabled}
         leadingIcon={leadingIcon}
         error={error}
+        warning={warning}
         supportingText={supportingText}
         onChange={(event) => onChange(event.target.value)}
         onBlur={onBlur}

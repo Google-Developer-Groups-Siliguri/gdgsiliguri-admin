@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { SectionRoute } from "@/components/section/SectionRoute";
-import { SECTIONS } from "@/lib/content/sections";
+import { PartnersEditor } from "@/components/editors/PartnersEditor";
+import { EditorFallback } from "@/components/section/EditorFallback";
+import { loadSection } from "@/lib/content/queries";
 
-export const metadata: Metadata = { title: SECTIONS.communityPartners.label };
+export const metadata: Metadata = { title: "Community partners" };
+
+async function Editor() {
+  return <PartnersEditor state={await loadSection("communityPartners")} />;
+}
 
 export default function Page() {
-  return <SectionRoute sectionKey="communityPartners" />;
+  return (
+    <Suspense fallback={<EditorFallback />}>
+      <Editor />
+    </Suspense>
+  );
 }

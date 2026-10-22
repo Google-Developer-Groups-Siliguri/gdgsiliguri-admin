@@ -58,7 +58,6 @@ export function LoginCard() {
     await signOut(clientAuth());
     if (response.ok) {
       router.replace(nextPath);
-      router.refresh();
       return;
     }
     const body = (await response.json().catch(() => ({}))) as { error?: string; message?: string };
@@ -106,7 +105,7 @@ export function LoginCard() {
   const working = status.kind === "working";
 
   return (
-    <Card variant="filled" className="relative w-full max-w-md overflow-hidden bg-surface-container-low">
+    <Card variant="tinted" className="relative w-full max-w-md overflow-hidden bg-surface-container-low">
       {working && <LinearProgress className="absolute inset-x-0 top-0 rounded-none" label="Signing in" />}
       <div className="flex flex-col items-center gap-6 px-6 py-10 compact:px-10">
         <BrandMark size={48} />

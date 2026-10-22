@@ -47,7 +47,7 @@ export function EventCountdown({ eventAt, registrationClosesAt, venue, ticketUrl
     registrationClosesAt !== null && now !== null ? now < registrationClosesAt : null;
 
   return (
-    <Card variant="filled" className="flex flex-col gap-4 bg-primary-container p-5 text-on-primary-container">
+    <Card variant="tinted" className="flex flex-col gap-4 bg-primary-container p-5 text-on-primary-container">
       <div className="flex items-start gap-3">
         <Icon name="festival" className="mt-0.5" />
         <div className="flex min-w-0 flex-1 flex-col">

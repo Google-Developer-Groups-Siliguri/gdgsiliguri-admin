@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { SectionRoute } from "@/components/section/SectionRoute";
-import { SECTIONS } from "@/lib/content/sections";
+import { SpeakersEditor } from "@/components/editors/SpeakersEditor";
+import { EditorFallback } from "@/components/section/EditorFallback";
+import { loadSection } from "@/lib/content/queries";
 
-export const metadata: Metadata = { title: SECTIONS.speakers.label };
+export const metadata: Metadata = { title: "Speakers" };
+
+async function Editor() {
+  const [speakers, details] = await Promise.all([loadSection("speakers"), loadSection("eventDetails")]);
+  return <SpeakersEditor state={speakers} frames={details.draft.frames.speakers} />;
+}
 
 export default function Page() {
-  return <SectionRoute sectionKey="speakers" />;
+  return (
+    <Suspense fallback={<EditorFallback />}>
+      <Editor />
+    </Suspense>
+  );
 }

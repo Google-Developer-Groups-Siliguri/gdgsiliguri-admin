@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { SectionRoute } from "@/components/section/SectionRoute";
-import { SECTIONS } from "@/lib/content/sections";
+import { EventsEditor } from "@/components/editors/EventsEditor";
+import { EditorFallback } from "@/components/section/EditorFallback";
+import { loadSection } from "@/lib/content/queries";
 
-export const metadata: Metadata = { title: SECTIONS.events.label };
+export const metadata: Metadata = { title: "Events" };
+
+async function Editor() {
+  return <EventsEditor state={await loadSection("events")} />;
+}
 
 export default function Page() {
-  return <SectionRoute sectionKey="events" />;
+  return (
+    <Suspense fallback={<EditorFallback />}>
+      <Editor />
+    </Suspense>
+  );
 }

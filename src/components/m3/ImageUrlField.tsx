@@ -14,6 +14,7 @@ type ImageUrlFieldProps = {
   onChange: (value: string) => void;
   onBlur?: () => void;
   error?: string | false;
+  warning?: string | false;
   supportingText?: string;
   required?: boolean;
   disabled?: boolean;
@@ -31,6 +32,7 @@ export function ImageUrlField({
   onChange,
   onBlur,
   error,
+  warning,
   supportingText,
   required,
   disabled,
@@ -87,7 +89,8 @@ export function ImageUrlField({
           required={required}
           disabled={disabled}
           leadingIcon="image"
-          error={error || (broken && "This image could not be loaded")}
+          error={error}
+          warning={warning || (broken && "This image could not be loaded")}
           supportingText={supportingText}
         />
         {action}

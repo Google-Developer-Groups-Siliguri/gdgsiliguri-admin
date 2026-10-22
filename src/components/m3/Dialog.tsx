@@ -21,6 +21,7 @@ type DialogProps = {
   confirmLabel?: string;
   onConfirm?: () => void;
   confirmDisabled?: boolean;
+  confirmForm?: string;
   wide?: boolean;
 };
 
@@ -36,8 +37,21 @@ export function Dialog({
   confirmLabel,
   onConfirm,
   confirmDisabled,
+  confirmForm,
   wide = false,
 }: DialogProps) {
+  const hasConfirm = Boolean(confirmLabel && (onConfirm || confirmForm));
+  const confirmButton = (
+    <Button
+      variant="text"
+      type={confirmForm ? "submit" : "button"}
+      form={confirmForm}
+      onClick={confirmForm ? undefined : onConfirm}
+      disabled={confirmDisabled}
+    >
+      {confirmLabel}
+    </Button>
+  );
   return (
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
@@ -61,11 +75,7 @@ export function Dialog({
               <RadixDialog.Title className="flex-1 truncate px-2 text-title-large">
                 {title}
               </RadixDialog.Title>
-              {onConfirm && confirmLabel && (
-                <Button variant="text" onClick={onConfirm} disabled={confirmDisabled}>
-                  {confirmLabel}
-                </Button>
-              )}
+              {hasConfirm && confirmButton}
             </div>
           )}
           <div
@@ -103,11 +113,7 @@ export function Dialog({
                 <RadixDialog.Close asChild>
                   <Button variant="text">Cancel</Button>
                 </RadixDialog.Close>
-                {onConfirm && confirmLabel && (
-                  <Button variant="text" onClick={onConfirm} disabled={confirmDisabled}>
-                    {confirmLabel}
-                  </Button>
-                )}
+                {hasConfirm && confirmButton}
               </>
             )}
           </div>
