@@ -10,7 +10,8 @@ import { Card } from "@/components/m3/Card";
 import { Icon } from "@/components/m3/Icon";
 import { LinearProgress } from "@/components/m3/Progress";
 import { getCurrentAdmin } from "@/lib/auth/session";
-import { loadAllSections, loadAudit, loadSection, loadSiteSettings } from "@/lib/content/queries";
+import { loadAllSections, loadAudit, loadPendingRebuild, loadSection, loadSiteSettings } from "@/lib/content/queries";
+import { SECTIONS } from "@/lib/content/sections";
 import { SECTION_KEYS } from "@/lib/content/sections";
 import { dateTimeToEpoch } from "@/lib/datetime";
 import { formatDateTime, timeAgo } from "@/lib/time";
@@ -46,7 +47,8 @@ async function EventSummary() {
 }
 
 async function RebuildSummary() {
-  const settings = await loadSiteSettings();
+  const [settings, pending] = await Promise.all([loadSiteSettings(), loadPendingRebuild()]);
+  const waiting = pending.sections.map((key) => SECTIONS[key].label);
   return (
     <Card variant="filled" className="flex flex-col gap-3 p-5">
       <div className="flex items-center gap-3">
@@ -54,9 +56,9 @@ async function RebuildSummary() {
         <span className="text-title-medium">Rebuild website</span>
       </div>
       <p className="flex-1 text-body-medium text-on-surface-variant">
-        {settings.rebuildConfigured
-          ? "Published changes appear on gdgsiliguri.com after the site is rebuilt."
-          : "The Netlify build hook is not configured yet, so rebuilds have to be started in Netlify."}
+        {waiting.length
+          ? `Waiting for a rebuild: ${waiting.join(", ")}.`
+          : "The live site has everything that was published."}
       </p>
       <p className="text-body-small text-on-surface-variant" title={formatDateTime(settings.lastRebuildAt)}>
         Last rebuild: {timeAgo(settings.lastRebuildAt)}

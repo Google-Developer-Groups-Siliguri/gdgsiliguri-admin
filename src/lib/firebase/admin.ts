@@ -1,9 +1,7 @@
 import "server-only";
 
-import { getAuth } from "firebase-admin/auth";
+import { adminAuthFor, adminDatabaseFor, adminFirestoreFor } from "./admin-app";
 
-import { adminApp, adminDatabaseFor, adminFirestoreFor } from "./admin-app";
-
-export const adminAuth = () => getAuth(adminApp());
+export const adminAuth = () => adminAuthFor();
 export const adminFirestore = () => adminFirestoreFor();
 export const adminDatabase = () => adminDatabaseFor();

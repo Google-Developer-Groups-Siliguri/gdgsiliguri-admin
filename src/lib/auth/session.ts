@@ -21,6 +21,11 @@ export class AuthorizationError extends Error {
   }
 }
 
+function isAuthError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === "string" && code.startsWith("auth/");
+}
+
 export const getCurrentAdmin = cache(async (): Promise<AdminUser | null> => {
   const sessionCookie = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!sessionCookie) return null;
@@ -37,8 +42,9 @@ export const getCurrentAdmin = cache(async (): Promise<AdminUser | null> => {
       displayName: record.displayName ?? (claims.name as string | undefined) ?? null,
       photoURL: record.photoURL ?? (claims.picture as string | undefined) ?? null,
     };
-  } catch {
-    return null;
+  } catch (error) {
+    if (isAuthError(error)) return null;
+    throw error;
   }
 });
 

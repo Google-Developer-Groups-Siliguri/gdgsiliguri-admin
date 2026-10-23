@@ -43,3 +43,12 @@ export async function readRtdb(path: string): Promise<unknown> {
   );
   return response.json();
 }
+
+export async function readFirestoreDoc(path: string): Promise<Record<string, unknown> | null> {
+  const response = await fetch(`${databaseUrl}/documents/${path}`, { headers: ownerHeaders });
+  if (response.status === 404) return null;
+  const body = (await response.json()) as { fields?: Record<string, Record<string, unknown>> };
+  return Object.fromEntries(
+    Object.entries(body.fields ?? {}).map(([key, value]) => [key, Object.values(value)[0]]),
+  );
+}

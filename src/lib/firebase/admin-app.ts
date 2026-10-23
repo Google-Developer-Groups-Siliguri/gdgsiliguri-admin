@@ -1,4 +1,5 @@
 import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
 import { getDatabase, type Database } from "firebase-admin/database";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
@@ -58,15 +59,28 @@ export function adminTarget(): string {
     : `PRODUCTION (${process.env.FIREBASE_ADMIN_PROJECT_ID})`;
 }
 
-let firestore: Firestore | undefined;
+const CONFIGURED_KEY = Symbol.for("gdg-siliguri-admin.configured-firestores");
+
+function configuredFirestores(): WeakSet<Firestore> {
+  const registry = globalThis as typeof globalThis & { [CONFIGURED_KEY]?: WeakSet<Firestore> };
+  registry[CONFIGURED_KEY] ??= new WeakSet();
+  return registry[CONFIGURED_KEY];
+}
 
 export function adminFirestoreFor(app: App = adminApp()): Firestore {
-  if (firestore) return firestore;
-  firestore = useEmulators ? getFirestore(app, emulatorFirestoreDatabaseId()) : getFirestore(app);
-  firestore.settings({ ignoreUndefinedProperties: true });
+  const firestore = useEmulators ? getFirestore(app, emulatorFirestoreDatabaseId()) : getFirestore(app);
+  const configured = configuredFirestores();
+  if (!configured.has(firestore)) {
+    firestore.settings({ ignoreUndefinedProperties: true });
+    configured.add(firestore);
+  }
   return firestore;
 }
 
 export function adminDatabaseFor(app: App = adminApp()): Database {
   return getDatabase(app);
+}
+
+export function adminAuthFor(app: App = adminApp()): Auth {
+  return getAuth(app);
 }

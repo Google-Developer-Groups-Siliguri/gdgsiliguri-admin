@@ -1,7 +1,8 @@
 import "server-only";
 
 import { requireAdminPage } from "@/lib/auth/session";
-import { getSiteSettings } from "@/lib/settings";
+import { listAdmins } from "@/lib/admins/repository";
+import { getPendingRebuild, getSiteSettings } from "@/lib/settings";
 
 import {
   getAllSections,
@@ -29,4 +30,22 @@ export async function loadAudit(query: AuditQuery = {}) {
 export async function loadSiteSettings() {
   await requireAdminPage();
   return getSiteSettings();
+}
+
+export async function loadPendingRebuild() {
+  await requireAdminPage();
+  return getPendingRebuild();
+}
+
+export async function loadAdmins() {
+  await requireAdminPage("owner");
+  return listAdmins();
+}
+
+const SCRIPT_ACTORS = ["admins:add script", "import:rtdb script"];
+
+export async function loadActors() {
+  await requireAdminPage();
+  const admins = await listAdmins();
+  return [...admins.map((admin) => admin.email), ...SCRIPT_ACTORS];
 }

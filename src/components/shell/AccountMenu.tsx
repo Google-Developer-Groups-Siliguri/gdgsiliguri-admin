@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { DropdownMenu } from "radix-ui";
 import { useState } from "react";
 
@@ -41,7 +40,6 @@ export function Avatar({ user, size = 32 }: { user: ShellUser; size?: number }) 
 }
 
 export function AccountMenu({ user }: { user: ShellUser | null }) {
-  const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
 
   if (!user) {
@@ -56,7 +54,7 @@ export function AccountMenu({ user }: { user: ShellUser | null }) {
   async function signOut() {
     setSigningOut(true);
     await fetch("/api/session/logout", { method: "POST" }).catch(() => undefined);
-    router.replace("/login");
+    window.location.replace("/login");
   }
 
   return (

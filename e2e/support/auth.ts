@@ -24,5 +24,7 @@ export async function signInAs(page: Page, user: { email: string; name: string }
   await page.goto(path);
   await expect(page).toHaveURL(/\/login/);
   await signInWithGoogle(page, user);
-  if (user.email !== "outsider@example.com") await expect(page).toHaveURL(path);
+  if (user.email === "outsider@example.com") return;
+  await expect(page).toHaveURL(path, { timeout: 60_000 });
+  await expect(page.getByRole("button", { name: `Account: ${user.email}` })).toBeVisible({ timeout: 60_000 });
 }

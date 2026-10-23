@@ -11,13 +11,16 @@ import { NavigationRail } from "@/components/m3/NavigationRail";
 import { findNavItem, visibleGroups, type NavGroup } from "@/components/m3/navigation";
 import { TopAppBar } from "@/components/m3/TopAppBar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import type { SectionKey } from "@/lib/content/sections";
 import { useEmulators } from "@/lib/firebase/config";
 
 import { AccountMenu } from "./AccountMenu";
 import { NAV_GROUPS } from "./nav-config";
+import { RebuildBanner } from "./RebuildBanner";
 import type { ShellUser } from "./ShellUser";
 
-type UserPromise = Promise<ShellUser | null>;
+export type ShellData = { user: ShellUser | null; pendingRebuild: SectionKey[] };
+type ShellPromise = Promise<ShellData>;
 
 const EDITOR_GROUPS = visibleGroups(NAV_GROUPS, false);
 const OWNER_GROUPS = visibleGroups(NAV_GROUPS, true);
@@ -31,36 +34,40 @@ function EmulatorBadge() {
   );
 }
 
-function ResolvedAccount({ userPromise }: { userPromise: UserPromise }) {
-  return <AccountMenu user={use(userPromise)} />;
+function ResolvedAccount({ shellPromise }: { shellPromise: ShellPromise }) {
+  return <AccountMenu user={use(shellPromise).user} />;
+}
+
+function ResolvedBanner({ shellPromise }: { shellPromise: ShellPromise }) {
+  return <RebuildBanner sections={use(shellPromise).pendingRebuild} />;
 }
 
 function WithGroups({
-  userPromise,
+  shellPromise,
   render,
 }: {
-  userPromise: UserPromise;
+  shellPromise: ShellPromise;
   render: (groups: NavGroup[]) => ReactNode;
 }) {
-  const user = use(userPromise);
+  const { user } = use(shellPromise);
   return render(user?.role === "owner" ? OWNER_GROUPS : EDITOR_GROUPS);
 }
 
 function RoleAwareNav({
-  userPromise,
+  shellPromise,
   render,
 }: {
-  userPromise: UserPromise;
+  shellPromise: ShellPromise;
   render: (groups: NavGroup[]) => ReactNode;
 }) {
   return (
     <Suspense fallback={render(EDITOR_GROUPS)}>
-      <WithGroups userPromise={userPromise} render={render} />
+      <WithGroups shellPromise={shellPromise} render={render} />
     </Suspense>
   );
 }
 
-export function AppFrame({ userPromise, children }: { userPromise: UserPromise; children: ReactNode }) {
+export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromise; children: ReactNode }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const current = findNavItem(OWNER_GROUPS, pathname);
@@ -69,7 +76,7 @@ export function AppFrame({ userPromise, children }: { userPromise: UserPromise; 
     <div className="flex min-h-dvh bg-surface-container">
       <aside className="sticky top-0 hidden h-dvh medium:flex expanded:hidden">
         <RoleAwareNav
-          userPromise={userPromise}
+          shellPromise={shellPromise}
           render={(groups) => (
             <NavigationRail
               groups={groups}
@@ -88,7 +95,7 @@ export function AppFrame({ userPromise, children }: { userPromise: UserPromise; 
           <BrandMark size={32} />
         </Link>
         <RoleAwareNav
-          userPromise={userPromise}
+          shellPromise={shellPromise}
           render={(groups) => <NavigationDrawerContent groups={groups} />}
         />
       </aside>
@@ -117,19 +124,22 @@ export function AppFrame({ userPromise, children }: { userPromise: UserPromise; 
               <>
                 <ThemeToggle />
                 <Suspense fallback={<AccountMenu user={null} />}>
-                  <ResolvedAccount userPromise={userPromise} />
+                  <ResolvedAccount shellPromise={shellPromise} />
                 </Suspense>
               </>
             }
           />
           <main id="main" className="flex min-w-0 flex-1 flex-col px-4 pb-28 medium:px-6">
+            <Suspense fallback={null}>
+              <ResolvedBanner shellPromise={shellPromise} />
+            </Suspense>
             {children}
           </main>
         </div>
       </div>
 
       <RoleAwareNav
-        userPromise={userPromise}
+        shellPromise={shellPromise}
         render={(groups) => (
           <NavigationDrawer
             open={drawerOpen}

@@ -14,9 +14,9 @@ async function openEditor(page: Page, path: string) {
   await expect(page.getByRole("button", { name: "Publish" })).toBeVisible();
 }
 
-async function publish(page: Page) {
+async function publish(page: Page, label: string) {
   await page.getByRole("button", { name: "Publish" }).click();
-  await expect(page.getByText("Published. The live site updates after a rebuild.").first()).toBeVisible();
+  await expect(page.getByText(`${label} published. Rebuild the website to show it.`).first()).toBeVisible();
 }
 
 function rows(page: Page) {
@@ -25,7 +25,7 @@ function rows(page: Page) {
 
 test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }) => {
   await openEditor(page, "/community/team");
-  await expect(page.getByText("1 problem to fix before publishing")).toBeVisible();
+  await expect(page.getByRole("main").getByText("1 problem to fix before publishing")).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish" })).toBeDisabled();
 
   await page.getByRole("button", { name: "Add member" }).click();
@@ -66,7 +66,7 @@ test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }
   await expect(page.getByText("Draft saved. The live site is unchanged.").first()).toBeVisible();
   expect(((await readRtdb("teams/data")) as Json[]).length).toBe(21);
 
-  await publish(page);
+  await publish(page, "Team");
   const live = (await readRtdb("teams/data")) as Json[];
   expect(live).toHaveLength(21);
   expect(live[0].name).toBe("Sourav Das");
@@ -96,7 +96,7 @@ test("faq: a new question needs both fields and publishes", async ({ page }) => 
   await dialog.getByLabel("Question").fill("Is there parking at the venue?");
   await dialog.getByLabel("Answer").fill("Yes, free parking is available.");
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
-  await publish(page);
+  await publish(page, "DevFest FAQ");
   const live = (await readRtdb("FAQs/data")) as Json[];
   expect(live).toHaveLength(18);
   expect(live[17]).toEqual({ question: "Is there parking at the venue?", answer: "Yes, free parking is available." });
@@ -108,7 +108,7 @@ test("sponsors: move a sponsor to another tier", async ({ page }) => {
   await page.getByRole("button", { name: "More actions for Rise in" }).click();
   await page.getByRole("menuitem", { name: "Move to Silver" }).click();
   await expect(page.getByRole("tab", { name: "Silver (1)" })).toBeVisible();
-  await publish(page);
+  await publish(page, "Sponsors");
   const live = (await readRtdb("sponsors")) as Record<string, Json[]>;
   expect(live.gold).toHaveLength(2);
   expect(live.silver.map((sponsor) => sponsor.sponsorName)).toEqual(["Rise in"]);
@@ -125,20 +125,21 @@ test("schedule: fixing the AM/PM slip clears the warning and keeps a string dura
   await expect(dialog.getByText("30 minutes")).toBeVisible();
   await dialog.getByRole("button", { name: "Done" }).click();
   await expect(page.getByText("Starts earlier than the slot above it. Check AM/PM or the order.")).toBeHidden();
-  await publish(page);
+  await publish(page, "Schedule");
   const slot = (await readRtdb("schedule/data/4")) as Json;
   expect(slot).toMatchObject({ startTime: "12:10 PM", endTime: "12:40 PM", durationInMins: "30" });
 });
 
 test("event details: edit fields across tabs and publish the exact shape", async ({ page }) => {
   await openEditor(page, "/devfest/event-details");
+  const main = page.getByRole("main");
   await page.getByRole("tab", { name: "Venue" }).click();
-  await page.getByLabel("Venue name").fill("Siliguri Convention Centre");
+  await main.getByLabel("Venue name").fill("Siliguri Convention Centre");
   await page.getByRole("tab", { name: "Perks" }).click();
   await page.getByRole("textbox", { name: "Perk 1" }).fill("Hands-on workshops");
   await page.getByRole("tab", { name: "Points to note" }).click();
   await page.getByRole("switch", { name: "Show points to note" }).click();
-  await publish(page);
+  await publish(page, "Event details");
   const live = (await readRtdb("eventDetails")) as Record<string, Record<string, unknown>>;
   expect(live.eventVenue.name).toBe("Siliguri Convention Centre");
   expect((live.perks.data as string[])[0]).toBe("Hands-on workshops");
@@ -161,7 +162,7 @@ test("events: create the first event, publish it and turn the section on", async
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
   await expect(dialog).toBeHidden();
 
-  await publish(page);
+  await publish(page, "Events");
   const events = (await readRtdb("events")) as { enabled: boolean; data: Json[] };
   expect(events.enabled).toBe(false);
   expect(events.data[0]).toMatchObject({

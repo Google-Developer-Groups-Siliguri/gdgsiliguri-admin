@@ -77,7 +77,7 @@ test.describe("dashboard", () => {
       await expect(sections.getByRole("link", { name, exact: true })).toBeVisible();
     }
     await expect(sections.getByText("21 items")).toBeVisible();
-    await expect(page.getByText("DevFest Siliguri")).toBeVisible();
+    await expect(page.getByRole("main").getByText("DevFest Siliguri")).toBeVisible();
   });
 
   test("quick toggle turns a section off and on after confirming", async ({ page }) => {

@@ -11,7 +11,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { BrandMark } from "@/components/BrandMark";
@@ -42,7 +42,6 @@ function googleProvider() {
 }
 
 export function LoginCard() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const nextPath = safeNextPath(searchParams.get("next"));
   const [status, setStatus] = useState<Status>({ kind: "idle" });
@@ -57,7 +56,7 @@ export function LoginCard() {
     });
     await signOut(clientAuth());
     if (response.ok) {
-      router.replace(nextPath);
+      window.location.replace(nextPath);
       return;
     }
     const body = (await response.json().catch(() => ({}))) as { error?: string; message?: string };

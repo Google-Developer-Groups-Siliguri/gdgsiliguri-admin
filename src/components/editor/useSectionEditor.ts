@@ -14,7 +14,7 @@ import { ContentError, type ContentIssue } from "@/lib/content/errors";
 import type { SectionState } from "@/lib/content/repository";
 import { toRtdbValue } from "@/lib/content/rtdb-value";
 import type { SectionValues } from "@/lib/content/schemas";
-import { isEnabled, validateForPublish, type SectionKey } from "@/lib/content/sections";
+import { isEnabled, SECTIONS, validateForPublish, type SectionKey } from "@/lib/content/sections";
 import { sectionWarnings, type WarningContext } from "@/lib/content/warnings";
 import { deepEqual } from "@/lib/deep-equal";
 
@@ -22,6 +22,11 @@ type Busy = "save" | "publish" | "discard" | null;
 
 function syncKey(state: SectionState): string {
   return `${state.version}|${state.draftUpdatedAt ?? ""}|${state.publishedAt ?? ""}`;
+}
+
+function isNewer(candidate: SectionState, base: SectionState): boolean {
+  if (candidate.version !== base.version) return candidate.version > base.version;
+  return (candidate.draftUpdatedAt ?? "") > (base.draftUpdatedAt ?? "");
 }
 
 function strictIssues(key: SectionKey, draft: unknown): ContentIssue[] {
@@ -43,10 +48,12 @@ function emptyProblem(key: SectionKey, draft: unknown): string | null {
 }
 
 export function useSectionEditor<K extends SectionKey>(
-  state: SectionState<K>,
+  serverState: SectionState<K>,
   context: WarningContext = {},
 ) {
-  const key = state.key;
+  const key = serverState.key;
+  const [latest, setLatest] = useState<SectionState<K> | null>(null);
+  const state = latest && isNewer(latest, serverState) ? latest : serverState;
   const showSnackbar = useSnackbar();
   const router = useRouter();
   const [draft, setDraftState] = useState<SectionValues[K]>(state.draft);
@@ -92,6 +99,7 @@ export function useSectionEditor<K extends SectionKey>(
       fail(result);
       return false;
     }
+    setLatest(result.data as SectionState<K>);
     return true;
   }
 
@@ -116,9 +124,10 @@ export function useSectionEditor<K extends SectionKey>(
         fail(result);
         return;
       }
+      setLatest(result.data as SectionState<K>);
       setServerIssues([]);
       showSnackbar({
-        message: "Published. The live site updates after a rebuild.",
+        message: `${SECTIONS[key].label} published. Rebuild the website to show it.`,
         actionLabel: "Rebuild",
         onAction: () => router.push("/settings/rebuild"),
         duration: 10_000,
@@ -135,6 +144,7 @@ export function useSectionEditor<K extends SectionKey>(
         fail(result);
         return;
       }
+      setLatest(result.data as SectionState<K>);
       setDraftState(result.data.draft as SectionValues[K]);
       setServerIssues([]);
       showSnackbar({ message: "Draft discarded." });
