@@ -33,7 +33,7 @@ test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }
   await dialog.getByLabel("Name").fill("Ada Lovelace");
   await dialog.getByRole("radio", { name: "Organizer" }).click();
   await dialog.getByLabel("Role and company").fill("Analyst @Engines");
-  await dialog.getByLabel("Profile picture URL").fill("https://ik.imagekit.io/gdgsiliguri1/teams/ada.png");
+  await dialog.getByRole("textbox", { name: "Profile picture URL" }).fill("https://ik.imagekit.io/gdgsiliguri1/teams/ada.png");
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
   await expect(dialog).toBeHidden();
 

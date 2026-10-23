@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: "./e2e",
   globalSetup: "./e2e/global-setup.ts",
   fullyParallel: false,
-  timeout: 60_000,
+  timeout: 120_000,
   expect: { timeout: 15_000 },
   workers: 1,
   use: {

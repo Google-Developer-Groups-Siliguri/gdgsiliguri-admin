@@ -1,12 +1,13 @@
 import Link from "next/link";
 
+import { RelativeTime } from "@/components/RelativeTime";
 import { Card } from "@/components/m3/Card";
 import { Icon } from "@/components/m3/Icon";
 import { SectionToggle } from "@/components/section/SectionToggle";
 import { sectionStatus, StatusChip } from "@/components/section/StatusChip";
 import type { SectionState } from "@/lib/content/repository";
 import { isEnabled, itemCount, SECTIONS, type SectionKey } from "@/lib/content/sections";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 export function SectionCard({ sectionKey, state }: { sectionKey: SectionKey; state?: SectionState }) {
   const definition = SECTIONS[sectionKey];
@@ -53,7 +54,7 @@ export function SectionCard({ sectionKey, state }: { sectionKey: SectionKey; sta
           className="min-w-0 truncate text-body-small text-on-surface-variant"
           title={formatDateTime(state.publishedAt)}
         >
-          {timeAgo(state.publishedAt)}
+          <RelativeTime iso={state.publishedAt} />
           {state.publishedBy ? ` · ${state.publishedBy}` : ""}
         </span>
       </div>

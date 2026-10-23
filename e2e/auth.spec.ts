@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { signInAs, signInWithGoogle } from "./support/auth";
+import { signInAsViaPopup as signInAs, signInWithGoogle } from "./support/auth";
 import { TEST_USERS } from "./support/emulator";
 
 test.describe("authentication", () => {

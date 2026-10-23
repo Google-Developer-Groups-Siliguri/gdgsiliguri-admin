@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 
+import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
 import { ConfirmDialog } from "@/components/m3/Dialog";
 import { LinearProgress } from "@/components/m3/Progress";
@@ -10,7 +11,7 @@ import { useSnackbar } from "@/components/m3/Snackbar";
 import { listRevisionsAction, revertAction } from "@/lib/content/actions";
 import type { RevisionSummary } from "@/lib/content/repository";
 import { SECTIONS, type SectionKey } from "@/lib/content/sections";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 type RevisionsSheetProps = {
   sectionKey: SectionKey;
@@ -96,7 +97,7 @@ export function RevisionsSheet({
                     className="text-body-small text-on-surface-variant"
                     title={formatDateTime(revision.publishedAt)}
                   >
-                    {timeAgo(revision.publishedAt)} · {revision.publishedBy}
+                    <RelativeTime iso={revision.publishedAt} /> · {revision.publishedBy}
                   </span>
                   {revision.note && <span className="text-body-medium text-on-surface">{revision.note}</span>}
                   {!live && (

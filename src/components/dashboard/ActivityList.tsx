@@ -1,6 +1,7 @@
+import { RelativeTime } from "@/components/RelativeTime";
 import { Icon } from "@/components/m3/Icon";
 import type { AuditAction, AuditEntry } from "@/lib/content/repository";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 const ACTION_ICONS: Record<AuditAction, string> = {
   save_draft: "edit_note",
@@ -27,7 +28,7 @@ export function ActivityList({ entries }: { entries: AuditEntry[] }) {
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="text-body-medium text-on-surface">{entry.summary}</span>
             <span className="truncate text-body-small text-on-surface-variant" title={formatDateTime(entry.at)}>
-              {entry.actorEmail} · {timeAgo(entry.at)}
+              {entry.actorEmail} · <RelativeTime iso={entry.at} />
             </span>
           </div>
         </li>

@@ -12,6 +12,8 @@ import { TextField } from "@/components/m3/TextField";
 import { TimePicker } from "@/components/m3/TimePicker";
 import { UrlField } from "@/components/m3/UrlField";
 
+import { UploadButton } from "./upload";
+
 type BaseProps<T extends FieldValues> = {
   control: Control<T>;
   name: Path<T>;
@@ -130,7 +132,7 @@ export function ImageInput<T extends FieldValues>({
           error={fieldState.error?.message}
           warning={warning}
           supportingText={supportingText}
-          action={action}
+          action={action ?? <UploadButton label={label} onUploaded={(url) => field.onChange(url)} />}
         />
       )}
     />

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
 import { ConfirmDialog } from "@/components/m3/Dialog";
@@ -9,7 +10,7 @@ import { Icon } from "@/components/m3/Icon";
 import { useSnackbar } from "@/components/m3/Snackbar";
 import { SECTIONS, type SectionKey } from "@/lib/content/sections";
 import { markRebuiltAction, triggerRebuildAction } from "@/lib/site-actions";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 type RebuildPanelProps = {
   configured: boolean;
@@ -59,7 +60,7 @@ export function RebuildPanel({ configured, pending, lastRebuildAt, lastRebuildBy
           </ul>
         )}
         <p className="ps-9 text-body-small text-on-surface-variant" title={formatDateTime(lastRebuildAt)}>
-          Last rebuild: {timeAgo(lastRebuildAt)}
+          Last rebuild: <RelativeTime iso={lastRebuildAt} />
           {lastRebuildBy ? ` by ${lastRebuildBy}` : ""}
         </p>
       </Card>

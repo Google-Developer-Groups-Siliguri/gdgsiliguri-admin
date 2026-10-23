@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 
+import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
 import { ConfirmDialog, Dialog } from "@/components/m3/Dialog";
@@ -14,7 +15,7 @@ import { Avatar } from "@/components/shell/AccountMenu";
 import type { AdminSummary } from "@/lib/admins/repository";
 import type { Role } from "@/lib/auth/roles";
 import { addAdminAction, changeRoleAction, removeAdminAction, type SimpleResult } from "@/lib/site-actions";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 const ROLE_OPTIONS = [
   { value: "owner", label: "Owner" },
@@ -97,7 +98,7 @@ export function AdminsManager({ admins, currentEmail }: { admins: AdminSummary[]
                       <span className="truncate text-body-medium text-on-surface-variant">{admin.email}</span>
                     )}
                     <span className="text-body-small text-on-surface-variant" title={formatDateTime(admin.lastLoginAt)}>
-                      Last sign-in {timeAgo(admin.lastLoginAt)} · added by {admin.addedBy || "unknown"}
+                      Last sign-in <RelativeTime iso={admin.lastLoginAt} /> · added by {admin.addedBy || "unknown"}
                     </span>
                   </div>
                 </div>

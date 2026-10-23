@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { RelativeTime } from "@/components/RelativeTime";
 import { ActivityList } from "@/components/dashboard/ActivityList";
 import { EventCountdown } from "@/components/dashboard/EventCountdown";
 import { SectionCard } from "@/components/dashboard/SectionCard";
@@ -14,7 +15,7 @@ import { loadAllSections, loadAudit, loadPendingRebuild, loadSection, loadSiteSe
 import { SECTIONS } from "@/lib/content/sections";
 import { SECTION_KEYS } from "@/lib/content/sections";
 import { dateTimeToEpoch } from "@/lib/datetime";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -61,7 +62,7 @@ async function RebuildSummary() {
           : "The live site has everything that was published."}
       </p>
       <p className="text-body-small text-on-surface-variant" title={formatDateTime(settings.lastRebuildAt)}>
-        Last rebuild: {timeAgo(settings.lastRebuildAt)}
+        Last rebuild: <RelativeTime iso={settings.lastRebuildAt} />
         {settings.lastRebuildBy ? ` by ${settings.lastRebuildBy}` : ""}
       </p>
       <div>

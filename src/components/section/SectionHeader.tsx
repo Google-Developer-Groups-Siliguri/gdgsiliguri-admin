@@ -2,11 +2,12 @@
 
 import { useState, type ReactNode } from "react";
 
+import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
 import { ConfirmDialog } from "@/components/m3/Dialog";
 import { IconButton } from "@/components/m3/IconButton";
 import { SECTIONS, type SectionKey } from "@/lib/content/sections";
-import { formatDateTime, timeAgo } from "@/lib/time";
+import { formatDateTime } from "@/lib/time";
 
 import { RevisionsSheet } from "./RevisionsSheet";
 import { SectionToggle } from "./SectionToggle";
@@ -71,7 +72,7 @@ export function SectionHeader({
           className="me-auto text-body-small text-on-surface-variant"
           title={formatDateTime(publishedAt)}
         >
-          Published {timeAgo(publishedAt)}
+          Published <RelativeTime iso={publishedAt} />
           {publishedBy ? ` by ${publishedBy}` : ""} · version {version}
         </span>
         {extra}

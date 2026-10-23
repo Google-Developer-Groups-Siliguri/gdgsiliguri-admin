@@ -87,6 +87,7 @@ test("publishing shows the rebuild banner until the site is marked as rebuilt", 
   await page.getByRole("button", { name: /^More actions for/ }).first().click();
   await page.getByRole("menuitem", { name: "Move down" }).click();
   await page.getByRole("button", { name: "Publish" }).click();
+  await expect(page.getByText("Reviews published. Rebuild the website to show it.").first()).toBeVisible();
 
   const banner = page.getByRole("status").filter({ hasText: "Waiting:" });
   await expect(banner).toBeVisible();
