@@ -12,6 +12,7 @@ Read this whole file before writing any code. Work through the phases in order. 
 - Repo: `/Users/debajitmallick/Personal/Projects/gdg-siliguri-website`, branch `dev`. Netlify deploys `dev` to gdgsiliguri.com.
 - Angular 20. It reads Realtime Database over **unauthenticated REST**: `GET {databaseURL}/<path>.json`. See `src/app/services/data.service.ts` on the `dev` branch.
 - The site is **pre-rendered to static HTML at build time** (`outputMode: "static"`). Data is baked into the pages when Netlify builds. **Changing the database does not change the live site until Netlify rebuilds it.** The admin therefore needs a "Rebuild website" action (Phase 6).
+- Ask the user whether `proposals/website-fresh-data.md` has been applied to the website. If it has, the site re-fetches data in the browser after load, so published changes show on the next page visit. A rebuild then only refreshes the pre-rendered HTML for search engines and link previews. In that case, change the post-publish banner to "Published. Visitors see it on their next visit." and keep "Rebuild website" as a secondary action.
 - Treat the website repo as read-only. You may read it to confirm field names. If the website itself needs a change, write it down for the user instead of making it.
 
 ### 1.2 The data contract

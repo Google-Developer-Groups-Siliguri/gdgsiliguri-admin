@@ -1,0 +1,286 @@
+diff --git a/src/app/components/organizers.component.ts b/src/app/components/organizers.component.ts
+index 823c068..86d21c2 100644
+--- a/src/app/components/organizers.component.ts
++++ b/src/app/components/organizers.component.ts
+@@ -1,5 +1,6 @@
+-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+-import { filter, take } from 'rxjs';
++import { ChangeDetectorRef, Component, DestroyRef, inject, OnInit } from '@angular/core';
++import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
++import { filter } from 'rxjs';
+ import { DataService, Members } from '../services/data.service';
+ import { MemberCardComponent } from './member-card/member-card.component';
+ import { SectionHeadingComponent } from './ui/section-heading/section-heading';
+@@ -27,6 +28,7 @@ import { SectionHeadingComponent } from './ui/section-heading/section-heading';
+ export class OrganizersComponent implements OnInit {
+   organizers: Members[] = [];
+   sectionEnabled = false;
++  private destroyRef = inject(DestroyRef);
+ 
+   constructor(
+     private $firebaseDataService: DataService,
+@@ -42,7 +44,7 @@ export class OrganizersComponent implements OnInit {
+       .getAllTeams()
+       .pipe(
+         filter((result) => result.data.length > 0),
+-        take(1)
++        takeUntilDestroyed(this.destroyRef)
+       )
+       .subscribe({
+         next: (result) => {
+diff --git a/src/app/pages/blogs/blogs-page.component.ts b/src/app/pages/blogs/blogs-page.component.ts
+index 6fe109d..e470471 100644
+--- a/src/app/pages/blogs/blogs-page.component.ts
++++ b/src/app/pages/blogs/blogs-page.component.ts
+@@ -1,8 +1,8 @@
+ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
++import { toSignal } from '@angular/core/rxjs-interop';
+ import { Meta, Title } from '@angular/platform-browser';
+-import { ActivatedRoute } from '@angular/router';
+ import { PageHeaderComponent } from 'src/app/components/page-header/page-header.component';
+-import { BlogPost } from 'src/app/services/data.service';
++import { DataService } from 'src/app/services/data.service';
+ import { BlogCardComponent } from '../../components/blog-card.component';
+ 
+ @Component({
+@@ -15,9 +15,9 @@ import { BlogCardComponent } from '../../components/blog-card.component';
+       subtitle="Read our latest articles and stories from the community."
+     />
+     <div class="page-container">
+-      @if (blogs.length > 0) {
++      @if (blogs().length > 0) {
+         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+-          @for (blog of blogs; track blog.id) {
++          @for (blog of blogs(); track blog.id) {
+             <app-blog-card [blog]="blog" />
+           }
+         </div>
+@@ -31,11 +31,12 @@ import { BlogCardComponent } from '../../components/blog-card.component';
+   changeDetection: ChangeDetectionStrategy.OnPush,
+ })
+ export class BlogsPageComponent {
+-  private route = inject(ActivatedRoute);
+   private meta = inject(Meta);
+   private title = inject(Title);
+ 
+-  blogs: BlogPost[];
++  protected readonly blogs = toSignal(inject(DataService).getHashnodeBlogs(), {
++    initialValue: [],
++  });
+ 
+   constructor() {
+     this.meta.addTag({
+@@ -43,6 +44,5 @@ export class BlogsPageComponent {
+       content: 'Blogs | GDG Siliguri',
+     });
+     this.title.setTitle('Blogs | GDG Siliguri');
+-    this.blogs = (this.route.snapshot.data['data'] as BlogPost[] | null) ?? [];
+   }
+ }
+diff --git a/src/app/pages/events/events-page.component.ts b/src/app/pages/events/events-page.component.ts
+index 61de438..5cb2b43 100644
+--- a/src/app/pages/events/events-page.component.ts
++++ b/src/app/pages/events/events-page.component.ts
+@@ -1,9 +1,10 @@
+ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
++import { toSignal } from '@angular/core/rxjs-interop';
+ import { Meta, Title } from '@angular/platform-browser';
+-import { ActivatedRoute } from '@angular/router';
+ import { CommingSoonComponent } from 'src/app/components/comming-soon/comming-soon.component';
+ import { PageHeaderComponent } from 'src/app/components/page-header/page-header.component';
+-import { Events } from 'src/app/services/data.service';
++import { map } from 'rxjs';
++import { DataService } from 'src/app/services/data.service';
+ import { CommunityEventsListComponent } from '../../components/community-events-list.component';
+ 
+ @Component({
+@@ -16,8 +17,8 @@ import { CommunityEventsListComponent } from '../../components/community-events-
+       subtitle="Take a glance at our upcoming events and register."
+     />
+     <div class="page-container">
+-      @if (events.length) {
+-        <app-community-events-list [eventsList]="events" />
++      @if (events().length) {
++        <app-community-events-list [eventsList]="events()" />
+       } @else {
+         <app-comming-soon message="New events are on the way" />
+       }
+@@ -26,11 +27,15 @@ import { CommunityEventsListComponent } from '../../components/community-events-
+   changeDetection: ChangeDetectionStrategy.OnPush,
+ })
+ export class EventsPageComponent {
+-  private route = inject(ActivatedRoute);
+   private meta = inject(Meta);
+   private title = inject(Title);
+ 
+-  events: Events[];
++  protected readonly events = toSignal(
++    inject(DataService)
++      .getCommunityEventsData()
++      .pipe(map((result) => (result?.enabled ? result.data : []))),
++    { initialValue: [] }
++  );
+ 
+   constructor() {
+     this.meta.addTag({
+@@ -38,7 +43,5 @@ export class EventsPageComponent {
+       content: 'Events | GDG Siliguri',
+     });
+     this.title.setTitle('Events | GDG Siliguri');
+-    const result = this.route.snapshot.data['data'] as { enabled: boolean; data: Events[] } | null;
+-    this.events = result?.enabled ? result.data : [];
+   }
+ }
+diff --git a/src/app/resolvers/devfest.resolver.ts b/src/app/resolvers/devfest.resolver.ts
+index be82776..7709dcd 100644
+--- a/src/app/resolvers/devfest.resolver.ts
++++ b/src/app/resolvers/devfest.resolver.ts
+@@ -1,7 +1,7 @@
+ import { inject } from '@angular/core';
+ import { ResolveFn } from '@angular/router';
+ import { DataService, EventData, Members, Sponsors } from '../services/data.service';
+-import { forkJoin } from 'rxjs';
++import { combineLatest } from 'rxjs';
+ 
+ export interface DevfestData {
+   eventData: EventData;
+@@ -17,7 +17,7 @@ export interface DevfestData {
+ export const devfestResolver: ResolveFn<DevfestData> = () => {
+   const dataService = inject(DataService);
+ 
+-  return forkJoin({
++  return combineLatest({
+     eventData: dataService.getEventData(),
+     speakers: dataService.getAllSpeakers(),
+     sponsors: dataService.getAllSponsors(),
+diff --git a/src/app/resolvers/home.resolver.ts b/src/app/resolvers/home.resolver.ts
+index 392210b..af2ab7e 100644
+--- a/src/app/resolvers/home.resolver.ts
++++ b/src/app/resolvers/home.resolver.ts
+@@ -1,7 +1,7 @@
+ import { inject } from '@angular/core';
+ import { ResolveFn } from '@angular/router';
+ import { DataService, EventData, FAQ } from '../services/data.service';
+-import { forkJoin } from 'rxjs';
++import { combineLatest } from 'rxjs';
+ 
+ export interface HomeData {
+   eventData: EventData;
+@@ -11,7 +11,7 @@ export interface HomeData {
+ export const homeResolver: ResolveFn<HomeData> = () => {
+   const dataService = inject(DataService);
+ 
+-  return forkJoin({
++  return combineLatest({
+     eventData: dataService.getEventData(),
+     faqs: dataService.getAllGDGFAQS(),
+   });
+diff --git a/src/app/services/data.service.ts b/src/app/services/data.service.ts
+index b179b1d..f553a23 100644
+--- a/src/app/services/data.service.ts
++++ b/src/app/services/data.service.ts
+@@ -1,8 +1,16 @@
+-import { inject, Injectable, makeStateKey, PLATFORM_ID, TransferState } from '@angular/core';
++import {
++  ApplicationRef,
++  inject,
++  Injectable,
++  makeStateKey,
++  PLATFORM_ID,
++  StateKey,
++  TransferState,
++} from '@angular/core';
+ import { isPlatformBrowser } from '@angular/common';
+ import { HttpClient } from '@angular/common/http';
+-import { Observable, of } from 'rxjs';
+-import { catchError, map, tap } from 'rxjs/operators';
++import { concat, EMPTY, from, Observable, of } from 'rxjs';
++import { catchError, filter, map, shareReplay, switchMap, tap } from 'rxjs/operators';
+ import { environment } from '../../environments/environment';
+ import { BLOG_FEED_PROXY_PATH, HASHNODE_RSS_URL, parseHashnodeRss } from './hashnode-rss';
+ 
+@@ -122,6 +130,9 @@ export class DataService {
+   private http = inject(HttpClient);
+   private transferState = inject(TransferState);
+   private platformId = inject(PLATFORM_ID);
++  private appRef = inject(ApplicationRef);
++  private isBrowser = isPlatformBrowser(this.platformId);
++  private refreshRequests = new Map<string, Observable<unknown>>();
+   private apiBaseUrl = environment.apiBaseUrl;
+ 
+   private dbPaths = {
+@@ -138,16 +149,46 @@ export class DataService {
+   };
+ 
+   private getWithTransferState<T>(key: string, url: string): Observable<T> {
++    return this.getCachedThenFresh(key, () => this.http.get<T>(url));
++  }
++
++  private getCachedThenFresh<T>(key: string, fetch: () => Observable<T>): Observable<T> {
+     const stateKey = makeStateKey<T>(key);
++    const fetchAndCache = () =>
++      fetch().pipe(tap((data) => this.transferState.set(stateKey, data)));
+ 
+-    const existing = this.transferState.get(stateKey, null);
++    if (!this.transferState.hasKey(stateKey)) {
++      return fetchAndCache();
++    }
++    const cached = this.transferState.get(stateKey, null) as T;
++    if (!this.isBrowser) {
++      return of(cached);
++    }
++
++    return concat(
++      of(cached),
++      this.refreshOnceAfterHydration(stateKey, fetchAndCache).pipe(
++        filter((fresh) => JSON.stringify(fresh) !== JSON.stringify(cached))
++      )
++    );
++  }
++
++  private refreshOnceAfterHydration<T>(
++    stateKey: StateKey<T>,
++    fetchAndCache: () => Observable<T>
++  ): Observable<T> {
++    const existing = this.refreshRequests.get(stateKey);
+     if (existing) {
+-      return of(existing);
++      return existing as Observable<T>;
+     }
+ 
+-    return this.http.get<T>(url).pipe(
+-      tap(data => this.transferState.set(stateKey, data))
++    const refresh = from(this.appRef.whenStable()).pipe(
++      switchMap(fetchAndCache),
++      catchError(() => EMPTY),
++      shareReplay(1)
+     );
++    this.refreshRequests.set(stateKey, refresh);
++    return refresh;
+   }
+ 
+   //organizers and volunteers
+@@ -242,19 +283,10 @@ export class DataService {
+ 
+   //hashnode blogs
+   getHashnodeBlogs(): Observable<BlogPost[]> {
+-    const stateKey = makeStateKey<BlogPost[]>('hashnodeBlogs');
+-
+-    const existing = this.transferState.get(stateKey, null);
+-    if (existing) {
+-      return of(existing);
+-    }
+-
+-    const feedUrl = isPlatformBrowser(this.platformId) ? BLOG_FEED_PROXY_PATH : HASHNODE_RSS_URL;
++    const feedUrl = this.isBrowser ? BLOG_FEED_PROXY_PATH : HASHNODE_RSS_URL;
+ 
+-    return this.http.get(feedUrl, { responseType: 'text' }).pipe(
+-      map(parseHashnodeRss),
+-      tap((blogs) => this.transferState.set(stateKey, blogs)),
+-      catchError(() => of([]))
+-    );
++    return this.getCachedThenFresh('hashnodeBlogs', () =>
++      this.http.get(feedUrl, { responseType: 'text' }).pipe(map(parseHashnodeRss))
++    ).pipe(catchError(() => of([])));
+   }
+ }
