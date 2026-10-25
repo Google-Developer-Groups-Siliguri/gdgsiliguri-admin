@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { LOGIN_PATH, PUBLIC_PATH_PREFIXES, SESSION_COOKIE } from "@/lib/auth/constants";
-import { adminAuth } from "@/lib/firebase/admin";
 
 function isPublic(pathname: string): boolean {
   if (process.env.NODE_ENV !== "production" && pathname.startsWith("/dev/")) return true;
@@ -10,21 +9,14 @@ function isPublic(pathname: string): boolean {
   );
 }
 
-async function hasValidSession(request: NextRequest): Promise<boolean> {
-  const sessionCookie = request.cookies.get(SESSION_COOKIE)?.value;
-  if (!sessionCookie) return false;
-  try {
-    await adminAuth().verifySessionCookie(sessionCookie);
-    return true;
-  } catch {
-    return false;
-  }
+function hasSessionCookie(request: NextRequest): boolean {
+  return Boolean(request.cookies.get(SESSION_COOKIE)?.value);
 }
 
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   if (isPublic(pathname)) return NextResponse.next();
-  if (await hasValidSession(request)) return NextResponse.next();
+  if (hasSessionCookie(request)) return NextResponse.next();
 
   if (pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "signed_out" }, { status: 401 });
