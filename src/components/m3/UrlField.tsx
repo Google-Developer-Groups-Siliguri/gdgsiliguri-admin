@@ -17,7 +17,7 @@ export type UrlFieldProps = {
   supportingText?: string;
   required?: boolean;
   disabled?: boolean;
-  variant?: "filled" | "outlined";
+  variant?: "filled" | "pill";
   name?: string;
   leadingIcon?: string;
   ref?: Ref<HTMLInputElement>;

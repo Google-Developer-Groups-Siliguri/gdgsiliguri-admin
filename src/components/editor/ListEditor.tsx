@@ -131,7 +131,7 @@ export function ListEditor<T extends object>({
         <TextField
           label={`Search ${items.length} ${items.length === 1 ? noun : `${noun}s`}`}
           leadingIcon="search"
-          variant="outlined"
+          variant="pill"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           containerClassName="compact:max-w-sm"

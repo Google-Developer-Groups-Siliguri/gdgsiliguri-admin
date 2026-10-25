@@ -15,7 +15,7 @@ export type SelectProps = {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
-  variant?: "filled" | "outlined";
+  variant?: "filled" | "pill";
   supportingText?: string;
   error?: string | false;
   disabled?: boolean;
@@ -39,7 +39,7 @@ export function Select({
   className,
 }: SelectProps) {
   const id = useId();
-  const filled = variant === "filled";
+  const pill = variant === "pill";
   const message = error || supportingText;
   return (
     <div className={cn("flex w-full flex-col", className)}>
@@ -57,19 +57,21 @@ export function Select({
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={message ? `${id}-support` : undefined}
           className={cn(
-            "group state-layer relative flex h-14 w-full cursor-pointer items-center ps-4 pe-3 text-start outline-none",
-            "disabled:cursor-default disabled:text-on-surface/38",
-            filled
-              ? "rounded-t-xs bg-surface-container-highest pt-5 after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-on-surface-variant focus-visible:after:h-0.5 focus-visible:after:bg-primary data-[state=open]:after:h-0.5 data-[state=open]:after:bg-primary"
-              : "rounded-xs ring-1 ring-outline ring-inset focus-visible:ring-2 focus-visible:ring-primary data-[state=open]:ring-2 data-[state=open]:ring-primary",
-            error && (filled ? "after:bg-error" : "ring-error"),
+            "group state-layer relative flex h-14 w-full cursor-pointer items-center pt-5 pe-3 text-start outline-none ring-inset",
+            "transition-[box-shadow,border-radius] duration-medium ease-emph disabled:cursor-default disabled:opacity-60",
+            pill
+              ? "rounded-full bg-surface-container-high ps-6 data-[state=open]:rounded-lg"
+              : "rounded-md bg-surface-container-highest ps-4",
+            error
+              ? "ring-2 ring-error"
+              : "focus-visible:ring-2 focus-visible:ring-primary data-[state=open]:ring-2 data-[state=open]:ring-primary",
           )}
         >
           <span
             id={`${id}-label`}
             className={cn(
-              "pointer-events-none absolute start-4 text-body-small",
-              filled ? "top-2" : "-top-2.5 bg-[var(--field-bg,var(--md-sys-color-surface))] px-1 -ms-1",
+              "pointer-events-none absolute top-2 text-body-small",
+              pill ? "start-6" : "start-4",
               error ? "text-error" : "text-on-surface-variant group-data-[state=open]:text-primary",
             )}
           >
@@ -87,16 +89,16 @@ export function Select({
         <RadixSelect.Portal>
           <RadixSelect.Content
             position="popper"
-            sideOffset={2}
-            className="z-50 max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-xs bg-surface-container elevation-2 animate-fade-in"
+            sideOffset={6}
+            className="z-50 max-h-[var(--radix-select-content-available-height)] min-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-lg bg-surface-container-high shadow-[0_16px_40px_-16px_rgb(0_0_0/0.5)] animate-scale-in"
           >
-            <RadixSelect.Viewport className="py-2">
+            <RadixSelect.Viewport className="flex flex-col gap-0.5 p-2">
               {options.map((option) => (
                 <RadixSelect.Item
                   key={option.value}
                   value={option.value}
                   className={cn(
-                    "state-layer flex h-12 cursor-pointer items-center gap-3 px-3 text-label-large text-on-surface outline-none select-none",
+                    "state-layer flex h-12 cursor-pointer items-center gap-3 rounded-md px-3 text-label-large text-on-surface outline-none select-none",
                     "data-[highlighted]:before:opacity-8 data-[state=checked]:bg-secondary-container data-[state=checked]:text-on-secondary-container",
                   )}
                 >

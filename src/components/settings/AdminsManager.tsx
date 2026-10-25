@@ -106,7 +106,7 @@ export function AdminsManager({ admins, currentEmail }: { admins: AdminSummary[]
                   <div className="w-40">
                     <Select
                       label="Role"
-                      variant="outlined"
+                      variant="pill"
                       value={admin.role}
                       options={ROLE_OPTIONS}
                       disabled={pending}

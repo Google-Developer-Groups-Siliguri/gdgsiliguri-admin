@@ -5,7 +5,7 @@ import { cn } from "@/lib/cn";
 import { Icon } from "./Icon";
 
 const BASE =
-  "state-layer focus-ring inline-flex h-8 shrink-0 cursor-pointer items-center gap-2 rounded-sm text-label-large transition-colors duration-short ease-standard disabled:cursor-default disabled:opacity-38";
+  "state-layer focus-ring press inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-full text-label-large active:rounded-sm disabled:cursor-default disabled:opacity-38";
 
 export type AssistChipProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon?: string;
@@ -26,10 +26,10 @@ export function AssistChip({
       type={type}
       className={cn(
         BASE,
-        icon ? "ps-2 pe-4" : "px-4",
+        icon ? "ps-3 pe-4" : "px-4",
         elevated
-          ? "bg-surface-container-low elevation-1 text-on-surface"
-          : "border border-outline-variant text-on-surface",
+          ? "bg-surface-container-highest text-on-surface"
+          : "bg-surface-container-high text-on-surface",
         className,
       )}
       {...props}
@@ -68,10 +68,10 @@ export function FilterChip({
       }}
       className={cn(
         BASE,
-        leading ? "ps-2 pe-4" : "px-4",
+        leading ? "ps-3 pe-4" : "px-4",
         selected
           ? "bg-secondary-container text-on-secondary-container"
-          : "border border-outline-variant text-on-surface-variant",
+          : "bg-surface-container-high text-on-surface-variant",
         className,
       )}
       {...props}
@@ -102,7 +102,7 @@ export function InputChip({
   return (
     <span
       className={cn(
-        "inline-flex h-8 shrink-0 items-center gap-2 rounded-sm border border-outline-variant text-label-large text-on-surface-variant",
+        "inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-surface-container-high text-label-large text-on-surface-variant",
         avatar ? "ps-1" : icon ? "ps-2" : "ps-3",
         onRemove ? "pe-1" : "pe-3",
         className,

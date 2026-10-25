@@ -19,7 +19,7 @@ type TimePickerProps = {
   supportingText?: string;
   required?: boolean;
   disabled?: boolean;
-  variant?: "filled" | "outlined";
+  variant?: "filled" | "pill";
   name?: string;
 };
 

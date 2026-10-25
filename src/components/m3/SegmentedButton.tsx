@@ -57,7 +57,7 @@ export function SegmentedButton({
       aria-label={label}
       aria-disabled={disabled || undefined}
       onKeyDown={disabled ? undefined : onKeyDown}
-      className={cn("inline-flex h-10 rounded-full border border-outline", className)}
+      className={cn("inline-flex h-11 gap-0.5", className)}
     >
       {segments.map((segment, index) => {
         const selected = segment.value === value;
@@ -72,10 +72,11 @@ export function SegmentedButton({
             disabled={disabled}
             onClick={() => onValueChange(segment.value)}
             className={cn(
-              "state-layer focus-ring flex min-w-12 flex-1 cursor-pointer items-center justify-center gap-2 px-3 text-label-large",
-              "border-outline not-first:border-s first:rounded-s-full last:rounded-e-full",
+              "state-layer focus-ring press flex min-w-12 flex-1 cursor-pointer items-center justify-center gap-2 px-4 text-label-large",
               "disabled:cursor-default disabled:opacity-38",
-              selected ? "bg-secondary-container text-on-secondary-container" : "text-on-surface",
+              selected
+                ? "rounded-full bg-secondary-container text-on-secondary-container"
+                : "rounded-sm bg-surface-container-highest text-on-surface first:rounded-s-full last:rounded-e-full",
             )}
           >
             {(selected || segment.icon) && (

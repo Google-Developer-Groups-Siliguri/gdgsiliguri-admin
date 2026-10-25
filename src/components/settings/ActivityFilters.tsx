@@ -31,14 +31,14 @@ export function ActivityFilters({ section, actor, actors }: ActivityFiltersProps
     <div className="grid grid-cols-1 gap-3 compact:grid-cols-2 medium:max-w-2xl">
       <Select
         label="Section"
-        variant="outlined"
+        variant="pill"
         value={section ?? ALL}
         options={[{ value: ALL, label: "All sections" }, ...SECTION_KEYS.map((key) => ({ value: key, label: SECTIONS[key].label }))]}
         onValueChange={(value) => update({ section: value === ALL ? null : value })}
       />
       <Select
         label="Person"
-        variant="outlined"
+        variant="pill"
         value={actor ?? ALL}
         options={[{ value: ALL, label: "Everyone" }, ...actors.map((email) => ({ value: email, label: email }))]}
         onValueChange={(value) => update({ actor: value === ALL ? null : value })}

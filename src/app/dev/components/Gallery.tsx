@@ -199,9 +199,9 @@ export function Gallery() {
       <Section title="Text fields">
         <div className="grid grid-cols-1 gap-4 medium:grid-cols-2">
           <TextField label="Name" defaultValue="Debajit Mallick" required />
-          <TextField label="Name" variant="outlined" defaultValue="Debajit Mallick" />
+          <TextField label="Name" variant="pill" defaultValue="Debajit Mallick" />
           <TextField label="Designation" leadingIcon="badge" supportingText="Organizer or Volunteer" />
-          <TextField label="Email" variant="outlined" error="Must be an email address" defaultValue="foo" />
+          <TextField label="Email" variant="pill" error="Must be an email address" defaultValue="foo" />
           <TextField
             label="Description"
             multiline
@@ -209,7 +209,7 @@ export function Gallery() {
             maxLength={280}
             defaultValue="Google Developer Group Siliguri organizer."
           />
-          <TextField label="Disabled" disabled defaultValue="Read only" variant="outlined" />
+          <TextField label="Disabled" disabled defaultValue="Read only" variant="pill" />
           <UrlField label="Twitter URL" value={url} onChange={setUrl} />
           <Select
             label="Track"
