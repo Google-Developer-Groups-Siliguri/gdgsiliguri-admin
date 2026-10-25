@@ -6,6 +6,7 @@ import { Controller, useForm, useWatch, type Control } from "react-hook-form";
 import type { z } from "zod";
 
 import { DateTimeInput } from "@/components/editor/DateTimeInput";
+import { ImageSlotInput } from "@/components/editor/ImageSlot";
 import { FormSection } from "@/components/editor/FormSection";
 import { ImageInput, TextInput, UrlInput } from "@/components/editor/fields";
 import { fieldMessages, issuesUnder, itemIssues } from "@/components/editor/issues";
@@ -14,6 +15,7 @@ import { ListEditor, type ItemFormProps } from "@/components/editor/ListEditor";
 import { SectionEditorLayout } from "@/components/editor/SectionEditorLayout";
 import { StringListEditor } from "@/components/editor/StringListEditor";
 import { useSectionEditor } from "@/components/editor/useSectionEditor";
+import { Icon } from "@/components/m3/Icon";
 import { Switch } from "@/components/m3/Switch";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/m3/Tabs";
 import type { SectionState } from "@/lib/content/repository";
@@ -94,22 +96,26 @@ function SocialLinkForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps
 
 function MapPreview({ url }: { url: string }) {
   const embeddable = isHttpsUrl(url) && /google\.[a-z.]+\/maps\/embed/.test(url);
-  if (!url) return null;
-  if (!embeddable) {
+  if (embeddable) {
     return (
-      <p className="px-4 text-body-small text-on-surface-variant">
-        The preview appears for Google Maps embed links (Share → Embed a map → copy the src).
-      </p>
+      <iframe
+        title="Venue map preview"
+        src={url}
+        className="aspect-[4/3] w-full rounded-[28px] border-0 bg-surface-container"
+        loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
+      />
     );
   }
   return (
-    <iframe
-      title="Venue map preview"
-      src={url}
-      className="h-64 w-full rounded-md border-0 bg-surface-container"
-      loading="lazy"
-      referrerPolicy="no-referrer-when-downgrade"
-    />
+    <div className="flex aspect-[4/3] w-full flex-col items-center justify-center gap-2.5 rounded-[28px] bg-[repeating-linear-gradient(135deg,var(--md-sys-color-surface-container-high)_0_12px,var(--md-sys-color-surface-container)_12px_24px)] px-6 text-center text-on-surface-variant">
+      <span className="shape-cookie6 grid size-11 place-items-center bg-primary text-on-primary">
+        <Icon name="location_on" size={20} />
+      </span>
+      <span className="text-body-small">
+        {url ? "The preview appears for Google Maps embed links." : "Add a map embed to see a live preview."}
+      </span>
+    </div>
   );
 }
 
@@ -294,24 +300,51 @@ export function EventDetailsEditor({ state }: { state: SectionState<"eventDetail
             <EventModeCard control={control} />
           </TabPanel>
 
-          <TabPanel value="banners" forceMount hidden={tab !== "banners"}>
-            <FormSection title="Banners" description="Upload an image or paste a link for each slot.">
-              <div className="grid grid-cols-1 gap-5 medium:grid-cols-2">
-                <ImageInput control={control} name="bannerImages.large" label="Large banner" shape="wide" supportingText="Hero image on the DevFest and home pages" />
-                <ImageInput control={control} name="bannerImages.long" label="Long banner" shape="wide" />
-                <ImageInput control={control} name="bannerImages.medium" label="Medium banner" shape="wide" />
-                <ImageInput control={control} name="bannerImages.small" label="Small banner" shape="wide" />
-                <div className="medium:col-span-2">
-                  <ImageInput control={control} name="bannerImages.aisummit" label="AI Summit banner (optional)" shape="wide" supportingText="Shown below the hero when set" />
-                </div>
-              </div>
-            </FormSection>
+          <TabPanel value="banners" forceMount hidden={tab !== "banners"} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5 px-1">
+              <h2 className="font-display text-[20px] font-extrabold text-on-surface">Banners</h2>
+              <p className="text-body-small text-on-surface-variant">
+                Drop an image on a slot, browse, or paste a link. Each slot shows its recommended size.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 gap-4 medium:grid-cols-2">
+              <ImageSlotInput
+                control={control}
+                name="bannerImages.large"
+                label="Large banner"
+                size="2400 × 920"
+                aspect="2.6"
+                fit="cover"
+                hint="Hero on the DevFest and home pages"
+                className="medium:col-span-2"
+              />
+              <ImageSlotInput
+                control={control}
+                name="bannerImages.long"
+                label="Long banner"
+                size="3200 × 600"
+                aspect="5.3"
+                fit="cover"
+                hint="Header strip"
+                className="medium:col-span-2"
+              />
+              <ImageSlotInput control={control} name="bannerImages.medium" label="Medium banner" size="1600 × 900" aspect="16 / 9" fit="cover" />
+              <ImageSlotInput control={control} name="bannerImages.small" label="Small banner" size="1080 × 1080" aspect="16 / 9" fit="contain" />
+              <ImageSlotInput
+                control={control}
+                name="bannerImages.aisummit"
+                label="AI Summit banner"
+                size="1200 × 400"
+                aspect="3"
+                hint="Optional · shown below the hero when set"
+                className="medium:col-span-2"
+              />
+            </div>
           </TabPanel>
 
-          <TabPanel value="venue" forceMount hidden={tab !== "venue"}>
-            <FormSection title="Venue" description="Where DevFest happens, with the photo and map visitors see.">
+          <TabPanel value="venue" forceMount hidden={tab !== "venue"} className="flex flex-col gap-4 expanded:flex-row">
+            <FormSection title="Venue" description="Where DevFest happens." className="flex-1" stacked>
               <TextInput control={control} name="eventVenue.name" label="Venue name" />
-              <ImageInput control={control} name="eventVenue.imageURL" label="Venue photo URL" shape="wide" />
               <UrlInput control={control} name="eventVenue.mapsURL" label="Google Maps link" leadingIcon="pin_drop" supportingText="Used by the “Directions” button." />
               <UrlInput
                 control={control}
@@ -320,15 +353,24 @@ export function EventDetailsEditor({ state }: { state: SectionState<"eventDetail
                 leadingIcon="map"
                 supportingText="In Google Maps: Share → Embed a map → copy the src value."
               />
-              <MapPreview url={venueMap ?? ""} />
             </FormSection>
+            <div className="flex flex-col gap-3 expanded:w-100 expanded:shrink-0">
+              <ImageSlotInput control={control} name="eventVenue.imageURL" label="Venue photo" aspect="4 / 3" fit="cover" />
+              <MapPreview url={venueMap ?? ""} />
+            </div>
           </TabPanel>
 
           <TabPanel value="frames" forceMount hidden={tab !== "frames"}>
             <FormSection title="Speaker frames" description="Each speaker’s track picks one of these frames.">
-              <div className="grid grid-cols-1 gap-5 medium:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 compact:grid-cols-2 expanded:grid-cols-3">
                 {(["AI", "App", "Cloud", "Web", "default"] as const).map((track) => (
-                  <ImageInput key={track} control={control} name={`frames.speakers.${track}`} label={track === "default" ? "Default frame" : `${track} frame`} />
+                  <ImageSlotInput
+                    key={track}
+                    control={control}
+                    name={`frames.speakers.${track}`}
+                    label={track === "default" ? "Default frame" : `${track} frame`}
+                    aspect="1"
+                  />
                 ))}
               </div>
             </FormSection>

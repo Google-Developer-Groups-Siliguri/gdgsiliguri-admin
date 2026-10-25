@@ -27,34 +27,41 @@ function localProblem(file: File): string | null {
   return null;
 }
 
-export function UploadButton({ label, onUploaded }: { label: string; onUploaded: (url: string) => void }) {
+export function useImageUpload() {
   const target = useUploadTarget();
   const showSnackbar = useSnackbar();
-  const input = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
-  if (!target) return null;
 
-  async function upload(file: File) {
+  async function upload(file: File): Promise<string | null> {
+    if (!target) return null;
     const problem = localProblem(file);
     if (problem) {
       showSnackbar({ message: problem, tone: "error" });
-      return;
+      return null;
     }
     setUploading(true);
     const body = new FormData();
     body.set("file", file);
-    body.set("kind", target!.kind);
-    if (target!.year) body.set("year", String(target!.year));
+    body.set("kind", target.kind);
+    if (target.year) body.set("year", String(target.year));
     const response = await fetch("/api/upload", { method: "POST", body }).catch(() => null);
     const result = (await response?.json().catch(() => null)) as { url?: string; error?: string } | null;
     setUploading(false);
     if (!response?.ok || !result?.url) {
       showSnackbar({ message: result?.error ?? "The upload failed. Try again.", tone: "error" });
-      return;
+      return null;
     }
-    onUploaded(result.url);
     showSnackbar({ message: "Image uploaded." });
+    return result.url;
   }
+
+  return { available: target !== null, uploading, upload };
+}
+
+export function UploadButton({ label, onUploaded }: { label: string; onUploaded: (url: string) => void }) {
+  const { available, uploading, upload } = useImageUpload();
+  const input = useRef<HTMLInputElement>(null);
+  if (!available) return null;
 
   return (
     <div className="flex flex-col gap-1 ps-1">
@@ -68,7 +75,7 @@ export function UploadButton({ label, onUploaded }: { label: string; onUploaded:
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = "";
-          if (file) void upload(file);
+          if (file) void upload(file).then((url) => url && onUploaded(url));
         }}
       />
       <div>
