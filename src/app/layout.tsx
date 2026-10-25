@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Roboto_Flex } from "next/font/google";
+import { Manrope, Urbanist } from "next/font/google";
 import localFont from "next/font/local";
 
 import { Providers } from "@/components/Providers";
@@ -7,9 +7,15 @@ import { THEME_BOOTSTRAP_SCRIPT } from "@/components/theme/theme";
 
 import "./globals.css";
 
-const robotoFlex = Roboto_Flex({
+const urbanist = Urbanist({
   subsets: ["latin"],
-  variable: "--font-roboto-flex",
+  variable: "--font-urbanist",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
   display: "swap",
 });
 
@@ -29,14 +35,14 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f9f9ff" },
-    { media: "(prefers-color-scheme: dark)", color: "#111318" },
+    { media: "(prefers-color-scheme: light)", color: "#F6FBF6" },
+    { media: "(prefers-color-scheme: dark)", color: "#111411" },
   ],
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${robotoFlex.variable} ${materialSymbols.variable} h-full antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${urbanist.variable} ${manrope.variable} ${materialSymbols.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
       </head>

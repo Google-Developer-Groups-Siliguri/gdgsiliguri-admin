@@ -9,7 +9,8 @@ const VARIANTS: Record<CardVariant, string> = {
     "bg-surface-container-low elevation-1 [--field-bg:var(--md-sys-color-surface-container-low)]",
   filled:
     "bg-surface-container-highest [--field-bg:var(--md-sys-color-surface-container-highest)]",
-  outlined: "bg-surface border border-outline-variant [--field-bg:var(--md-sys-color-surface)]",
+  outlined:
+    "bg-surface-container-low [--field-bg:var(--md-sys-color-surface-container-low)]",
   tinted: "",
 };
 
@@ -20,7 +21,7 @@ export type CardProps = HTMLAttributes<HTMLDivElement> & {
 export function Card({ variant = "outlined", className, ...props }: CardProps) {
   return (
     <div
-      className={cn("rounded-md", variant !== "tinted" && "text-on-surface", VARIANTS[variant], className)}
+      className={cn("rounded-lg", variant !== "tinted" && "text-on-surface", VARIANTS[variant], className)}
       {...props}
     />
   );

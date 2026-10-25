@@ -29,7 +29,7 @@ export function NavigationRail({ groups, header, footer, className }: Navigation
       {header && <div className="mb-3 flex flex-col items-center gap-3">{header}</div>}
       {groups.map((group, groupIndex) => (
         <div key={group.label} className="flex w-full flex-col items-center gap-1">
-          {groupIndex > 0 && <div className="my-2 h-px w-10 bg-outline-variant" />}
+          {groupIndex > 0 && <div className="my-2 h-1 w-1 rounded-full bg-outline-variant" />}
           <span className="sr-only">{group.label}</span>
           {group.items.map((item) => {
             const active = isActive(pathname, item.href);
@@ -42,10 +42,11 @@ export function NavigationRail({ groups, header, footer, className }: Navigation
               >
                 <span
                   className={cn(
-                    "state-layer relative flex h-8 w-14 items-center justify-center rounded-full transition-colors duration-short",
+                    "relative flex h-8 w-14 items-center justify-center rounded-full",
+                    "transition-[background-color,color,scale,width] duration-[400ms,400ms,500ms,500ms] ease-spring group-active:scale-90",
                     active
-                      ? "bg-secondary-container text-on-secondary-container"
-                      : "text-on-surface-variant group-hover:before:opacity-8",
+                      ? "w-16 bg-secondary-container text-on-secondary-container"
+                      : "text-on-surface-variant group-hover:bg-surface-container-high",
                   )}
                 >
                   <Icon name={item.icon} filled={active} />

@@ -7,13 +7,23 @@ import { SectionToggle } from "@/components/section/SectionToggle";
 import { sectionStatus, StatusChip } from "@/components/section/StatusChip";
 import type { SectionState } from "@/lib/content/repository";
 import { isEnabled, itemCount, SECTIONS, type SectionKey } from "@/lib/content/sections";
+import { cn } from "@/lib/cn";
 import { formatDateTime } from "@/lib/time";
 
-export function SectionCard({ sectionKey, state }: { sectionKey: SectionKey; state?: SectionState }) {
+const SHAPES = ["shape-cookie9", "shape-clover4", "shape-sunny", "shape-cookie6", "shape-pentagon"];
+const TONES = [
+  "bg-primary-container text-on-primary-container",
+  "bg-tertiary-container text-on-tertiary-container",
+  "bg-secondary-container text-on-secondary-container",
+];
+
+type SectionCardProps = { sectionKey: SectionKey; state?: SectionState; index?: number };
+
+export function SectionCard({ sectionKey, state, index = 0 }: SectionCardProps) {
   const definition = SECTIONS[sectionKey];
   if (!state) {
     return (
-      <Card variant="outlined" className="flex flex-col gap-2 p-4">
+      <Card variant="outlined" className="flex flex-col gap-2 rounded-[28px] p-5">
         <span className="flex items-center gap-2 text-title-medium">
           <Icon name={definition.icon} className="text-on-surface-variant" />
           {definition.label}
@@ -26,15 +36,24 @@ export function SectionCard({ sectionKey, state }: { sectionKey: SectionKey; sta
   const count = itemCount(sectionKey, state.draft);
 
   return (
-    <Card variant="outlined" className="relative flex flex-col gap-3 p-4">
+    <Card
+      variant="tinted"
+      className="group lift relative flex flex-col gap-4 rounded-[28px_28px_28px_8px] bg-surface-container p-5 text-on-surface hover:rounded-[28px] hover:bg-surface-container-high"
+    >
       <div className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary-container text-on-secondary-container">
-          <Icon name={definition.icon} />
+        <span
+          className={cn(
+            "grid size-12 shrink-0 place-items-center transition-[rotate] duration-700 ease-spring group-hover:rotate-[30deg]",
+            SHAPES[index % SHAPES.length],
+            TONES[index % TONES.length],
+          )}
+        >
+          <Icon name={definition.icon} className="transition-[rotate] duration-700 ease-spring group-hover:-rotate-[30deg]" />
         </span>
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <Link
             href={definition.href}
-            className="focus-ring truncate rounded-xs text-title-medium text-on-surface after:absolute after:inset-0 after:rounded-md hover:underline"
+            className="focus-ring truncate rounded-xs font-display text-[20px] leading-tight font-bold tracking-[-0.01em] text-on-surface after:absolute after:inset-0 after:rounded-[28px]"
           >
             {definition.label}
           </Link>

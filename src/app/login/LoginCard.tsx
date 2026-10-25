@@ -104,7 +104,10 @@ export function LoginCard() {
   const working = status.kind === "working";
 
   return (
-    <Card variant="tinted" className="relative w-full max-w-md overflow-hidden bg-surface-container-low">
+    <Card
+      variant="tinted"
+      className="relative w-full max-w-md overflow-hidden rounded-[40px] bg-surface-container animate-rise [animation-delay:120ms]"
+    >
       {working && <LinearProgress className="absolute inset-x-0 top-0 rounded-none" label="Signing in" />}
       <div className="flex flex-col items-center gap-6 px-6 py-10 compact:px-10">
         <BrandMark size={48} />
@@ -127,12 +130,14 @@ export function LoginCard() {
         ) : (
           <>
             <div className="flex flex-col items-center gap-2 text-center">
-              <h1 className="text-headline-small text-on-surface">Sign in</h1>
+              <h1 className="font-display text-[40px] leading-none font-extralight tracking-[-0.04em] text-on-surface">
+                Sign <b className="font-extrabold">in</b>
+              </h1>
               <p className="text-body-medium text-on-surface-variant">
                 Manage gdgsiliguri.com with your organizer Google account.
               </p>
             </div>
-            <Button icon="login" onClick={signIn} disabled={working} className="w-full max-w-72">
+            <Button icon="login" onClick={signIn} disabled={working} className="h-14 w-full max-w-80 text-[16px]">
               Sign in with Google
             </Button>
             {status.kind === "error" && (

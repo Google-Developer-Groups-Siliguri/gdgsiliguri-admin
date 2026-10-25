@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { countdown, timeAgo } from "./time";
+import { countdown, eventDateParts, timeAgo } from "./time";
 
 const now = Date.parse("2026-10-23T12:00:00Z");
 
@@ -26,5 +26,16 @@ describe("countdown", () => {
 
   it("is null once the time has passed", () => {
     expect(countdown(now - 1000, now)).toBeNull();
+  });
+});
+
+describe("eventDateParts", () => {
+  it("reads the date in India time", () => {
+    expect(eventDateParts(Date.parse("2026-11-13T20:00:00Z"))).toEqual({
+      weekday: "SAT",
+      day: "14",
+      month: "NOV",
+      year: "2026",
+    });
   });
 });

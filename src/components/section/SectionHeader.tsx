@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 
+import { PageTitle } from "@/components/PageTitle";
 import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
 import { ConfirmDialog } from "@/components/m3/Dialog";
@@ -52,11 +53,9 @@ export function SectionHeader({
   const hasChanges = dirty || hasDraftChanges;
 
   return (
-    <header className="sticky top-16 z-20 -mx-4 flex flex-col gap-3 bg-surface px-4 pt-2 pb-4 medium:-mx-6 medium:px-6">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <h1 className="me-auto text-headline-small text-on-surface medium:text-headline-medium">
-          {definition.label}
-        </h1>
+    <header className="sticky top-16 z-20 -mx-4 flex flex-col gap-4 bg-surface px-4 pt-2 pb-4 medium:-mx-6 medium:px-6">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+        <PageTitle title={definition.label} eyebrow={definition.group} size="medium" className="me-auto" />
         <StatusChip status={sectionStatus(publishedEnabled, hasChanges)} />
         {definition.hasEnabled && publishedEnabled !== null && (
           <SectionToggle

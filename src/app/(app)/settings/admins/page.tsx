@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { PageTitle } from "@/components/PageTitle";
 import { EditorFallback } from "@/components/section/EditorFallback";
 import { AdminsManager } from "@/components/settings/AdminsManager";
 import { requireAdminPage } from "@/lib/auth/session";
@@ -17,7 +18,7 @@ async function Manager() {
 export default function Page() {
   return (
     <div className="flex flex-col gap-4 pt-2">
-      <h1 className="text-headline-medium text-on-surface">Admins</h1>
+      <PageTitle title="Admins" eyebrow="Settings" />
       <Suspense fallback={<EditorFallback />}>
         <Manager />
       </Suspense>

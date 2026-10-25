@@ -9,7 +9,7 @@ export type IconButtonVariant = "standard" | "filled" | "tonal" | "outlined";
 const UNTOGGLED: Record<IconButtonVariant, string> = {
   standard: "text-on-surface-variant",
   filled: "bg-primary text-on-primary",
-  tonal: "bg-secondary-container text-on-secondary-container",
+  tonal: "bg-surface-container-high text-on-surface",
   outlined: "border border-outline text-on-surface-variant",
 };
 
@@ -57,8 +57,8 @@ export function IconButton({
       title={label}
       aria-pressed={selected}
       className={cn(
-        "state-layer focus-ring inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full",
-        "transition-colors duration-short ease-standard disabled:cursor-default disabled:text-on-surface/38",
+        "state-layer focus-ring press inline-flex shrink-0 cursor-pointer items-center justify-center rounded-full",
+        "active:rounded-sm disabled:cursor-default disabled:text-on-surface/38",
         size === "medium" ? "size-10" : "size-8",
         variant !== "standard" && "disabled:bg-on-surface/12 disabled:border-on-surface/12",
         paletteFor(variant, selected),

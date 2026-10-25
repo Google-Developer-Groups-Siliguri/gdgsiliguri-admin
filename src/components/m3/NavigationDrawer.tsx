@@ -30,8 +30,12 @@ export function NavigationDrawerContent({
     <nav aria-label="Main" className="flex flex-col">
       {groups.map((group, groupIndex) => (
         <div key={group.label} className="flex flex-col">
-          {groupIndex > 0 && <div className="mx-4 my-2 h-px bg-outline-variant" />}
-          <span className="flex h-14 items-center px-4 text-title-small text-on-surface-variant">
+          <span
+            className={cn(
+              "flex h-10 items-end px-5 pb-2 text-eyebrow text-on-surface-variant",
+              groupIndex > 0 && "mt-3",
+            )}
+          >
             {group.label}
           </span>
           {group.items.map((item) => {
@@ -43,10 +47,11 @@ export function NavigationDrawerContent({
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "state-layer focus-ring flex h-14 items-center gap-3 rounded-full ps-4 pe-6 text-label-large",
+                  "focus-ring flex h-12 items-center gap-3 rounded-full ps-4 pe-6 text-label-large",
+                  "transition-[background-color,color,scale] duration-[400ms,400ms,500ms] ease-spring active:scale-95",
                   active
                     ? "bg-secondary-container text-on-secondary-container"
-                    : "text-on-surface-variant",
+                    : "text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface",
                 )}
               >
                 <Icon name={item.icon} filled={active} />
@@ -72,7 +77,7 @@ export function NavigationDrawer({
     <RadixDialog.Root open={open} onOpenChange={onOpenChange}>
       <RadixDialog.Portal>
         <RadixDialog.Overlay className="fixed inset-0 z-40 bg-scrim/32 animate-fade-in" />
-        <RadixDialog.Content className="fixed inset-y-0 start-0 z-50 flex w-[min(360px,calc(100%-56px))] flex-col overflow-y-auto rounded-e-lg bg-surface-container-low p-3 text-on-surface outline-none animate-slide-in-left">
+        <RadixDialog.Content className="fixed inset-y-0 start-0 z-50 flex w-[min(360px,calc(100%-56px))] flex-col overflow-y-auto rounded-e-xl bg-surface-container-low p-3 text-on-surface outline-none animate-slide-in-left">
           <RadixDialog.Title className="sr-only">Navigation</RadixDialog.Title>
           <RadixDialog.Description className="sr-only">Main navigation</RadixDialog.Description>
           {header && <div className="flex items-center gap-3 px-4 py-4">{header}</div>}

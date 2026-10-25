@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { PageTitle } from "@/components/PageTitle";
 import { ActivityList } from "@/components/dashboard/ActivityList";
 import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
@@ -65,7 +66,7 @@ async function Log({ searchParams }: { searchParams: Promise<SearchParams> }) {
 export default function Page({ searchParams }: { searchParams: Promise<SearchParams> }) {
   return (
     <div className="flex flex-col gap-4 pt-2">
-      <h1 className="text-headline-medium text-on-surface">Activity log</h1>
+      <PageTitle title="Activity log" eyebrow="Settings" />
       <Suspense fallback={<EditorFallback />}>
         <Log searchParams={searchParams} />
       </Suspense>

@@ -20,7 +20,7 @@ export function TopAppBar({ title, navigation, actions, scrolled, className }: T
       )}
     >
       {navigation}
-      <div className={cn("min-w-0 flex-1 truncate text-title-large", !navigation && "ps-3")}>
+      <div className={cn("min-w-0 flex-1 truncate font-display text-[20px] font-bold", !navigation && "ps-3")}>
         {title}
       </div>
       {actions && <div className="flex items-center gap-1 pe-1">{actions}</div>}

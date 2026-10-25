@@ -79,7 +79,7 @@ the email you added.
 | `npm run seed:emulator` | Loads the production snapshot into the emulators and imports it |
 | `npm run import:rtdb` | Copies each RTDB section into Firestore if missing (`--force` replaces) |
 | `npm run admins:add -- --email … --role owner\|editor` | Adds or updates an admin |
-| `npm run theme:generate` | Regenerates `src/app/theme.css` from the seed colour |
+| `npm run theme:generate` | Regenerates `src/app/theme.css` from the gdgsiliguri.com palette |
 | `npm run check:env` | Validates environment variables without printing them |
 
 Scripts that write data refuse to touch production unless `NEXT_PUBLIC_USE_EMULATORS` is not

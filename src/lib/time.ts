@@ -14,6 +14,26 @@ const absolute = new Intl.DateTimeFormat("en-IN", {
   timeZone: "Asia/Kolkata",
 });
 
+const eventDate = new Intl.DateTimeFormat("en-IN", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "Asia/Kolkata",
+});
+
+export type EventDateParts = { weekday: string; day: string; month: string; year: string };
+
+export function eventDateParts(epochMs: number): EventDateParts {
+  const parts = Object.fromEntries(eventDate.formatToParts(epochMs).map((part) => [part.type, part.value]));
+  return {
+    weekday: String(parts.weekday).toUpperCase(),
+    day: String(parts.day),
+    month: String(parts.month).toUpperCase(),
+    year: String(parts.year),
+  };
+}
+
 export function timeAgo(iso: string | null, now = Date.now()): string {
   if (!iso) return "never";
   const seconds = Math.round((Date.parse(iso) - now) / 1000);
