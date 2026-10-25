@@ -1,4 +1,5 @@
 import { ALLOWED_IMAGE_TYPES, MAX_UPLOAD_BYTES, safeFileName } from "./folders";
+import { convertToWebp, UnreadableImageError } from "./webp";
 
 export type ImageKitConfig = { privateKey: string; urlEndpoint: string };
 
@@ -31,12 +32,16 @@ export function checkImage(file: { type: string; size: number }): void {
 }
 
 export async function uploadToImageKit(
-  file: File,
+  original: File,
   folder: string,
   config: ImageKitConfig,
   fetcher: Fetcher = fetch,
 ): Promise<string> {
-  checkImage(file);
+  checkImage(original);
+  const file = await convertToWebp(original).catch((error: unknown) => {
+    if (error instanceof UnreadableImageError) throw new UploadError(error.message, 415);
+    throw error;
+  });
   const body = new FormData();
   body.set("file", file);
   body.set("fileName", safeFileName(file.name));

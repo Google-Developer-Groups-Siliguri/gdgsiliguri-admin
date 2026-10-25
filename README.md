@@ -88,7 +88,9 @@ Scripts that write data refuse to touch production unless `NEXT_PUBLIC_USE_EMULA
 ## Image uploads
 
 Image fields have an **Upload image** button. Files (PNG, JPEG, WebP, GIF or SVG, up to 5 MB) are
-uploaded by the server to ImageKit using `IMAGEKIT_PRIVATE_KEY`. They go into fixed folders that
+uploaded by the server to ImageKit using `IMAGEKIT_PRIVATE_KEY`. PNG and JPEG files are
+converted to WebP (quality 85, transparency kept) before upload; the other formats are stored as
+they are. They go into fixed folders that
 match the existing ones: `teams/`, `speakers/<year>/`, `Sponsors/`, `community partners/<year>/`,
 `Logos and Banners/` and `events/<year>/`. Pasting an image URL always works too.
 
