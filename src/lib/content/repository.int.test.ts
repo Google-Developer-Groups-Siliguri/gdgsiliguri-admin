@@ -243,6 +243,15 @@ describe("revert", () => {
     expect(entries[0].action).toBe("revert");
   });
 
+  it("keeps the section's current on/off setting", async () => {
+    const [imported] = await listRevisions("feedbacks");
+    await toggleEnabled("feedbacks", false, 1, owner);
+
+    const reverted = await revertToRevision("feedbacks", imported.id, owner);
+
+    expect(reverted.draft.enabled).toBe(false);
+  });
+
   it("reports a missing revision", async () => {
     await expectContentError(revertToRevision("devfestFaqs", "nope", owner), "revision_missing");
   });

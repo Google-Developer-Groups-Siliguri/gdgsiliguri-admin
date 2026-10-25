@@ -17,7 +17,7 @@ import { ContentError, type ContentIssue } from "./errors";
 import { normalizeForSave } from "./normalize";
 import { toRtdbValue } from "./rtdb-value";
 import type { SectionValues } from "./schemas";
-import { itemCount, parseSection, SECTIONS, validateForPublish, type SectionKey } from "./sections";
+import { isEnabled, itemCount, parseSection, SECTIONS, validateForPublish, type SectionKey } from "./sections";
 
 export type Actor = { email: string };
 
@@ -380,9 +380,11 @@ export async function revertToRevision<K extends SectionKey>(
 ): Promise<SectionState<K>> {
   const snapshot = await revisionsRef(key).doc(revisionId).get();
   if (!snapshot.exists) throw new ContentError("That revision no longer exists.", "revision_missing");
-  await readDoc(key);
+  const current = await readDoc(key);
+  const draft = parseSection(key, snapshot.get("data"));
+  const enabled = isEnabled(key, current.published);
   await contentRef(key).update({
-    draft: parseSection(key, snapshot.get("data")),
+    draft: enabled === null ? draft : { ...(draft as object), enabled },
     draftUpdatedAt: FieldValue.serverTimestamp(),
     draftUpdatedBy: actor.email,
   });
