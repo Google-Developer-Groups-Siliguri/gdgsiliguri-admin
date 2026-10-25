@@ -90,9 +90,11 @@ Scripts that write data refuse to touch production unless `NEXT_PUBLIC_USE_EMULA
 Image fields have an **Upload image** button. Files (PNG, JPEG, WebP, GIF or SVG, up to 5 MB) are
 uploaded by the server to ImageKit using `IMAGEKIT_PRIVATE_KEY`. PNG and JPEG files are
 converted to WebP (quality 85, transparency kept) before upload; the other formats are stored as
-they are. They go into fixed folders that
-match the existing ones: `teams/`, `speakers/<year>/`, `Sponsors/`, `community partners/<year>/`,
-`Logos and Banners/` and `events/<year>/`. Pasting an image URL always works too.
+they are. They go into fixed folders:
+`teams/`, `speakers/<year>/`, `Sponsors/`, `community-partners/<year>/`, `logos-and-banners/` and
+`events/<year>/`. ImageKit's upload API rejects folder names with spaces, so the older
+`community partners/` and `Logos and Banners/` folders get no new uploads. Pasting an image URL
+always works too.
 
 ## Recovery
 

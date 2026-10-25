@@ -1,7 +1,7 @@
 import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 
-import { safeFileName, uploadFolder } from "./folders";
+import { safeFileName, UPLOAD_KINDS, uploadFolder } from "./folders";
 import { checkImage, UploadError, uploadToImageKit, type Fetcher } from "./imagekit";
 
 const config = { privateKey: "private_test", urlEndpoint: "https://ik.imagekit.io/gdgsiliguri1" };
@@ -33,12 +33,16 @@ function recordingFetcher(response: Response) {
 }
 
 describe("upload folders", () => {
-  it("follows the existing ImageKit folder conventions", () => {
+  it("follows the ImageKit folder conventions", () => {
     expect(uploadFolder("team", 2026)).toBe("/teams");
     expect(uploadFolder("speaker", 2026)).toBe("/speakers/2026");
     expect(uploadFolder("sponsor", 2026)).toBe("/Sponsors");
-    expect(uploadFolder("partner", 2026)).toBe("/community partners/2026");
-    expect(uploadFolder("branding", 2026)).toBe("/Logos and Banners");
+    expect(uploadFolder("partner", 2026)).toBe("/community-partners/2026");
+    expect(uploadFolder("branding", 2026)).toBe("/logos-and-banners");
+  });
+
+  it("uses only characters ImageKit accepts in folder names", () => {
+    for (const kind of UPLOAD_KINDS) expect(uploadFolder(kind, 2026)).toMatch(/^[\w/-]+$/);
   });
 
   it("makes file names safe", () => {

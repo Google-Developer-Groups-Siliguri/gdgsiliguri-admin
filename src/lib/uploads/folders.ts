@@ -22,9 +22,9 @@ export function uploadFolder(kind: UploadKind, year: number): string {
     case "sponsor":
       return "/Sponsors";
     case "partner":
-      return `/community partners/${year}`;
+      return `/community-partners/${year}`;
     case "branding":
-      return "/Logos and Banners";
+      return "/logos-and-banners";
     case "event":
       return `/events/${year}`;
   }
