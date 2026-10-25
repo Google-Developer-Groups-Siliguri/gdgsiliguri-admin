@@ -48,7 +48,6 @@ const CHECKS: Check[] = [
       return null;
     },
   },
-  { name: "NETLIFY_BUILD_HOOK_URL", required: false, validate: pattern(/^https:\/\/api\.netlify\.com\/build_hooks\/\w+$/, "should be https://api.netlify.com/build_hooks/<id>") },
   { name: "IMAGEKIT_URL_ENDPOINT", required: false, validate: pattern(/^https:\/\/ik\.imagekit\.io\/[\w-]+\/?$/, "should be https://ik.imagekit.io/<id>") },
   { name: "IMAGEKIT_PUBLIC_KEY", required: false, validate: pattern(/^public_/, "should start with public_") },
   { name: "IMAGEKIT_PRIVATE_KEY", required: false, validate: pattern(/^private_/, "should start with private_") },

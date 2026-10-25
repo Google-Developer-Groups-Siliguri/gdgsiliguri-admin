@@ -11,15 +11,13 @@ import { NavigationRail } from "@/components/m3/NavigationRail";
 import { findNavItem, visibleGroups, type NavGroup } from "@/components/m3/navigation";
 import { TopAppBar } from "@/components/m3/TopAppBar";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import type { SectionKey } from "@/lib/content/sections";
 import { useEmulators } from "@/lib/firebase/config";
 
 import { AccountMenu } from "./AccountMenu";
 import { NAV_GROUPS } from "./nav-config";
-import { RebuildBanner } from "./RebuildBanner";
 import type { ShellUser } from "./ShellUser";
 
-export type ShellData = { user: ShellUser | null; pendingRebuild: SectionKey[] };
+export type ShellData = { user: ShellUser | null };
 type ShellPromise = Promise<ShellData>;
 
 const EDITOR_GROUPS = visibleGroups(NAV_GROUPS, false);
@@ -36,10 +34,6 @@ function EmulatorBadge() {
 
 function ResolvedAccount({ shellPromise }: { shellPromise: ShellPromise }) {
   return <AccountMenu user={use(shellPromise).user} />;
-}
-
-function ResolvedBanner({ shellPromise }: { shellPromise: ShellPromise }) {
-  return <RebuildBanner sections={use(shellPromise).pendingRebuild} />;
 }
 
 function WithGroups({
@@ -130,9 +124,6 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
             }
           />
           <main id="main" className="flex min-w-0 flex-1 flex-col px-4 pb-28 medium:px-6">
-            <Suspense fallback={null}>
-              <ResolvedBanner shellPromise={shellPromise} />
-            </Suspense>
             {children}
           </main>
         </div>

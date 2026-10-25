@@ -204,7 +204,7 @@ export function DatePicker({
           align="end"
           sideOffset={4}
           collisionPadding={8}
-          className="z-50 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-lg bg-surface-container-high text-on-surface elevation-3 outline-none animate-fade-in"
+          className="z-50 max-h-[var(--radix-popover-content-available-height)] origin-(--radix-popover-content-transform-origin) overflow-y-auto rounded-xl bg-surface-container-high text-on-surface shadow-[0_16px_40px_-16px_rgb(0_0_0/0.5)] outline-none animate-pop-in"
         >
           <CalendarGrid
             value={isValidDate(value) ? value : ""}

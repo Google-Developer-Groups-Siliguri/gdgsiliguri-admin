@@ -35,10 +35,10 @@ function Tiles({ values }: { values: [number, string][] }) {
       {values.map(([value, label], index) => (
         <div
           key={label}
-          className="flex flex-col items-center bg-surface-container-lowest py-4 text-on-surface"
+          className="flex flex-col items-center overflow-hidden bg-surface-container-lowest py-4 text-on-surface"
           style={{ borderRadius: TILE_RADII[index] }}
         >
-          <b className="text-[clamp(28px,3.2vw,40px)] leading-none font-black tabular-nums">
+          <b key={value} className="text-[clamp(28px,3.2vw,40px)] leading-none font-black tabular-nums animate-digit">
             {String(value).padStart(2, "0")}
           </b>
           <span className="text-label-medium font-semibold text-on-surface-variant">{label}</span>

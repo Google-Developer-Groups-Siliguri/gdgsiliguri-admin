@@ -4,7 +4,6 @@ import { useState, useTransition } from "react";
 
 import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
-import { Card } from "@/components/m3/Card";
 import { ConfirmDialog, Dialog } from "@/components/m3/Dialog";
 import { IconButton } from "@/components/m3/IconButton";
 import { SegmentedButton } from "@/components/m3/SegmentedButton";
@@ -24,7 +23,7 @@ const ROLE_OPTIONS = [
 
 const ROLE_HELP: Record<Role, string> = {
   owner: "Can edit and publish everything, and manage admins.",
-  editor: "Can edit, publish and turn sections on or off, and rebuild the site.",
+  editor: "Can edit, publish and turn sections on or off.",
 };
 
 export function AdminsManager({ admins, currentEmail }: { admins: AdminSummary[]; currentEmail: string }) {
@@ -74,12 +73,16 @@ export function AdminsManager({ admins, currentEmail }: { admins: AdminSummary[]
         </Button>
       </div>
 
-      <Card variant="outlined" className="overflow-hidden">
-        <ul className="divide-y divide-outline-variant" aria-label="Admins">
-          {admins.map((admin) => {
+      <div>
+        <ul className="segmented-list" aria-label="Admins">
+          {admins.map((admin, index) => {
             const isYou = admin.email === currentEmail;
             return (
-              <li key={admin.email} className="flex flex-col gap-3 p-4 compact:flex-row compact:items-center">
+              <li
+                key={admin.email}
+                className="flex flex-col gap-3 p-4 animate-rise compact:flex-row compact:items-center"
+                style={{ animationDelay: `${Math.min(index, 8) * 60}ms` }}
+              >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <Avatar
                     user={{ email: admin.email, role: admin.role, displayName: admin.displayName, photoURL: admin.photoURL }}
@@ -126,7 +129,7 @@ export function AdminsManager({ admins, currentEmail }: { admins: AdminSummary[]
             );
           })}
         </ul>
-      </Card>
+      </div>
 
       <Dialog
         open={inviteOpen}

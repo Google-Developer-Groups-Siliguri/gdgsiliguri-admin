@@ -2,7 +2,6 @@ import "server-only";
 
 import { requireAdminPage } from "@/lib/auth/session";
 import { listAdmins } from "@/lib/admins/repository";
-import { getPendingRebuild, getSiteSettings } from "@/lib/settings";
 
 import {
   getAllSections,
@@ -25,16 +24,6 @@ export async function loadAllSections() {
 export async function loadAudit(query: AuditQuery = {}) {
   await requireAdminPage();
   return listAudit(query);
-}
-
-export async function loadSiteSettings() {
-  await requireAdminPage();
-  return getSiteSettings();
-}
-
-export async function loadPendingRebuild() {
-  await requireAdminPage();
-  return getPendingRebuild();
 }
 
 export async function loadAdmins() {

@@ -16,7 +16,7 @@ async function openEditor(page: Page, path: string) {
 
 async function publish(page: Page, label: string) {
   await page.getByRole("button", { name: "Publish" }).click();
-  await expect(page.getByText(`${label} published. Rebuild the website to show it.`).first()).toBeVisible();
+  await expect(page.getByText(`${label} published. It's live on gdgsiliguri.com.`).first()).toBeVisible();
 }
 
 function rows(page: Page) {

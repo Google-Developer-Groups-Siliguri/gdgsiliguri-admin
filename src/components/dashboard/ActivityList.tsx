@@ -16,13 +16,17 @@ const ACTION_ICONS: Record<AuditAction, string> = {
 
 export function ActivityList({ entries }: { entries: AuditEntry[] }) {
   if (entries.length === 0) {
-    return <p className="px-4 py-6 text-body-medium text-on-surface-variant">No activity yet.</p>;
+    return (
+      <p className="rounded-lg bg-surface-container px-5 py-6 text-body-medium text-on-surface-variant">
+        No activity yet.
+      </p>
+    );
   }
   return (
-    <ol className="flex flex-col">
-      {entries.map((entry) => (
-        <li key={entry.id} className="flex items-start gap-4 px-4 py-3">
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-container-highest text-on-surface-variant">
+    <ol className="segmented-list">
+      {entries.map((entry, index) => (
+        <li key={entry.id} className="flex items-start gap-4 px-4 py-3 animate-rise" style={{ animationDelay: `${Math.min(index, 8) * 50}ms` }}>
+          <span className="shape-cookie6 mt-0.5 flex size-9 shrink-0 items-center justify-center bg-secondary-container text-on-secondary-container">
             <Icon name={ACTION_ICONS[entry.action] ?? "info"} size={18} />
           </span>
           <div className="flex min-w-0 flex-1 flex-col">

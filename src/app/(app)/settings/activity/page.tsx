@@ -5,7 +5,6 @@ import { Suspense } from "react";
 import { PageTitle } from "@/components/PageTitle";
 import { ActivityList } from "@/components/dashboard/ActivityList";
 import { Button } from "@/components/m3/Button";
-import { Card } from "@/components/m3/Card";
 import { EditorFallback } from "@/components/section/EditorFallback";
 import { ActivityFilters } from "@/components/settings/ActivityFilters";
 import { loadActors, loadAudit } from "@/lib/content/queries";
@@ -44,12 +43,10 @@ async function Log({ searchParams }: { searchParams: Promise<SearchParams> }) {
   return (
     <div className="flex flex-col gap-4">
       <ActivityFilters section={section} actor={actor} actors={actors} />
-      <Card variant="outlined" className="overflow-hidden">
-        <ActivityList entries={entries} />
-      </Card>
+      <ActivityList entries={entries} />
       <div className="flex flex-wrap gap-2">
         {after && (
-          <Button variant="outlined" icon="vertical_align_top" asChild>
+          <Button variant="tonal" icon="vertical_align_top" asChild>
             <Link href={href({ section, actor })}>Newest</Link>
           </Button>
         )}

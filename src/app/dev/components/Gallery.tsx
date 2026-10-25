@@ -173,7 +173,7 @@ export function Gallery() {
           <Fab icon="add" label="Add" />
           <Fab icon="edit" label="Edit" color="secondary" />
           <Fab icon="add" label="Add speaker" extended />
-          <Fab icon="rocket_launch" label="Rebuild" extended color="tertiary" lowered />
+          <Fab icon="open_in_new" label="Open site" extended color="tertiary" lowered />
         </Row>
       </Section>
 
@@ -361,8 +361,8 @@ export function Gallery() {
             variant="tonal"
             onClick={() =>
               showSnackbar({
-                message: "Published. The live site updates after a rebuild.",
-                actionLabel: "Rebuild",
+                message: "Published. It's live on gdgsiliguri.com.",
+                actionLabel: "Undo",
                 onAction: () => undefined,
               })
             }

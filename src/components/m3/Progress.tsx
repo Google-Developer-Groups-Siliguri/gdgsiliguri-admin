@@ -16,7 +16,7 @@ export function LinearProgress({ value, label = "Loading", className }: Progress
       aria-valuemax={100}
       aria-valuenow={indeterminate ? undefined : Math.round(value * 100)}
       className={cn(
-        "relative h-1 w-full overflow-hidden rounded-full bg-secondary-container",
+        "relative h-1.5 w-full overflow-hidden rounded-full bg-secondary-container",
         className,
       )}
     >
@@ -33,6 +33,31 @@ export function LinearProgress({ value, label = "Loading", className }: Progress
   );
 }
 
+export function LoadingIndicator({
+  label = "Loading",
+  size = 48,
+  contained = false,
+  className,
+}: Omit<ProgressProps, "value"> & { size?: number; contained?: boolean }) {
+  return (
+    <span
+      role="progressbar"
+      aria-label={label}
+      className={cn(
+        "inline-grid shrink-0 place-items-center rounded-full",
+        contained && "bg-primary-container",
+        className,
+      )}
+      style={{ width: size, height: size }}
+    >
+      <span
+        className={cn("animate-shape-morph", contained ? "bg-on-primary-container" : "bg-primary")}
+        style={{ width: size * 0.7, height: size * 0.7, clipPath: "var(--s-cookie9)" }}
+      />
+    </span>
+  );
+}
+
 type CircularProgressProps = ProgressProps & { size?: number };
 
 export function CircularProgress({
@@ -42,6 +67,7 @@ export function CircularProgress({
   className,
 }: CircularProgressProps) {
   const indeterminate = value === undefined;
+  if (indeterminate) return <LoadingIndicator label={label} size={size} className={className} />;
   const radius = 20;
   const circumference = 2 * Math.PI * radius;
   const fraction = indeterminate ? 0.25 : Math.min(1, Math.max(0, value));
@@ -55,7 +81,7 @@ export function CircularProgress({
       viewBox="0 0 48 48"
       width={size}
       height={size}
-      className={cn(indeterminate && "animate-spin", className)}
+      className={className}
     >
       <circle cx="24" cy="24" r={radius} fill="none" strokeWidth="4" className="stroke-secondary-container" />
       <circle

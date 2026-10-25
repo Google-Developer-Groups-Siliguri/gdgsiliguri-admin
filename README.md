@@ -15,11 +15,10 @@ sponsors, partners, team, FAQs, reviews and community events. Every section can 
    change.
 2. **Publish** validates the draft and writes the whole section to the Realtime Database in one
    `set()`. Firestore then records the published copy, a new revision and an audit entry.
-3. **Rebuild the website.** gdgsiliguri.com is pre-rendered into static pages by Netlify, so visitors
-   see the content from the last build. Refreshing the page is not enough. The **Rebuild website**
-   page lists sections published since the last rebuild. Start a deploy in Netlify (Deploys →
-   Trigger deploy → Deploy site), then press **Mark as rebuilt**. If `NETLIFY_BUILD_HOOK_URL` is
-   set, the page shows a one-click rebuild button instead.
+3. **It's live.** gdgsiliguri.com loads its pre-rendered pages, then fetches the latest data from the
+   Realtime Database in the browser, so visitors see the change on their next page load. No rebuild
+   is needed. A Netlify deploy only refreshes the pre-rendered HTML that search engines and link
+   previews read; start one in Netlify (Deploys → Trigger deploy) after big content changes.
 
 Other things to know:
 
@@ -37,7 +36,7 @@ Other things to know:
 | Role   | Can do |
 |--------|--------|
 | owner  | Everything, plus add, remove and change admins. The last owner can't be removed or demoted. |
-| editor | Edit, publish, turn sections on or off, mark rebuilds. |
+| editor | Edit, publish and turn sections on or off. |
 
 Owners manage admins at **Settings → Admins**. To create the first owner, use the script below.
 
@@ -99,11 +98,11 @@ always works too.
 ## Recovery
 
 - **Undo a bad publish:** open the section → History → **Load into draft** on an earlier version →
-  Publish → rebuild.
+  Publish.
 - **Restore the whole Realtime Database from a backup:** backups are written to
   `backups/rtdb-<timestamp>.json` before the first production write. In the Firebase console,
   open Realtime Database → ⋮ → Import JSON at the root, choose the file, then run
-  `npm run import:rtdb -- --production --force` so Firestore matches, and rebuild the site.
+  `npm run import:rtdb -- --production --force` so Firestore matches.
 - **Locked out:** run `npm run admins:add -- --email you@gmail.com --role owner --production`
   with the production credentials in `.env.local` and `NEXT_PUBLIC_USE_EMULATORS=false`.
 

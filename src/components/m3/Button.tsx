@@ -48,7 +48,9 @@ export function Button({
   if (asChild) {
     return (
       <Slot.Root className={classes} {...props}>
-        {children}
+        {icon && <Icon name={icon} size={18} />}
+        <Slot.Slottable>{children}</Slot.Slottable>
+        {trailingIcon && <Icon name={trailingIcon} size={18} />}
       </Slot.Root>
     );
   }

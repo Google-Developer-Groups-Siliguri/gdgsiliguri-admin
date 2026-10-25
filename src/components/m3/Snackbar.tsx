@@ -36,7 +36,7 @@ export function SnackbarProvider({ children }: { children: ReactNode }) {
             key={current.id}
             duration={current.duration ?? (current.actionLabel ? 8000 : 4000)}
             onOpenChange={(open) => !open && dismiss()}
-            className="flex min-h-12 w-full items-center gap-2 rounded-xs bg-inverse-surface py-1 ps-4 pe-2 text-inverse-on-surface elevation-3 animate-slide-up compact:w-auto compact:min-w-86 compact:max-w-[672px]"
+            className="flex min-h-12 w-full items-center gap-2 rounded-lg bg-inverse-surface py-1.5 ps-5 pe-2 text-inverse-on-surface shadow-[0_16px_40px_-16px_rgb(0_0_0/0.5)] animate-snack-in compact:w-auto compact:min-w-86 compact:max-w-[672px]"
           >
             <Toast.Description
               className={

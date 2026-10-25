@@ -68,10 +68,10 @@ export function AccountMenu({ user }: { user: ShellUser | null }) {
       <DropdownMenu.Portal>
         <DropdownMenu.Content
           align="end"
-          sideOffset={4}
-          className="z-50 w-72 rounded-md bg-surface-container py-2 elevation-2 animate-fade-in"
+          sideOffset={6}
+          className="z-50 origin-(--radix-dropdown-menu-content-transform-origin) rounded-lg bg-surface-container-high p-1.5 shadow-[0_16px_40px_-16px_rgb(0_0_0/0.5)] animate-pop-in flex w-72 flex-col gap-0.5"
         >
-          <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex items-center gap-3 rounded-md bg-surface-container px-3 py-3">
             <Avatar user={user} size={40} />
             <div className="flex min-w-0 flex-col">
               <span className="truncate text-title-small text-on-surface">
@@ -80,16 +80,15 @@ export function AccountMenu({ user }: { user: ShellUser | null }) {
               <span className="truncate text-body-small text-on-surface-variant">
                 {user.email}
               </span>
-              <span className="mt-1 w-fit rounded-xs bg-secondary-container px-1.5 text-label-small text-on-secondary-container capitalize">
+              <span className="mt-1 w-fit rounded-full bg-secondary-container px-2 text-label-small text-on-secondary-container capitalize">
                 {user.role}
               </span>
             </div>
           </div>
-          <DropdownMenu.Separator className="my-2 h-px bg-outline-variant" />
           <DropdownMenu.Item
             disabled={signingOut}
             onSelect={signOut}
-            className="state-layer flex h-12 cursor-pointer items-center gap-3 px-4 text-label-large text-on-surface outline-none data-[highlighted]:before:opacity-8"
+            className="flex h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-label-large text-on-surface outline-none transition-[background-color,border-radius] duration-300 ease-emph data-[highlighted]:rounded-lg data-[highlighted]:bg-surface-container-highest"
           >
             <Icon name="logout" className="text-on-surface-variant" />
             Sign out

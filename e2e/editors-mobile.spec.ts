@@ -26,7 +26,7 @@ test("adds a review on a phone with the full-screen editor", async ({ page }) =>
   expect(overflow).toBeLessThanOrEqual(0);
 
   await page.getByRole("button", { name: "Publish" }).click();
-  await expect(page.getByText("Reviews published. Rebuild the website to show it.").first()).toBeVisible();
+  await expect(page.getByText("Reviews published. It's live on gdgsiliguri.com.").first()).toBeVisible();
   const live = (await readRtdb("feedbacks/data")) as Record<string, unknown>[];
   expect(live[live.length - 1]).toEqual({
     name: "Priya Sharma",

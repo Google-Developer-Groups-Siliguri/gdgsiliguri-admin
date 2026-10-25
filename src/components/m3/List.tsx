@@ -3,7 +3,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/cn";
 
 export function List({ className, ...props }: HTMLAttributes<HTMLUListElement>) {
-  return <ul role="list" className={cn("flex flex-col py-2", className)} {...props} />;
+  return <ul role="list" className={cn("segmented-list", className)} {...props} />;
 }
 
 export type ListItemProps = Omit<HTMLAttributes<HTMLLIElement>, "children"> & {

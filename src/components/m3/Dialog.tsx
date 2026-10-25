@@ -43,7 +43,7 @@ export function Dialog({
   const hasConfirm = Boolean(confirmLabel && (onConfirm || confirmForm));
   const confirmButton = (
     <Button
-      variant="text"
+      variant="filled"
       type={confirmForm ? "submit" : "button"}
       form={confirmForm}
       onClick={confirmForm ? undefined : onConfirm}
@@ -60,8 +60,8 @@ export function Dialog({
           className={cn(
             "fixed z-50 flex flex-col bg-surface-container-high text-on-surface outline-none [--field-bg:var(--md-sys-color-surface-container-high)]",
             fullScreenOnMobile
-              ? "inset-0 animate-slide-up compact:inset-auto compact:top-1/2 compact:left-1/2 compact:max-h-[min(90dvh,880px)] compact:-translate-x-1/2 compact:-translate-y-1/2 compact:rounded-xl compact:animate-scale-in"
-              : "top-1/2 left-1/2 max-h-[90dvh] w-[calc(100%-48px)] -translate-x-1/2 -translate-y-1/2 rounded-xl animate-scale-in",
+              ? "inset-0 animate-slide-up compact:inset-auto compact:top-1/2 compact:left-1/2 compact:max-h-[min(90dvh,880px)] compact:-translate-x-1/2 compact:-translate-y-1/2 compact:rounded-xl compact:animate-pop-in"
+              : "top-1/2 left-1/2 max-h-[90dvh] w-[calc(100%-48px)] -translate-x-1/2 -translate-y-1/2 rounded-xl animate-pop-in",
             wide ? "compact:w-[min(720px,calc(100%-48px))]" : "compact:w-[min(560px,calc(100%-48px))]",
             !fullScreenOnMobile && "max-w-[560px] min-w-[280px]",
             !fullScreenOnMobile && wide && "max-w-[720px]",
@@ -150,9 +150,18 @@ export function ConfirmDialog({
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
       <AlertDialog.Portal>
         <AlertDialog.Overlay className="fixed inset-0 z-40 bg-scrim/32 animate-fade-in" />
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-48px)] max-w-[560px] min-w-[280px] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-xl bg-surface-container-high p-6 text-on-surface outline-none animate-scale-in compact:w-auto">
+        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-50 flex w-[calc(100%-48px)] max-w-[560px] min-w-[280px] -translate-x-1/2 -translate-y-1/2 flex-col gap-4 rounded-xl bg-surface-container-high p-6 text-on-surface outline-none animate-pop-in compact:w-auto">
           <div className={cn("flex flex-col gap-4", icon && "items-center text-center")}>
-            {icon && <Icon name={icon} className={destructive ? "text-error" : "text-secondary"} />}
+            {icon && (
+              <span
+                className={cn(
+                  "shape-cookie9 grid size-14 place-items-center",
+                  destructive ? "bg-error-container text-on-error-container" : "bg-secondary-container text-on-secondary-container",
+                )}
+              >
+                <Icon name={icon} />
+              </span>
+            )}
             <AlertDialog.Title className="text-headline-small">{title}</AlertDialog.Title>
           </div>
           <AlertDialog.Description className="text-body-medium text-on-surface-variant">
@@ -164,12 +173,7 @@ export function ConfirmDialog({
                 Cancel
               </Button>
             </AlertDialog.Cancel>
-            <Button
-              variant="text"
-              className={destructive ? "text-error" : undefined}
-              onClick={onConfirm}
-              disabled={busy}
-            >
+            <Button variant={destructive ? "danger" : "filled"} onClick={onConfirm} disabled={busy}>
               {confirmLabel}
             </Button>
           </div>

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { PageTitle } from "@/components/PageTitle";
-import { RelativeTime } from "@/components/RelativeTime";
+import { Reveal } from "@/components/Reveal";
 import { ActivityList } from "@/components/dashboard/ActivityList";
 import { EventCountdown } from "@/components/dashboard/EventCountdown";
 import { SectionCard } from "@/components/dashboard/SectionCard";
@@ -12,11 +12,9 @@ import { Card } from "@/components/m3/Card";
 import { Icon } from "@/components/m3/Icon";
 import { LinearProgress } from "@/components/m3/Progress";
 import { getCurrentAdmin } from "@/lib/auth/session";
-import { loadAllSections, loadAudit, loadPendingRebuild, loadSection, loadSiteSettings } from "@/lib/content/queries";
-import { SECTIONS } from "@/lib/content/sections";
+import { loadAllSections, loadAudit, loadSection } from "@/lib/content/queries";
 import { SECTION_KEYS } from "@/lib/content/sections";
 import { dateTimeToEpoch } from "@/lib/datetime";
-import { formatDateTime } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -49,32 +47,27 @@ async function EventSummary() {
   );
 }
 
-async function RebuildSummary() {
-  const [settings, pending] = await Promise.all([loadSiteSettings(), loadPendingRebuild()]);
-  const waiting = pending.sections.map((key) => SECTIONS[key].label);
+function LiveSiteCard() {
   return (
     <Card
       variant="tinted"
       className="lift flex h-full flex-col gap-4 rounded-[36px_36px_36px_10px] bg-surface-container p-6 text-on-surface hover:rounded-[36px]"
     >
       <span className="shape-clover4 grid size-14 place-items-center bg-tertiary-container text-on-tertiary-container">
-        <Icon name="rocket_launch" />
+        <Icon name="public" />
       </span>
       <h2 className="font-display text-[28px] leading-none font-light tracking-[-0.03em]">
-        Rebuild <b className="font-extrabold">website</b>
+        Live <b className="font-extrabold">site</b>
       </h2>
       <p className="flex-1 text-body-medium text-on-surface-variant">
-        {waiting.length
-          ? `Waiting for a rebuild: ${waiting.join(", ")}.`
-          : "The live site has everything that was published."}
-      </p>
-      <p className="text-body-small text-on-surface-variant" title={formatDateTime(settings.lastRebuildAt)}>
-        Last rebuild: <RelativeTime iso={settings.lastRebuildAt} />
-        {settings.lastRebuildBy ? ` by ${settings.lastRebuildBy}` : ""}
+        Publishing updates gdgsiliguri.com straight away. Visitors see the change the next time a page
+        loads.
       </p>
       <div>
-        <Button variant="tonal" icon="rocket_launch" asChild>
-          <Link href="/settings/rebuild">Open rebuild</Link>
+        <Button variant="tonal" trailingIcon="open_in_new" asChild>
+          <a href="https://gdgsiliguri.com" target="_blank" rel="noreferrer">
+            Open gdgsiliguri.com
+          </a>
         </Button>
       </div>
     </Card>
@@ -86,7 +79,9 @@ async function SectionGrid() {
   return (
     <div className="grid grid-cols-1 gap-3 compact:grid-cols-2 expanded:grid-cols-3">
       {SECTION_KEYS.map((key, index) => (
-        <SectionCard key={key} sectionKey={key} state={states[key]} index={index} />
+        <Reveal key={key} index={index}>
+          <SectionCard sectionKey={key} state={states[key]} index={index} />
+        </Reveal>
       ))}
     </div>
   );
@@ -106,18 +101,18 @@ export default function DashboardPage() {
         </Suspense>
       </PageTitle>
 
-      <div className="grid grid-cols-1 gap-3 animate-rise [animation-delay:80ms] expanded:grid-cols-3">
-        <div className="expanded:col-span-2">
+      <div className="grid grid-cols-1 gap-3 expanded:grid-cols-3">
+        <Reveal index={1} className="expanded:col-span-2">
           <Suspense fallback={<Skeleton className="h-80" />}>
             <EventSummary />
           </Suspense>
-        </div>
-        <Suspense fallback={<Skeleton className="h-80" />}>
-          <RebuildSummary />
-        </Suspense>
+        </Reveal>
+        <Reveal index={2}>
+          <LiveSiteCard />
+        </Reveal>
       </div>
 
-      <section className="flex flex-col gap-4 animate-rise [animation-delay:160ms]" aria-labelledby="sections-heading">
+      <section className="flex flex-col gap-4" aria-labelledby="sections-heading">
         <h2 id="sections-heading" className="font-display text-[clamp(28px,3vw,40px)] leading-none font-extralight tracking-[-0.04em] text-on-surface">
           <b className="font-extrabold">Sections</b>
         </h2>
@@ -135,11 +130,9 @@ export default function DashboardPage() {
             <Link href="/settings/activity">See all</Link>
           </Button>
         </div>
-        <Card variant="outlined" className="overflow-hidden rounded-[32px] bg-surface-container">
-          <Suspense fallback={<LinearProgress label="Loading activity" />}>
-            <RecentActivity />
-          </Suspense>
-        </Card>
+        <Suspense fallback={<LinearProgress label="Loading activity" />}>
+          <RecentActivity />
+        </Suspense>
       </section>
     </div>
   );

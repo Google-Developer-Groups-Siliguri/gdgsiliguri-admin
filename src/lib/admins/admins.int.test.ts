@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { getSection, listAudit, publish, saveDraft } from "@/lib/content/repository";
+import { listAudit } from "@/lib/content/repository";
 import { adminAuthFor, adminFirestoreFor } from "@/lib/firebase/admin-app";
-import { getPendingRebuild, markRebuilt, RebuildError, triggerRebuild } from "@/lib/settings";
 import { resetEmulatorData } from "@/test/emulator-reset";
 
 import { AdminError, addAdmin, changeRole, listAdmins, removeAdmin } from "./repository";
@@ -75,28 +74,5 @@ describe("admin management", () => {
     await removeAdmin("gone@example.com", owner);
     const after = await adminAuthFor().getUser(user.uid);
     expect(Date.parse(after.tokensValidAfterTime!)).toBeGreaterThanOrEqual(before - 1000);
-  });
-});
-
-describe("rebuild tracking", () => {
-  it("ignores the initial import and lists sections published since the last rebuild", async () => {
-    expect((await getPendingRebuild()).sections).toEqual([]);
-    const reviews = await getSection("feedbacks");
-    await saveDraft("feedbacks", { ...reviews.draft, data: reviews.draft.data.slice(1) }, owner);
-    await publish("feedbacks", 1, owner);
-    expect((await getPendingRebuild()).sections).toEqual(["feedbacks"]);
-
-    await markRebuilt(owner);
-    const pending = await getPendingRebuild();
-    expect(pending.sections).toEqual([]);
-    expect(pending.since).not.toBeNull();
-    const { entries } = await listAudit({ limit: 1 });
-    expect(entries[0].action).toBe("rebuild");
-  });
-
-  it("refuses a hook rebuild when no hook is configured", async () => {
-    const error = await triggerRebuild(owner).catch((caught: unknown) => caught);
-    expect(error).toBeInstanceOf(RebuildError);
-    expect((error as RebuildError).code).toBe("not_configured");
   });
 });

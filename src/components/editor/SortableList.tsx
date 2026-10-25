@@ -86,7 +86,7 @@ function SortableRow<T>({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "relative list-none",
-        isDragging && "z-10 rounded-md bg-surface-container-high elevation-3",
+        isDragging && "z-10 !rounded-lg !bg-surface-container-highest shadow-[0_20px_40px_-16px_rgb(0_0_0/0.5)]",
       )}
     >
       {render({ item, index, handle, dragging: isDragging })}

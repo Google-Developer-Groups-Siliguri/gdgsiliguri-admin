@@ -161,13 +161,15 @@ export function ListEditor<T extends object>({
       )}
 
       {items.length === 0 ? (
-        <Card variant="outlined" className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-          <Icon name="inventory_2" size={40} className="text-on-surface-variant" />
+        <Card variant="tinted" className="flex flex-col items-center gap-3 rounded-[32px] bg-surface-container px-6 py-12 text-center">
+          <span className="shape-cookie9 grid size-20 place-items-center bg-secondary-container text-on-secondary-container">
+            <Icon name="inventory_2" size={32} />
+          </span>
           <p className="text-body-large text-on-surface">{emptyMessage ?? `No ${noun}s yet.`}</p>
           <p className="text-body-medium text-on-surface-variant">Use “{addLabel ?? `Add ${noun}`}” to create one.</p>
         </Card>
       ) : (
-        <Card variant="outlined" className="overflow-hidden">
+        <div>
           <SortableList
             ariaLabel={`${noun}s`}
             items={items}
@@ -176,7 +178,7 @@ export function ListEditor<T extends object>({
             visible={visible}
             labelFor={(_, index) => label(index)}
             onReorder={move}
-            className="divide-y divide-outline-variant"
+            className="segmented-list"
             render={({ index, handle }) => {
               const summary = summaries[index];
               const issues = issuesFor?.(index) ?? NO_ISSUES;
@@ -189,7 +191,10 @@ export function ListEditor<T extends object>({
                 { label: "Delete", icon: "delete", destructive: true, onSelect: () => setDeleting(index) },
               ];
               return (
-                <div className="flex min-h-18 items-center gap-2 py-2 ps-1 pe-2 compact:gap-3">
+                <div
+                  className="flex min-h-18 items-center gap-2 py-2 ps-1 pe-2 animate-rise compact:gap-3"
+                  style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
+                >
                   {handle}
                   {showThumbnails && <ItemThumbnail src={summary.image ?? ""} round={roundThumbnails} />}
                   <button
@@ -231,7 +236,7 @@ export function ListEditor<T extends object>({
               );
             }}
           />
-        </Card>
+        </div>
       )}
 
       {!showFab && (

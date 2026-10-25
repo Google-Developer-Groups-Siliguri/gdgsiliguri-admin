@@ -82,6 +82,6 @@ test.describe("component gallery", () => {
 
   test("snackbar shows a message", async ({ page }) => {
     await page.getByRole("button", { name: "Snackbar", exact: true }).first().click();
-    await expect(page.getByText("Published. The live site updates after a rebuild.")).toBeVisible();
+    await expect(page.getByText("Published. It's live on gdgsiliguri.com.").first()).toBeVisible();
   });
 });

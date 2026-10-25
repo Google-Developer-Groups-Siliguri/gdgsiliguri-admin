@@ -33,7 +33,7 @@ export function Switch({ className, withIcons = true, ...props }: SwitchProps) {
       <RadixSwitch.Thumb
         className={cn(
           "relative flex items-center justify-center rounded-full",
-          "transition-[margin,width,height,background-color] duration-short ease-emphasized",
+          "transition-[margin,width,height,background-color] duration-500 ease-spring",
           withIcons ? "ms-0.5 size-6" : "ms-1.5 size-4",
           "bg-outline group-active:ms-0.5 group-active:size-7",
           "data-[state=checked]:ms-6 data-[state=checked]:size-6 data-[state=checked]:bg-on-primary",

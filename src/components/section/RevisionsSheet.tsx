@@ -72,18 +72,18 @@ export function RevisionsSheet({
         {load.status === "loading" && <LinearProgress label="Loading history" />}
         {load.status === "error" && <p className="text-body-medium text-error">{load.message}</p>}
         {load.status === "ready" && (
-          <ol className="flex flex-col gap-2">
+          <ol className="segmented-list">
             {load.revisions.map((revision) => {
               const live = revision.version === currentVersion;
               return (
                 <li
                   key={revision.id}
-                  className="flex flex-col gap-1 rounded-md bg-surface-container px-4 py-3"
+                  className="flex flex-col gap-1 px-4 py-3"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-title-small text-on-surface">Version {revision.version}</span>
                     {live && (
-                      <span className="rounded-xs bg-secondary-container px-1.5 text-label-small text-on-secondary-container">
+                      <span className="rounded-full bg-primary px-2 text-label-small text-on-primary">
                         Live
                       </span>
                     )}

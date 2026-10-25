@@ -38,7 +38,7 @@ export function SectionCard({ sectionKey, state, index = 0 }: SectionCardProps) 
   return (
     <Card
       variant="tinted"
-      className="group lift relative flex flex-col gap-4 rounded-[28px_28px_28px_8px] bg-surface-container p-5 text-on-surface hover:rounded-[28px] hover:bg-surface-container-high"
+      className="group lift relative flex h-full flex-col gap-4 rounded-[28px_28px_28px_8px] bg-surface-container p-5 text-on-surface hover:rounded-[28px] hover:bg-surface-container-high"
     >
       <div className="flex items-start gap-3">
         <span

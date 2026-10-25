@@ -39,7 +39,7 @@ export function SectionToggle({
       const result = await toggleAction(sectionKey, next, version);
       setOptimistic(null);
       if (result.ok) {
-        showSnackbar({ message: `${label} turned ${next ? "on" : "off"}. The live site updates after a rebuild.` });
+        showSnackbar({ message: `${label} turned ${next ? "on" : "off"}. gdgsiliguri.com ${next ? "shows" : "hides"} it now.` });
         onToggled?.();
       } else {
         showSnackbar({ message: result.message, tone: "error" });
@@ -65,8 +65,8 @@ export function SectionToggle({
         title={`Turn ${label} ${requested ? "on" : "off"}?`}
         description={
           requested
-            ? `This publishes immediately: ${label} will show on gdgsiliguri.com after the next rebuild. Unpublished draft changes stay in the draft.`
-            : `This publishes immediately: ${label} will be hidden on gdgsiliguri.com after the next rebuild. Unpublished draft changes stay in the draft.`
+            ? `This publishes immediately: ${label} shows on gdgsiliguri.com straight away. Unpublished draft changes stay in the draft.`
+            : `This publishes immediately: ${label} is hidden on gdgsiliguri.com straight away. Unpublished draft changes stay in the draft.`
         }
         confirmLabel={requested ? "Turn on" : "Turn off"}
         destructive={!requested}

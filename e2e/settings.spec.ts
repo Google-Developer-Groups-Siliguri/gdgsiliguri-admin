@@ -82,27 +82,15 @@ test("an editor cannot run admin actions even by replaying the request", async (
   await editorContext.close();
 });
 
-test("publishing shows the rebuild banner until the site is marked as rebuilt", async ({ page }) => {
+test("publishing goes live without a rebuild step", async ({ page }) => {
   await signInAs(page, TEST_USERS.owner, "/community/reviews");
   await page.getByRole("button", { name: /^More actions for/ }).first().click();
   await page.getByRole("menuitem", { name: "Move down" }).click();
   await page.getByRole("button", { name: "Publish" }).click();
-  await expect(page.getByText("Reviews published. Rebuild the website to show it.").first()).toBeVisible();
-
-  const banner = page.getByRole("status").filter({ hasText: "Waiting:" });
-  await expect(banner).toBeVisible();
-  await banner.getByRole("link", { name: "Rebuild website" }).click();
-
-  await expect(page).toHaveURL("/settings/rebuild");
-  await expect(page.getByText(/sections? (is|are) waiting for a rebuild/)).toBeVisible();
-  await expect(page.getByRole("listitem").filter({ hasText: /^Reviews$/ })).toBeVisible();
-  await expect(page.getByText("Refreshing the page is not enough.")).toBeVisible();
-  await page.getByRole("button", { name: "Mark as rebuilt" }).click();
-  await expect(page.getByText("The live site is up to date with everything published")).toBeVisible();
-
-  await page.goto("/");
-  await expect(page.getByRole("status").filter({ hasText: "Waiting:" })).toHaveCount(0);
-  await expect(page.getByText("Marked the website as rebuilt after a Netlify deploy").first()).toBeVisible();
+  await expect(page.getByText("Reviews published. It's live on gdgsiliguri.com.").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Rebuild/ })).toHaveCount(0);
+  const response = await page.goto("/settings/rebuild");
+  expect(response?.status()).toBe(404);
 });
 
 test("the activity log filters by section and person", async ({ page }) => {
@@ -118,6 +106,6 @@ test("the activity log filters by section and person", async ({ page }) => {
   await page.getByRole("combobox", { name: "Person" }).click();
   await page.getByRole("option", { name: TEST_USERS.owner.email }).click();
   await expect(page).toHaveURL(/actor=owner%40example.com/);
-  await expect(page.getByText("Marked the website as rebuilt after a Netlify deploy").first()).toBeVisible();
+  await expect(page.getByText(/Published Reviews/).first()).toBeVisible();
   await expect(page.getByText(`${TEST_USERS.owner.email} ·`).first()).toBeVisible();
 });

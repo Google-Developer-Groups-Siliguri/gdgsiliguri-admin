@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { useSnackbar } from "@/components/m3/Snackbar";
@@ -55,7 +54,6 @@ export function useSectionEditor<K extends SectionKey>(
   const [latest, setLatest] = useState<SectionState<K> | null>(null);
   const state = latest && isNewer(latest, serverState) ? latest : serverState;
   const showSnackbar = useSnackbar();
-  const router = useRouter();
   const [draft, setDraftState] = useState<SectionValues[K]>(state.draft);
   const [synced, setSynced] = useState({ key: syncKey(state), draft: state.draft });
   const [busy, setBusy] = useState<Busy>(null);
@@ -129,9 +127,7 @@ export function useSectionEditor<K extends SectionKey>(
       setLatest(result.data as SectionState<K>);
       setServerIssues([]);
       showSnackbar({
-        message: `${SECTIONS[key].label} published. Rebuild the website to show it.`,
-        actionLabel: "Rebuild",
-        onAction: () => router.push("/settings/rebuild"),
+        message: `${SECTIONS[key].label} published. It's live on gdgsiliguri.com.`,
         duration: 10_000,
       });
     });

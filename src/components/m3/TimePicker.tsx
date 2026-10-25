@@ -48,7 +48,7 @@ function TimeInputs({
   const valid = parsedHour !== null && parsedMinute !== null;
 
   const segment =
-    "h-18 w-24 rounded-sm bg-surface-container-highest text-center text-display-medium text-on-surface outline-none focus:bg-primary-container focus:text-on-primary-container focus:ring-2 focus:ring-primary";
+    "h-18 w-24 rounded-lg bg-surface-container-highest text-center font-display text-[44px] font-light text-on-surface outline-none transition-[border-radius,background-color] duration-500 ease-emph focus:rounded-[28px] focus:bg-primary-container focus:text-on-primary-container focus:ring-2 focus:ring-primary";
 
   return (
     <div className="flex flex-col gap-5 p-6">
@@ -82,7 +82,7 @@ function TimeInputs({
         <div
           role="radiogroup"
           aria-label="AM or PM"
-          className="ms-1 flex h-18 w-13 flex-col overflow-hidden rounded-sm border border-outline"
+          className="ms-1 flex h-18 w-14 flex-col gap-0.5"
         >
           {(["AM", "PM"] as const).map((option) => (
             <button
@@ -92,10 +92,10 @@ function TimeInputs({
               aria-checked={period === option}
               onClick={() => setPeriod(option)}
               className={cn(
-                "state-layer focus-ring flex-1 cursor-pointer text-title-medium not-first:border-t not-first:border-outline",
+                "state-layer focus-ring press flex-1 cursor-pointer text-label-large",
                 period === option
-                  ? "bg-tertiary-container text-on-tertiary-container"
-                  : "text-on-surface-variant",
+                  ? "rounded-full bg-tertiary-container text-on-tertiary-container"
+                  : "rounded-xs bg-surface-container-highest text-on-surface-variant first:rounded-t-lg last:rounded-b-lg",
               )}
             >
               {option}
@@ -174,7 +174,7 @@ export function TimePicker({
           align="end"
           sideOffset={4}
           collisionPadding={8}
-          className="z-50 max-h-[var(--radix-popover-content-available-height)] overflow-y-auto rounded-xl bg-surface-container-high text-on-surface elevation-3 outline-none animate-fade-in"
+          className="z-50 max-h-[var(--radix-popover-content-available-height)] origin-(--radix-popover-content-transform-origin) overflow-y-auto rounded-xl bg-surface-container-high text-on-surface shadow-[0_16px_40px_-16px_rgb(0_0_0/0.5)] outline-none animate-pop-in"
         >
           <TimeInputs
             initial={parseTime12(value) ?? DEFAULT_TIME}

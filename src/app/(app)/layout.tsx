@@ -1,11 +1,9 @@
 import { AppFrame, type ShellData } from "@/components/shell/AppFrame";
 import { getCurrentAdmin } from "@/lib/auth/session";
-import { getPendingRebuild } from "@/lib/settings";
 
 async function loadShell(): Promise<ShellData> {
   const user = await getCurrentAdmin();
-  if (!user) return { user: null, pendingRebuild: [] };
-  const pending = await getPendingRebuild().catch(() => ({ sections: [] }));
+  if (!user) return { user: null };
   return {
     user: {
       email: user.email,
@@ -13,7 +11,6 @@ async function loadShell(): Promise<ShellData> {
       displayName: user.displayName,
       photoURL: user.photoURL,
     },
-    pendingRebuild: pending.sections,
   };
 }
 

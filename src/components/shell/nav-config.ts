@@ -46,12 +46,6 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/settings/admins", label: "Admins", icon: "admin_panel_settings", ownerOnly: true },
       { href: "/settings/activity", label: "Activity log", shortLabel: "Activity", icon: "history" },
-      {
-        href: "/settings/rebuild",
-        label: "Rebuild website",
-        shortLabel: "Rebuild",
-        icon: "rocket_launch",
-      },
     ],
   },
 ];

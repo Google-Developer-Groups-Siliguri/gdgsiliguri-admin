@@ -30,7 +30,8 @@ export function Tab({ icon, children, className, ...props }: TabProps) {
   return (
     <RadixTabs.Trigger
       className={cn(
-        "group state-layer focus-ring relative flex h-12 min-w-24 shrink-0 cursor-pointer items-center justify-center gap-2 px-4",
+        "group state-layer focus-ring relative flex h-12 min-w-24 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-t-lg px-4",
+        "transition-colors duration-300",
         "text-title-small text-on-surface-variant data-[state=active]:text-primary",
         className,
       )}
@@ -39,7 +40,7 @@ export function Tab({ icon, children, className, ...props }: TabProps) {
       {icon && <Icon name={icon} size={20} />}
       <span className="relative flex h-full items-center">
         {children}
-        <span className="absolute inset-x-0 bottom-0 hidden h-[3px] rounded-t-full bg-primary group-data-[state=active]:block" />
+        <span className="absolute inset-x-0 bottom-0 h-[3px] scale-x-0 rounded-t-full bg-primary transition-[scale] duration-500 ease-spring group-data-[state=active]:scale-x-100" />
       </span>
     </RadixTabs.Trigger>
   );

@@ -31,8 +31,9 @@ export function StatusChip({ status, className }: { status: SectionStatus; class
   const style = STYLES[status];
   return (
     <span
+      key={status}
       className={cn(
-        "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full ps-2.5 pe-3.5 text-label-large",
+        "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full ps-2.5 pe-3.5 text-label-large animate-pop-in",
         style.className,
         className,
       )}
