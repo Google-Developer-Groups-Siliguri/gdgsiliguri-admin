@@ -15,6 +15,8 @@ import { durationInMins, time12ToMinutes } from "@/lib/datetime";
 
 const SpeakersContext = createContext<Speaker[]>([]);
 
+const slotFormSchema = strictSchemas.items.scheduleItem.omit({ durationInMins: true });
+
 const FIELD_LABELS: Record<string, string> = {
   startTime: "Start",
   endTime: "End",
@@ -28,7 +30,7 @@ const FIELD_LABELS: Record<string, string> = {
 function SlotForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<ScheduleItem>) {
   const speakers = use(SpeakersContext);
   const form = useItemForm<ScheduleItem>(
-    strictSchemas.items.scheduleItem as unknown as z.ZodType<ScheduleItem, ScheduleItem>,
+    slotFormSchema as unknown as z.ZodType<ScheduleItem, ScheduleItem>,
     item,
     isNew,
   );

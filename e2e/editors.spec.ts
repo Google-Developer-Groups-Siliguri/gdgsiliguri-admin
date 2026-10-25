@@ -125,9 +125,19 @@ test("schedule: fixing the AM/PM slip clears the warning and keeps a string dura
   await expect(dialog.getByText("30 minutes")).toBeVisible();
   await dialog.getByRole("button", { name: "Done" }).click();
   await expect(page.getByText("Starts earlier than the slot above it. Check AM/PM or the order.")).toBeHidden();
+
+  await page.getByRole("button", { name: "Add slot" }).click();
+  const added = page.getByRole("dialog", { name: "Add slot" });
+  await added.getByLabel("Title").fill("Closing photo");
+  await added.getByRole("textbox", { name: "Ends" }).fill("06:00 PM");
+  await expect(added.getByText("30 minutes")).toBeVisible();
+  await added.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(added).toBeHidden();
+
   await publish(page, "Schedule");
-  const slot = (await readRtdb("schedule/data/4")) as Json;
-  expect(slot).toMatchObject({ startTime: "12:10 PM", endTime: "12:40 PM", durationInMins: "30" });
+  const slots = (await readRtdb("schedule/data")) as Json[];
+  expect(slots[4]).toMatchObject({ startTime: "12:10 PM", endTime: "12:40 PM", durationInMins: "30" });
+  expect(slots.at(-1)).toMatchObject({ title: "Closing photo", startTime: "05:30 PM", endTime: "06:00 PM", durationInMins: "30" });
 });
 
 test("event details: edit fields across tabs and publish the exact shape", async ({ page }) => {
