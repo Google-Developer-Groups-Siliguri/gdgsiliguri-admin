@@ -53,62 +53,72 @@ export function SectionHeader({
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const hasChanges = dirty || hasDraftChanges;
 
+  const hasToggle = definition.hasEnabled && publishedEnabled !== null;
+
+  const actions = (
+    <div className="ms-auto flex flex-wrap items-center justify-end gap-x-1.5 gap-y-3">
+      {extra}
+      <IconButton icon="history" label="History" onClick={() => setRevisionsOpen(true)} />
+      <div className="hidden compact:block">
+        <Button
+          variant="text"
+          size="large"
+          className="text-on-surface"
+          disabled={!hasChanges || busy !== null}
+          onClick={() => setConfirmDiscard(true)}
+        >
+          Discard
+        </Button>
+      </div>
+      <div className="flex gap-0.5">
+        {onSave && (
+          <Button
+            variant="secondary"
+            size="large"
+            connected="start"
+            icon="save"
+            disabled={!dirty || busy !== null}
+            onClick={onSave}
+          >
+            {busy === "save" ? "Saving…" : "Save draft"}
+          </Button>
+        )}
+        <Button
+          size="large"
+          connected={onSave ? "end" : undefined}
+          icon={busy === "publish" ? undefined : "publish"}
+          className="min-w-33"
+          disabled={!hasChanges || !canPublish || busy !== null}
+          onClick={onPublish}
+        >
+          {busy === "publish" && <LoadingIndicator label="Publishing" size={20} color="currentColor" />}
+          {busy === "publish" ? "Publishing" : "Publish"}
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <header className="z-20 -mx-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-4 bg-surface-container-low px-4 pt-2 pb-5 medium:sticky medium:top-16 medium:-mx-6 medium:px-6 expanded:-mx-10 expanded:px-10">
-      <PageTitle title={definition.label} eyebrow={definition.group} size="medium" className="me-auto">
-        <div className="flex flex-wrap items-center gap-2.5">
-          <StatusChip status={sectionStatus(publishedEnabled, hasChanges)} />
-          <span className="text-body-small text-on-surface-variant" title={formatDateTime(publishedAt)}>
-            Published <RelativeTime iso={publishedAt} />
-            {publishedBy ? ` by ${publishedBy}` : ""} · version {version}
-          </span>
-        </div>
-      </PageTitle>
-      <div className="ms-auto flex flex-wrap items-center justify-end gap-x-1.5 gap-y-3">
-        {definition.hasEnabled && publishedEnabled !== null && (
-          <div className="me-2">
+    <header className="z-20 -mx-4 flex flex-col gap-4 bg-surface-container-low px-4 pt-2 pb-5 medium:sticky medium:top-16 medium:-mx-6 medium:px-6 expanded:-mx-10 expanded:px-10">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
+        <PageTitle title={definition.label} eyebrow={definition.group} size="medium" className="me-auto">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <StatusChip status={sectionStatus(publishedEnabled, hasChanges)} />
+            <span className="text-body-small text-on-surface-variant" title={formatDateTime(publishedAt)}>
+              Published <RelativeTime iso={publishedAt} />
+              {publishedBy ? ` by ${publishedBy}` : ""} · version {version}
+            </span>
+          </div>
+        </PageTitle>
+        {hasToggle ? (
+          <div className="ms-auto">
             <SectionToggle sectionKey={sectionKey} enabled={publishedEnabled} version={version} labelled />
           </div>
+        ) : (
+          actions
         )}
-        {extra}
-        <IconButton icon="history" label="History" onClick={() => setRevisionsOpen(true)} />
-        <div className="hidden compact:block">
-          <Button
-            variant="text"
-            size="large"
-            className="text-on-surface"
-            disabled={!hasChanges || busy !== null}
-            onClick={() => setConfirmDiscard(true)}
-          >
-            Discard
-          </Button>
-        </div>
-        <div className="flex gap-0.5">
-          {onSave && (
-            <Button
-              variant="secondary"
-              size="large"
-              connected="start"
-              icon="save"
-              disabled={!dirty || busy !== null}
-              onClick={onSave}
-            >
-              {busy === "save" ? "Saving…" : "Save draft"}
-            </Button>
-          )}
-          <Button
-            size="large"
-            connected={onSave ? "end" : undefined}
-            icon={busy === "publish" ? undefined : "publish"}
-            className="min-w-33"
-            disabled={!hasChanges || !canPublish || busy !== null}
-            onClick={onPublish}
-          >
-            {busy === "publish" && <LoadingIndicator label="Publishing" size={20} color="currentColor" />}
-            {busy === "publish" ? "Publishing" : "Publish"}
-          </Button>
-        </div>
       </div>
+      {hasToggle && actions}
       <RevisionsSheet
         sectionKey={sectionKey}
         open={revisionsOpen}
