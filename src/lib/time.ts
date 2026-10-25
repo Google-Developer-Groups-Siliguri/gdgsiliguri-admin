@@ -22,6 +22,30 @@ const eventDate = new Intl.DateTimeFormat("en-IN", {
   timeZone: "Asia/Kolkata",
 });
 
+const eventMoment = new Intl.DateTimeFormat("en-IN", {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+  timeZone: "Asia/Kolkata",
+});
+
+export function formatEventMoment(epochMs: number): string {
+  const parts = Object.fromEntries(eventMoment.formatToParts(epochMs).map((part) => [part.type, part.value]));
+  return `${parts.weekday}, ${parts.day} ${parts.month} ${parts.year} · ${parts.hour}:${parts.minute} ${String(parts.dayPeriod).toUpperCase()}`;
+}
+
+export function leadTime(startMs: number, closesMs: number): string {
+  const hours = Math.round((startMs - closesMs) / 3_600_000);
+  if (hours <= 0) return hours === 0 ? "At the start" : "After the event starts";
+  if (hours < 48) return `${hours} ${hours === 1 ? "hour" : "hours"} before start`;
+  const days = Math.round(hours / 24);
+  return `${days} days before start`;
+}
+
 export type EventDateParts = { weekday: string; day: string; month: string; year: string };
 
 export function eventDateParts(epochMs: number): EventDateParts {

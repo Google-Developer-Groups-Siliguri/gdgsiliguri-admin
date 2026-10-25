@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 type IconProps = {
   name: string;
   filled?: boolean;
-  size?: 18 | 20 | 24 | 32 | 40;
+  size?: 16 | 18 | 20 | 24 | 32 | 40;
   className?: string;
   label?: string;
 };

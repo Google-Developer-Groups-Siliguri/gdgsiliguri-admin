@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Controller, type Control, type FieldValues, type Path } from "react-hook-form";
 
 import { DatePicker } from "@/components/m3/DatePicker";
@@ -11,9 +12,10 @@ type DateTimeInputProps<T extends FieldValues> = {
   name: Path<T>;
   label: string;
   supportingText?: string;
+  summary?: ReactNode;
 };
 
-export function DateTimeInput<T extends FieldValues>({ control, name, label, supportingText }: DateTimeInputProps<T>) {
+export function DateTimeInput<T extends FieldValues>({ control, name, label, supportingText, summary }: DateTimeInputProps<T>) {
   return (
     <Controller
       control={control}
@@ -29,22 +31,33 @@ export function DateTimeInput<T extends FieldValues>({ control, name, label, sup
           field.onChange(formatDateTime(nextDate, time24, parts?.seconds, parts?.millis));
         };
         return (
-          <fieldset className="flex flex-col gap-2">
-            <legend className="pb-2 text-label-large text-on-surface-variant">{label}</legend>
-            <div className="grid grid-cols-1 gap-4 compact:grid-cols-2">
-              <DatePicker
-                label="Date"
-                value={date}
-                onChange={(next) => update(next, time || "09:00 AM")}
-                error={fieldState.error && !parts ? fieldState.error.message : undefined}
-                supportingText="YYYY-MM-DD"
-              />
-              <TimePicker
-                label="Time"
-                value={time}
-                onChange={(next) => update(date, next)}
-                supportingText="Indian Standard Time"
-              />
+          <fieldset className="flex flex-col gap-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+              <legend className="contents text-label-large text-on-surface">{label}</legend>
+              {summary}
+            </div>
+            <div className="flex flex-col gap-1 compact:flex-row">
+              <div className="compact:flex-[1.4]">
+                <DatePicker
+                  label="Date"
+                  labelPlacement="inside"
+                  shape="start"
+                  value={date}
+                  onChange={(next) => update(next, time || "09:00 AM")}
+                  error={fieldState.error && !parts ? fieldState.error.message : undefined}
+                  supportingText=""
+                />
+              </div>
+              <div className="compact:flex-1">
+                <TimePicker
+                  label="Time"
+                  labelPlacement="inside"
+                  shape="end"
+                  value={time}
+                  onChange={(next) => update(date, next)}
+                  supportingText=""
+                />
+              </div>
             </div>
             {supportingText && <p className="px-4 text-body-small text-on-surface-variant">{supportingText}</p>}
           </fieldset>

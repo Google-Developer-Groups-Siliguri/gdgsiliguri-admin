@@ -27,7 +27,7 @@ export type ItemFormProps<T> = {
   onSubmit: (item: T) => void;
 };
 
-export type ListFilter<T> = { label: string; test: (item: T) => boolean };
+export type ListFilter<T> = { label: string; test: (item: T) => boolean; dot?: string };
 
 export type ListEditorProps<T extends object> = {
   items: T[];
@@ -74,7 +74,7 @@ export function ListEditor<T extends object>({
 }: ListEditorProps<T>) {
   const formId = useId();
   const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [editing, setEditing] = useState<Editing<T>>(null);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [handledRequest, setHandledRequest] = useState(openRequest?.at ?? 0);
@@ -85,16 +85,23 @@ export function ListEditor<T extends object>({
   const ids = items.map(rowId);
   const summaries = useMemo(() => items.map(summarize), [items, summarize]);
 
-  const filter = filters?.find((candidate) => candidate.label === activeFilter);
+  const selectedFilters = filters?.filter((candidate) => activeFilters.includes(candidate.label)) ?? [];
   const normalizedQuery = query.trim().toLowerCase();
-  const narrowed = Boolean(normalizedQuery || filter);
-  const visible = (item: T, index: number) => {
-    if (filter && !filter.test(item)) return false;
+  const narrowed = Boolean(normalizedQuery || selectedFilters.length);
+  const matchesQuery = (index: number) => {
     if (!normalizedQuery) return true;
     const summary = summaries[index];
     return `${summary.primary} ${summary.secondary ?? ""}`.toLowerCase().includes(normalizedQuery);
   };
+  const visible = (item: T, index: number) =>
+    matchesQuery(index) && (selectedFilters.length === 0 || selectedFilters.some((candidate) => candidate.test(item)));
   const visibleCount = items.filter(visible).length;
+  const searchCount = items.filter((_, index) => matchesQuery(index)).length;
+  const plural = (count: number) => `${count} ${count === 1 ? noun : `${noun}s`}`;
+
+  function toggleFilter(label: string) {
+    setActiveFilters((current) => (current.includes(label) ? current.filter((value) => value !== label) : [...current, label]));
+  }
 
   function move(from: number, to: number) {
     if (to < 0 || to >= items.length) return;
@@ -127,37 +134,67 @@ export function ListEditor<T extends object>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 compact:flex-row compact:items-center">
+      <div className="flex flex-col gap-3 compact:flex-row compact:flex-wrap compact:items-center">
         <TextField
           label={`Search ${items.length} ${items.length === 1 ? noun : `${noun}s`}`}
           leadingIcon="search"
           variant="pill"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          containerClassName="compact:max-w-sm"
+          containerClassName="compact:max-w-110 compact:flex-[0_1_440px]"
           trailing={
             query ? <IconButton icon="close" label="Clear search" onClick={() => setQuery("")} /> : undefined
           }
         />
         {filters && (
           <div className="flex flex-wrap gap-2" role="group" aria-label="Filter">
-            {filters.map((candidate) => (
-              <FilterChip
-                key={candidate.label}
-                selected={activeFilter === candidate.label}
-                onSelectedChange={(selected) => setActiveFilter(selected ? candidate.label : null)}
-              >
-                {candidate.label}
-              </FilterChip>
-            ))}
+            <FilterChip selected={activeFilters.length === 0} count={searchCount} onSelectedChange={() => setActiveFilters([])}>
+              All
+            </FilterChip>
+            {filters.map((candidate) => {
+              const count = items.filter((item, index) => matchesQuery(index) && candidate.test(item)).length;
+              return (
+                <FilterChip
+                  key={candidate.label}
+                  selected={activeFilters.includes(candidate.label)}
+                  dot={candidate.dot}
+                  count={count}
+                  disabled={count === 0 && !activeFilters.includes(candidate.label)}
+                  onSelectedChange={() => toggleFilter(candidate.label)}
+                >
+                  {candidate.label}
+                </FilterChip>
+              );
+            })}
           </div>
         )}
         {headerSlot}
+        <span className="text-label-large font-semibold text-on-surface-variant compact:ms-auto" aria-live="polite">
+          {narrowed ? `${visibleCount} of ${plural(items.length)}` : plural(items.length)}
+        </span>
       </div>
-      {narrowed && (
-        <p className="text-body-small text-on-surface-variant">
-          Showing {visibleCount} of {items.length}. Clear the search and filters to reorder.
-        </p>
+      {narrowed && visibleCount > 0 && (
+        <p className="px-1 text-body-small text-on-surface-variant">Clear the search and filters to reorder.</p>
+      )}
+
+      {items.length > 0 && narrowed && visibleCount === 0 && (
+        <div className="flex flex-col items-center gap-4 rounded-[32px] bg-surface-container px-6 py-16 text-center">
+          <span className="shape-clover4 grid size-18 place-items-center bg-surface-container-highest text-on-surface-variant">
+            <Icon name="search_off" size={32} />
+          </span>
+          <p className="font-display text-[22px] font-extrabold text-on-surface">No {noun}s match</p>
+          <p className="text-body-medium text-on-surface-variant">Try another search or clear the filters.</p>
+          <Button
+            variant="secondary"
+            size="large"
+            onClick={() => {
+              setQuery("");
+              setActiveFilters([]);
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
       )}
 
       {items.length === 0 ? (
@@ -192,18 +229,30 @@ export function ListEditor<T extends object>({
               ];
               return (
                 <div
-                  className="flex min-h-18 items-center gap-2 py-2 ps-1 pe-2 animate-rise compact:gap-3"
+                  className="flex min-h-19 items-center gap-2 py-3 ps-1 pe-2.5 animate-rise compact:gap-4"
                   style={{ animationDelay: `${Math.min(index, 8) * 45}ms` }}
                 >
                   {handle}
-                  {showThumbnails && <ItemThumbnail src={summary.image ?? ""} round={roundThumbnails} />}
+                  {showThumbnails && (
+                    <ItemThumbnail
+                      src={summary.image ?? ""}
+                      round={roundThumbnails}
+                      shape={summary.shape}
+                      tint={summary.badge?.color}
+                    />
+                  )}
                   <button
                     type="button"
                     onClick={() => setEditing({ index, item: items[index] })}
                     className="focus-ring flex min-w-0 flex-1 cursor-pointer flex-col items-start rounded-xs text-start"
                   >
                     <span className="flex max-w-full items-center gap-2">
-                      <span className={cn("truncate text-body-large", summary.primary ? "text-on-surface" : "text-on-surface-variant italic")}>
+                      <span
+                        className={cn(
+                          "truncate font-display text-[17px] font-bold",
+                          summary.primary ? "text-on-surface" : "text-on-surface-variant italic",
+                        )}
+                      >
                         {summary.primary || "Untitled"}
                       </span>
                       {issues.errors.length > 0 && (
@@ -222,9 +271,24 @@ export function ListEditor<T extends object>({
                       )}
                     </span>
                     {summary.secondary && (
-                      <span className="line-clamp-2 text-body-medium text-on-surface-variant">{summary.secondary}</span>
+                      <span className="line-clamp-2 text-body-small text-on-surface-variant compact:line-clamp-1">
+                        {summary.secondary}
+                      </span>
                     )}
                   </button>
+                  {summary.badge && (
+                    <span
+                      className="hidden h-7.5 shrink-0 items-center rounded-full px-3 text-label-medium font-extrabold text-[#1b1d1b] compact:inline-flex"
+                      style={{ background: summary.badge.color }}
+                    >
+                      {summary.badge.label}
+                    </span>
+                  )}
+                  {summary.meta !== undefined && (
+                    <span className="hidden w-24 shrink-0 text-end text-label-large font-semibold text-on-surface-variant medium:inline">
+                      {summary.meta}
+                    </span>
+                  )}
                   <IconButton
                     icon="edit"
                     label={`Edit ${label(index)}`}

@@ -44,6 +44,8 @@ export type FilterChipProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onC
   selected: boolean;
   onSelectedChange?: (selected: boolean) => void;
   icon?: string;
+  dot?: string;
+  count?: number;
   children: ReactNode;
 };
 
@@ -51,13 +53,14 @@ export function FilterChip({
   selected,
   onSelectedChange,
   icon,
+  dot,
+  count,
   className,
   children,
   onClick,
   type = "button",
   ...props
 }: FilterChipProps) {
-  const leading = selected ? "check" : icon;
   return (
     <button
       type={type}
@@ -67,17 +70,29 @@ export function FilterChip({
         onSelectedChange?.(!selected);
       }}
       className={cn(
-        BASE,
-        leading ? "ps-3 pe-4" : "px-4",
+        "focus-ring inline-flex h-10 shrink-0 cursor-pointer items-center gap-1.5 pe-3.5 text-label-large",
+        "transition-[border-radius,background-color,box-shadow,padding,scale] duration-[500ms,300ms,300ms,400ms,500ms] ease-emph active:scale-95",
+        "disabled:cursor-default disabled:opacity-38",
         selected
-          ? "bg-secondary-container text-on-secondary-container"
-          : "bg-surface-container-high text-on-surface-variant",
+          ? "rounded-[20px] bg-secondary-container ps-2.5 text-on-secondary-container"
+          : "rounded-[10px] ps-3.5 text-on-surface ring-1 ring-outline ring-inset hover:bg-surface-container-high",
         className,
       )}
       {...props}
     >
-      {leading && <Icon name={leading} size={18} />}
+      <span
+        className={cn(
+          "flex overflow-hidden transition-[width] duration-[400ms] ease-emph",
+          selected ? "w-[18px]" : "w-0",
+        )}
+        aria-hidden
+      >
+        <Icon name="check" size={18} />
+      </span>
+      {!selected && icon && <Icon name={icon} size={18} />}
+      {dot && <span className="size-2.5 shrink-0 rounded-full" style={{ background: dot }} aria-hidden />}
       {children}
+      {count !== undefined && <span className="text-label-medium font-semibold opacity-70">{count}</span>}
     </button>
   );
 }

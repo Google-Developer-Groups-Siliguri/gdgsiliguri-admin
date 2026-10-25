@@ -118,7 +118,7 @@ test.describe("section header", () => {
 
   test("publishing an unchanged section is not offered", async ({ page }) => {
     await signInAs(page, TEST_USERS.owner, "/devfest/faq");
-    await expect(page.getByRole("button", { name: "Publish" })).toBeDisabled();
-    await expect(page.getByRole("button", { name: "Discard" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Discard", exact: true, includeHidden: true })).toBeDisabled();
   });
 });

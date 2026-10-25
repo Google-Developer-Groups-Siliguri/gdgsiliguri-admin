@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { countdown, eventDateParts, timeAgo } from "./time";
+import { countdown, eventDateParts, formatEventMoment, leadTime, timeAgo } from "./time";
 
 const now = Date.parse("2026-10-23T12:00:00Z");
 
@@ -37,5 +37,20 @@ describe("eventDateParts", () => {
       month: "NOV",
       year: "2026",
     });
+  });
+});
+
+describe("formatEventMoment", () => {
+  it("formats the start in India time", () => {
+    expect(formatEventMoment(Date.parse("2026-11-14T02:30:00Z"))).toBe("Sat, 14 Nov 2026 · 8:00 AM");
+  });
+});
+
+describe("leadTime", () => {
+  const start = Date.parse("2026-11-14T02:30:00Z");
+  it("says how long before the start registration closes", () => {
+    expect(leadTime(start, start - 36 * 3_600_000)).toBe("36 hours before start");
+    expect(leadTime(start, start - 5 * 24 * 3_600_000)).toBe("5 days before start");
+    expect(leadTime(start, start + 3_600_000)).toBe("After the event starts");
   });
 });

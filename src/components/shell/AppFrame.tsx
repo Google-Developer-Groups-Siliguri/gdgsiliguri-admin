@@ -67,14 +67,14 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
   const current = findNavItem(OWNER_GROUPS, pathname);
 
   return (
-    <div className="flex min-h-dvh bg-surface-container">
+    <div className="flex min-h-dvh bg-surface">
       <aside className="sticky top-0 hidden h-dvh medium:flex expanded:hidden">
         <RoleAwareNav
           shellPromise={shellPromise}
           render={(groups) => (
             <NavigationRail
               groups={groups}
-              className="bg-surface-container"
+              className="bg-surface"
               header={
                 <Link href="/" className="focus-ring rounded-sm" aria-label="Dashboard">
                   <BrandMark withText={false} size={36} />
@@ -95,9 +95,9 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col medium:py-2 medium:pe-2">
-        <div className="flex flex-1 flex-col bg-surface medium:rounded-xl">
+        <div className="flex flex-1 flex-col bg-surface-container-low medium:rounded-lg">
           <TopAppBar
-            className="bg-surface medium:rounded-t-xl"
+            className="bg-surface-container-low medium:rounded-t-lg"
             navigation={
               <IconButton
                 icon="menu"
@@ -123,7 +123,7 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
               </>
             }
           />
-          <main id="main" className="flex min-w-0 flex-1 flex-col px-4 pb-28 medium:px-6">
+          <main id="main" className="flex min-w-0 flex-1 flex-col px-4 pb-32 medium:px-6 expanded:px-10">
             {children}
           </main>
         </div>

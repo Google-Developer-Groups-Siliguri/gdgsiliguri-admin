@@ -198,6 +198,15 @@ describe("known production data issues are surfaced", () => {
     ]);
   });
 
+  it("flags a ticket link for a different year's event", () => {
+    const details = parseSection("eventDetails", seedValue("eventDetails"));
+    expect(messagesAt(sectionWarnings("eventDetails", details), ["eventTicketURL"])).toEqual([]);
+    const nextYear = { ...details, eventDateTime: "2026-11-14 08:00:00.000" };
+    expect(messagesAt(sectionWarnings("eventDetails", nextYear), ["eventTicketURL"])).toEqual([
+      "This link points to the 2025 event page, but DevFest is in 2026.",
+    ]);
+  });
+
   it("flags the schemeless Twitter URL and the trailing spaces in teams", () => {
     const teams = parseSection("teams", seedValue("teams"));
     const paths = sectionWarnings("teams", teams).map((issue) => issue.path.join("."));

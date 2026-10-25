@@ -50,7 +50,6 @@
   --animate-pop-in: pop-in 420ms var(--ease-spring) backwards;
   --animate-digit: digit 450ms var(--ease-spring) backwards;
   --animate-snack-in: snack-in 520ms var(--ease-spring) backwards;
-  --animate-shape-morph: shape-morph 3.25s infinite;
   --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
 
   @keyframes fade-in {
@@ -78,52 +77,6 @@
     from {
       opacity: 0;
       transform: translateY(24px);
-    }
-  }
-  @keyframes shape-morph {
-    0%,
-    100% {
-      clip-path: var(--s-cookie9);
-      animation-timing-function: var(--sp-fast);
-    }
-    0% {
-      rotate: 0deg;
-    }
-    20% {
-      clip-path: var(--s-pentagon);
-      rotate: 140deg;
-      animation-timing-function: var(--sp-fast);
-    }
-    40% {
-      clip-path: var(--s-cookie6);
-      rotate: 280deg;
-      animation-timing-function: var(--sp-fast);
-    }
-    60% {
-      clip-path: var(--s-sunny);
-      rotate: 420deg;
-      animation-timing-function: var(--sp-fast);
-    }
-    80% {
-      clip-path: var(--s-clover4);
-      rotate: 560deg;
-      animation-timing-function: var(--sp-fast);
-    }
-    100% {
-      rotate: 720deg;
-    }
-  }
-  @keyframes digit {
-    from {
-      opacity: 0;
-      translate: 0 -45%;
-    }
-  }
-  @keyframes snack-in {
-    from {
-      opacity: 0;
-      scale: 0.92;
-      margin-bottom: -24px;
     }
   }
   @keyframes pop-in {
@@ -289,8 +242,14 @@
 @utility shape-clover4 {
   clip-path: var(--s-clover4);
 }
+@utility shape-cookie4 {
+  clip-path: var(--s-cookie4);
+}
 @utility shape-cookie6 {
   clip-path: var(--s-cookie6);
+}
+@utility shape-cookie7 {
+  clip-path: var(--s-cookie7);
 }
 @utility shape-cookie9 {
   clip-path: var(--s-cookie9);
@@ -302,28 +261,46 @@
   clip-path: var(--s-sunny);
 }
 
+@utility field-fill {
+  background-color: var(--field-fill, var(--md-sys-color-surface-container-high));
+}
+
 @utility segmented-list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   & > * {
-    background-color: var(--md-sys-color-surface-container);
-    border-radius: var(--radius-xs);
+    background-color: var(--list-fill, var(--md-sys-color-surface-container));
+    border-radius: 8px;
     transition:
       border-radius 500ms var(--ease-emph),
       background-color 300ms ease;
   }
   & > *:first-child {
-    border-top-left-radius: var(--radius-lg);
-    border-top-right-radius: var(--radius-lg);
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
   }
   & > *:last-child {
-    border-bottom-left-radius: var(--radius-lg);
-    border-bottom-right-radius: var(--radius-lg);
+    border-bottom-left-radius: 28px;
+    border-bottom-right-radius: 28px;
   }
   & > *:hover {
-    background-color: var(--md-sys-color-surface-container-high);
-    border-radius: var(--radius-lg);
+    background-color: var(--list-fill-hover, var(--md-sys-color-surface-container-high));
+    border-radius: 28px;
+  }
+}
+
+@utility wavy {
+  --wave: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M-2 7 Q5 1 12 7 T26 7 T40 7' fill='none' stroke='black' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E");
+  mask-image: var(--wave);
+  mask-repeat: repeat-x;
+  mask-size: 28px 14px;
+  animation: wave-flow 1s linear infinite;
+}
+
+@keyframes wave-flow {
+  to {
+    mask-position: 28px 0;
   }
 }
 

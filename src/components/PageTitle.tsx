@@ -25,7 +25,7 @@ export function PageTitle({ title, eyebrow, size = "large", className, children 
       <h1
         className={cn(
           "font-display leading-[0.95] font-extralight tracking-[-0.045em] text-on-surface",
-          size === "large" ? "text-[clamp(40px,6vw,64px)]" : "text-[clamp(32px,4vw,44px)]",
+          size === "large" ? "text-[clamp(40px,6vw,64px)]" : "text-[clamp(36px,4.5vw,52px)]",
         )}
       >
         {lead && <>{lead} </>}

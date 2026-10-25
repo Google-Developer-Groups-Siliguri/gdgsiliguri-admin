@@ -11,11 +11,11 @@ test.beforeEach(({}, testInfo) => {
 
 async function openEditor(page: Page, path: string) {
   await signInAs(page, TEST_USERS.owner, path);
-  await expect(page.getByRole("button", { name: "Publish" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeVisible();
 }
 
 async function publish(page: Page, label: string) {
-  await page.getByRole("button", { name: "Publish" }).click();
+  await page.getByRole("button", { name: "Publish", exact: true }).click();
   await expect(page.getByText(`${label} published. It's live on gdgsiliguri.com.`).first()).toBeVisible();
 }
 
@@ -26,7 +26,7 @@ function rows(page: Page) {
 test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }) => {
   await openEditor(page, "/community/team");
   await expect(page.getByRole("main").getByText("1 problem to fix before publishing")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeDisabled();
 
   await page.getByRole("button", { name: "Add member" }).click();
   const dialog = page.getByRole("dialog", { name: "Add member" });
@@ -196,8 +196,8 @@ test("leaving with unsaved changes asks first", async ({ page }) => {
   await expect(guard).toBeVisible();
   await guard.getByRole("button", { name: "Cancel" }).click();
   await expect(page).toHaveURL("/community/reviews");
-  await page.getByRole("button", { name: "Discard" }).click();
-  await page.getByRole("alertdialog").getByRole("button", { name: "Discard" }).click();
+  await page.getByRole("button", { name: "Discard", exact: true }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Discard", exact: true }).click();
   await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Dashboard" }).click();
   await expect(page).toHaveURL("/");
 });
@@ -211,7 +211,7 @@ test("an enabled section cannot be emptied until it is turned off", async ({ pag
   }
   const emptyMessage = page.getByText("Home FAQ has no items. Add at least one, or turn the section off instead.");
   await expect(emptyMessage).toBeVisible();
-  await expect(page.getByRole("button", { name: "Publish" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeDisabled();
 
   await page.getByRole("switch", { name: "Show Home FAQ on the website" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Turn off" }).click();

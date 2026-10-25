@@ -50,6 +50,7 @@ export function StringListEditor({ label, noun, values, onChange, errors = {} }:
             <div className="pt-2">{handle}</div>
             <TextField
               label={`${noun} ${index + 1}`}
+              labelPlacement="inside"
               value={item.text}
               error={errors[index]}
               onChange={(event) =>

@@ -9,10 +9,17 @@ import { loadSection } from "@/lib/content/queries";
 export const metadata: Metadata = { title: "Speakers" };
 
 async function Editor() {
-  const [speakers, details] = await Promise.all([loadSection("speakers"), loadSection("eventDetails")]);
+  const [speakers, details, schedule] = await Promise.all([
+    loadSection("speakers"),
+    loadSection("eventDetails"),
+    loadSection("schedule"),
+  ]);
+  const slotTimes = Object.fromEntries(
+    schedule.draft.data.filter((slot) => slot.subTitle.trim()).map((slot) => [slot.subTitle.trim(), slot.startTime]),
+  );
   return (
     <UploadProvider kind="speaker">
-      <SpeakersEditor state={speakers} frames={details.draft.frames.speakers} />
+      <SpeakersEditor state={speakers} frames={details.draft.frames.speakers} slotTimes={slotTimes} />
     </UploadProvider>
   );
 }

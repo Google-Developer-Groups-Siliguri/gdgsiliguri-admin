@@ -9,8 +9,7 @@ const VARIANTS: Record<CardVariant, string> = {
     "bg-surface-container-low elevation-1 [--field-bg:var(--md-sys-color-surface-container-low)]",
   filled:
     "bg-surface-container-highest [--field-bg:var(--md-sys-color-surface-container-highest)]",
-  outlined:
-    "bg-surface-container-low [--field-bg:var(--md-sys-color-surface-container-low)]",
+  outlined: "bg-surface-container",
   tinted: "",
 };
 

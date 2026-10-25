@@ -7,7 +7,7 @@ import { Icon } from "./Icon";
 type FabColor = "primary" | "secondary" | "tertiary" | "surface";
 
 const COLORS: Record<FabColor, string> = {
-  primary: "bg-primary text-on-primary",
+  primary: "bg-primary-container text-on-primary-container",
   secondary: "bg-secondary-container text-on-secondary-container",
   tertiary: "bg-tertiary-container text-on-tertiary-container",
   surface: "bg-surface-container-high text-primary",
@@ -37,9 +37,11 @@ export function Fab({
       aria-label={extended ? undefined : label}
       title={extended ? undefined : label}
       className={cn(
-        "state-layer focus-ring press animate-pop-in inline-flex h-14 shrink-0 cursor-pointer items-center justify-center gap-3 rounded-[28px] hover:rounded-[20px]",
-        lowered ? "elevation-1" : "shadow-[0_16px_32px_-12px_rgb(0_0_0/0.45)]",
-        extended ? "ps-5 pe-6 font-display text-[16px] font-extrabold" : "w-14",
+        "state-layer focus-ring press animate-pop-in inline-flex shrink-0 cursor-pointer items-center justify-center gap-3",
+        lowered ? "elevation-1" : "shadow-[0_12px_28px_-12px_rgb(0_0_0/0.55)]",
+        extended
+          ? "h-18 rounded-[24px] ps-6 pe-7 font-display text-[17px] font-extrabold hover:rounded-[36px]"
+          : "size-14 rounded-[18px] hover:rounded-[28px]",
         COLORS[color],
         className,
       )}

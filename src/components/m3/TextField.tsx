@@ -14,9 +14,19 @@ import { cn } from "@/lib/cn";
 
 import { Icon } from "./Icon";
 
+export type FieldShape = "full" | "start" | "end";
+
+const SHAPES: Record<FieldShape, string> = {
+  full: "rounded-md",
+  start: "rounded-[16px_6px_6px_16px]",
+  end: "rounded-[6px_16px_16px_6px]",
+};
+
 type SharedProps = {
   label: string;
   variant?: "filled" | "pill";
+  labelPlacement?: "outside" | "inside";
+  shape?: FieldShape;
   supportingText?: ReactNode;
   error?: string | false;
   warning?: string | false;
@@ -50,6 +60,8 @@ export function TextField(props: TextFieldProps) {
   const {
     label,
     variant = "filled",
+    labelPlacement = "outside",
+    shape = "full",
     supportingText,
     error,
     warning,
@@ -74,51 +86,57 @@ export function TextField(props: TextFieldProps) {
   const message = error || warning || supportingText;
   const maxLength = rest.maxLength;
   const pill = variant === "pill";
+  const inside = !pill && labelPlacement === "inside";
+  const counter = showCounter ? (maxLength ? `${length} / ${maxLength}` : `${length} characters`) : null;
 
   const fieldClasses = cn(
-    "peer w-full min-w-0 bg-transparent pt-6 pb-2 text-body-large text-on-surface caret-primary outline-none",
-    "placeholder:text-transparent disabled:text-on-surface/38",
-    leadingIcon ? "ps-12" : pill ? "ps-6" : "ps-4",
+    "w-full min-w-0 bg-transparent text-body-large font-semibold text-on-surface caret-primary outline-none",
+    "placeholder:font-medium placeholder:text-on-surface-variant/80 disabled:text-on-surface/38",
+    leadingIcon ? (pill ? "ps-14" : "ps-12") : pill ? "ps-6" : "ps-4",
     trailing ? "pe-12" : pill ? "pe-6" : "pe-4",
+    inside ? "pt-5" : multiline ? "py-3.5" : "",
     className,
   );
 
-  const labelClasses = cn(
-    "pointer-events-none absolute top-4 origin-[0_0] truncate text-body-large text-on-surface-variant",
-    "transition-[transform,color,top] duration-medium ease-emph",
-    "max-w-[calc(100%-2rem)]",
-    leadingIcon ? "start-12" : pill ? "start-6" : "start-4",
-    "peer-focus:top-2 peer-focus:scale-75 peer-[:not(:placeholder-shown)]:top-2 peer-[:not(:placeholder-shown)]:scale-75",
-    hasError ? "text-error peer-focus:text-error" : "peer-focus:text-primary",
-    "peer-disabled:text-on-surface/38",
-  );
-
   const containerClasses = cn(
-    "state-layer relative flex w-full ring-inset transition-[box-shadow,border-radius] duration-medium ease-emph",
+    "state-layer field-fill relative flex w-full ring-inset transition-[box-shadow,border-radius] duration-medium ease-emph",
     multiline ? "items-start" : "items-center",
-    pill
-      ? "rounded-full bg-surface-container-high focus-within:rounded-lg"
-      : "rounded-md bg-surface-container-highest",
+    pill ? "rounded-full focus-within:rounded-lg" : SHAPES[shape],
     hasError ? "ring-2 ring-error" : "focus-within:ring-2 focus-within:ring-primary",
     "has-[:disabled]:opacity-60",
   );
 
-  const describedBy = message || showCounter ? supportId : undefined;
+  const describedBy = message || (showCounter && inside) ? supportId : undefined;
   const common = {
     id,
-    placeholder: " ",
+    placeholder: pill ? label : undefined,
+    "aria-label": pill ? label : undefined,
     "aria-invalid": hasError || undefined,
     "aria-describedby": describedBy,
     className: fieldClasses,
   };
+  const requiredMark = rest.required && <span aria-hidden> *</span>;
 
   return (
-    <div className={cn("flex w-full min-w-0 flex-col", containerClassName)}>
+    <div className={cn("flex w-full min-w-0 flex-col gap-2", containerClassName)}>
+      {!pill && !inside && (
+        <div className="flex items-baseline justify-between gap-3 px-1">
+          <label htmlFor={id} className="text-label-large text-on-surface">
+            {label}
+            {requiredMark}
+          </label>
+          {counter && <span className="text-label-medium text-on-surface-variant tabular-nums">{counter}</span>}
+        </div>
+      )}
       <div className={containerClasses}>
         {leadingIcon && (
           <Icon
             name={leadingIcon}
-            className="pointer-events-none absolute start-3 text-on-surface-variant"
+            className={cn(
+              "pointer-events-none absolute text-on-surface-variant",
+              pill ? "start-5" : "start-3.5",
+              multiline && "top-4",
+            )}
           />
         )}
         {multiline ? (
@@ -130,7 +148,7 @@ export function TextField(props: TextFieldProps) {
               setUncontrolledLength(event.target.value.length);
               (fieldProps as TextareaHTMLAttributes<HTMLTextAreaElement>).onChange?.(event);
             }}
-            className={cn(common.className, "min-h-14 resize-y")}
+            className={cn(common.className, "min-h-14 resize-y leading-relaxed font-medium")}
           />
         ) : (
           <input
@@ -143,28 +161,34 @@ export function TextField(props: TextFieldProps) {
             }}
           />
         )}
-        <label htmlFor={id} className={labelClasses}>
-          {label}
-          {rest.required && <span aria-hidden> *</span>}
-        </label>
+        {inside && (
+          <label
+            htmlFor={id}
+            className={cn(
+              "pointer-events-none absolute top-2 truncate text-label-small font-semibold tracking-[0.04em]",
+              leadingIcon ? "start-12" : "start-4",
+              hasError ? "text-error" : "text-on-surface-variant",
+            )}
+          >
+            {label}
+            {requiredMark}
+          </label>
+        )}
         {trailing && <div className="absolute end-1 flex items-center">{trailing}</div>}
       </div>
-      {(message || showCounter) && (
+      {(message || (counter && inside)) && (
         <div
           id={supportId}
           className={cn(
-            "flex gap-4 px-4 pt-1.5 text-body-small",
-            hasError ? "text-error" : warning ? "text-tertiary" : "text-on-surface-variant",
+            "flex items-start gap-1.5 px-4 text-body-small",
+            hasError ? "font-semibold text-error" : warning ? "font-semibold text-tertiary" : "text-on-surface-variant",
           )}
         >
+          {(hasError || warning) && <Icon name={hasError ? "error" : "warning"} size={16} className="mt-px" />}
           <span className="flex-1" role={hasError ? "alert" : undefined}>
             {message}
           </span>
-          {showCounter && (
-            <span className="text-on-surface-variant tabular-nums">
-              {maxLength ? `${length}/${maxLength}` : length}
-            </span>
-          )}
+          {counter && inside && <span className="text-on-surface-variant tabular-nums">{counter}</span>}
         </div>
       )}
     </div>

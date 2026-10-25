@@ -49,8 +49,21 @@ export function SectionToggle({
 
   return (
     <>
-      <label className="inline-flex cursor-pointer items-center gap-3">
-        {labelled && <span className="text-label-large text-on-surface-variant">Enabled</span>}
+      <label
+        className={
+          labelled
+            ? "inline-flex h-14 cursor-pointer items-center gap-3.5 rounded-full bg-surface-container-high ps-5 pe-2.5 transition-colors duration-300 hover:bg-surface-container-highest"
+            : "inline-flex cursor-pointer items-center gap-3"
+        }
+      >
+        {labelled && (
+          <span className="flex flex-col">
+            <span className="text-label-large text-on-surface">Show on website</span>
+            <span className={checked ? "text-label-medium text-primary" : "text-label-medium text-on-surface-variant"}>
+              {checked ? "Shown on gdgsiliguri.com" : "Hidden from the website"}
+            </span>
+          </span>
+        )}
         <Switch
           checked={checked}
           disabled={pending}

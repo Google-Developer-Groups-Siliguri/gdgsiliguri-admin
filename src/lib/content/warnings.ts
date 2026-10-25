@@ -2,7 +2,7 @@ import { durationInMins, time12ToMinutes } from "@/lib/datetime";
 import { isHttpsUrl } from "@/lib/url";
 
 import type { ContentIssue } from "./errors";
-import type { Partner, ScheduleItem, SectionValues, Speaker } from "./schemas";
+import type { EventDetails, Partner, ScheduleItem, SectionValues, Speaker } from "./schemas";
 import type { SectionKey } from "./sections";
 
 export type WarningContext = { speakers?: Speaker[] };
@@ -124,6 +124,18 @@ export function linkWarnings(value: unknown, path: (string | number)[] = []): Co
   return [];
 }
 
+export function eventDetailsWarnings(details: EventDetails): ContentIssue[] {
+  const eventYear = details.eventDateTime.slice(0, 4);
+  const linkYears: string[] = details.eventTicketURL.match(/(?<!\d)20\d{2}(?!\d)/g) ?? [];
+  if (!/^\d{4}$/.test(eventYear) || linkYears.length === 0 || linkYears.includes(eventYear)) return [];
+  return [
+    {
+      path: ["eventTicketURL"],
+      message: `This link points to the ${linkYears[linkYears.length - 1]} event page, but DevFest is in ${eventYear}.`,
+    },
+  ];
+}
+
 export function sectionWarnings<K extends SectionKey>(
   key: K,
   value: SectionValues[K],
@@ -132,6 +144,9 @@ export function sectionWarnings<K extends SectionKey>(
   const warnings = linkWarnings(value);
   if (key === "schedule") {
     warnings.push(...scheduleWarnings((value as SectionValues["schedule"]).data, context.speakers));
+  }
+  if (key === "eventDetails") {
+    warnings.push(...eventDetailsWarnings(value as SectionValues["eventDetails"]));
   }
   if (key === "communityPartners") {
     warnings.push(...partnerWarnings((value as SectionValues["communityPartners"]).data));

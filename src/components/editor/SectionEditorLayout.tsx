@@ -10,6 +10,7 @@ import type { ContentIssue } from "@/lib/content/errors";
 import type { SectionKey } from "@/lib/content/sections";
 
 import type { SectionEditor } from "./useSectionEditor";
+import { UnsavedChangesBar } from "./UnsavedChangesBar";
 import { UnsavedChangesGuard } from "./UnsavedChangesGuard";
 
 type IssueListProps = {
@@ -101,6 +102,14 @@ export function SectionEditorLayout<K extends SectionKey>({
       )}
       {children}
       <UnsavedChangesGuard when={editor.dirty} />
+      <UnsavedChangesBar
+        dirty={editor.dirty}
+        hasDraftChanges={editor.headerProps.hasDraftChanges}
+        busy={editor.busy}
+        canPublish={editor.canPublish}
+        onPublish={editor.headerProps.onPublish}
+        onDiscard={editor.headerProps.onDiscard}
+      />
     </div>
   );
 }

@@ -58,7 +58,7 @@ export function Dialog({
         <RadixDialog.Overlay className="fixed inset-0 z-40 bg-scrim/32 animate-fade-in" />
         <RadixDialog.Content
           className={cn(
-            "fixed z-50 flex flex-col bg-surface-container-high text-on-surface outline-none [--field-bg:var(--md-sys-color-surface-container-high)]",
+            "fixed z-50 flex flex-col bg-surface-container-high text-on-surface outline-none [--field-fill:var(--md-sys-color-surface-container-highest)]",
             fullScreenOnMobile
               ? "inset-0 animate-slide-up compact:inset-auto compact:top-1/2 compact:left-1/2 compact:max-h-[min(90dvh,880px)] compact:-translate-x-1/2 compact:-translate-y-1/2 compact:rounded-xl compact:animate-pop-in"
               : "top-1/2 left-1/2 max-h-[90dvh] w-[calc(100%-48px)] -translate-x-1/2 -translate-y-1/2 rounded-xl animate-pop-in",

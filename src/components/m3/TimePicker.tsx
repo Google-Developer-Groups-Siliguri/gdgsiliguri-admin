@@ -8,7 +8,7 @@ import { formatTime12, parseTime12, type Time12 } from "@/lib/datetime";
 
 import { Button } from "./Button";
 import { IconButton } from "./IconButton";
-import { TextField } from "./TextField";
+import { TextField, type FieldShape } from "./TextField";
 
 type TimePickerProps = {
   label: string;
@@ -20,6 +20,8 @@ type TimePickerProps = {
   required?: boolean;
   disabled?: boolean;
   variant?: "filled" | "pill";
+  labelPlacement?: "outside" | "inside";
+  shape?: FieldShape;
   name?: string;
 };
 
@@ -131,6 +133,8 @@ export function TimePicker({
   required,
   disabled,
   variant,
+  labelPlacement,
+  shape,
   name,
 }: TimePickerProps) {
   const [open, setOpen] = useState(false);
@@ -150,6 +154,8 @@ export function TimePicker({
             label={label}
             name={name}
             variant={variant}
+            labelPlacement={labelPlacement}
+            shape={shape}
             value={draft}
             required={required}
             disabled={disabled}

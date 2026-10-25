@@ -8,7 +8,7 @@ import { DATE_PATTERN, isValidDate, toIsoDate } from "@/lib/datetime";
 
 import { Button } from "./Button";
 import { IconButton } from "./IconButton";
-import { TextField } from "./TextField";
+import { TextField, type FieldShape } from "./TextField";
 
 const WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 const MONTH_FORMAT = new Intl.DateTimeFormat("en", { month: "long", year: "numeric" });
@@ -23,6 +23,8 @@ type DatePickerProps = {
   required?: boolean;
   disabled?: boolean;
   variant?: "filled" | "pill";
+  labelPlacement?: "outside" | "inside";
+  shape?: FieldShape;
   name?: string;
 };
 
@@ -161,6 +163,8 @@ export function DatePicker({
   required,
   disabled,
   variant,
+  labelPlacement,
+  shape,
   name,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
@@ -180,6 +184,8 @@ export function DatePicker({
             label={label}
             name={name}
             variant={variant}
+            labelPlacement={labelPlacement}
+            shape={shape}
             value={draft}
             inputMode="numeric"
             required={required}

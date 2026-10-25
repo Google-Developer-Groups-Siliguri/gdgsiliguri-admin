@@ -2,23 +2,25 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch, type Control } from "react-hook-form";
 import type { z } from "zod";
 
 import { DateTimeInput } from "@/components/editor/DateTimeInput";
-import { ImageInput, SwitchInput, TextInput, UrlInput } from "@/components/editor/fields";
+import { FormSection } from "@/components/editor/FormSection";
+import { ImageInput, TextInput, UrlInput } from "@/components/editor/fields";
 import { fieldMessages, issuesUnder, itemIssues } from "@/components/editor/issues";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import { ListEditor, type ItemFormProps } from "@/components/editor/ListEditor";
 import { SectionEditorLayout } from "@/components/editor/SectionEditorLayout";
 import { StringListEditor } from "@/components/editor/StringListEditor";
 import { useSectionEditor } from "@/components/editor/useSectionEditor";
-import { Card } from "@/components/m3/Card";
 import { Switch } from "@/components/m3/Switch";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/m3/Tabs";
 import type { SectionState } from "@/lib/content/repository";
 import { strictSchemas, type EventDetails, type SocialLink } from "@/lib/content/schemas";
+import { dateTimeToEpoch } from "@/lib/datetime";
 import { deepEqual } from "@/lib/deep-equal";
+import { formatEventMoment, leadTime } from "@/lib/time";
 import { isHttpsUrl } from "@/lib/url";
 
 const FORM_FIELDS = [
@@ -125,16 +127,67 @@ function ToggledList({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4">
-      <label className="flex min-h-14 cursor-pointer items-center gap-4">
-        <span className="flex flex-1 flex-col">
-          <span className="text-body-large text-on-surface">Show {title.toLowerCase()}</span>
-          <span className="text-body-medium text-on-surface-variant">{description}</span>
+    <FormSection title={title} description={description}>
+      <label className="flex h-14 cursor-pointer items-center justify-between gap-4 rounded-full bg-surface-container-high ps-5 pe-2.5">
+        <span className="flex flex-col">
+          <span className="text-label-large text-on-surface">Show {title.toLowerCase()}</span>
+          <span className={enabled ? "text-label-medium text-primary" : "text-label-medium text-on-surface-variant"}>
+            {enabled ? "Shown on the tickets page" : "Hidden from the website"}
+          </span>
         </span>
         <Switch checked={enabled} onCheckedChange={onEnabledChange} aria-label={`Show ${title.toLowerCase()}`} />
       </label>
       {children}
-    </div>
+    </FormSection>
+  );
+}
+
+type SummaryTone = "primary" | "neutral" | "error";
+
+const SUMMARY_TONES: Record<SummaryTone, string> = {
+  primary: "bg-primary-container text-on-primary-container",
+  neutral: "bg-surface-container-highest text-on-surface",
+  error: "bg-error-container text-on-error-container",
+};
+
+function SummaryChip({ tone, children }: { tone: SummaryTone; children: ReactNode }) {
+  return (
+    <span className={`inline-flex h-7 items-center rounded-full px-3 text-label-medium font-bold animate-pop-in ${SUMMARY_TONES[tone]}`}>
+      {children}
+    </span>
+  );
+}
+
+function EventModeCard({ control }: { control: Control<FormFields> }) {
+  return (
+    <Controller
+      control={control}
+      name="eventMode"
+      render={({ field }) => {
+        const on = Boolean(field.value);
+        return (
+          <label
+            className={`flex cursor-pointer items-center gap-5 rounded-[28px] px-7 py-5.5 transition-colors duration-500 ${
+              on ? "bg-primary-container text-on-primary-container" : "bg-surface-container text-on-surface"
+            }`}
+          >
+            <span
+              className={`shape-sunny size-12 shrink-0 transition-[background-color,rotate] duration-700 ease-spring ${
+                on ? "rotate-45 bg-primary" : "bg-surface-container-highest"
+              }`}
+              aria-hidden
+            />
+            <span className="flex flex-1 flex-col gap-0.5">
+              <span className="font-display text-[18px] font-extrabold">Event mode</span>
+              <span className="text-body-small opacity-80">
+                {on ? "The website shows the DevFest event experience." : "The website shows the regular community pages."}
+              </span>
+            </span>
+            <Switch checked={on} onCheckedChange={field.onChange} aria-label="Event mode" />
+          </label>
+        );
+      }}
+    />
   );
 }
 
@@ -151,6 +204,8 @@ export function EventDetailsEditor({ state }: { state: SectionState<"eventDetail
   const watched = useWatch({ control }) as FormFields;
   const lastSynced = useRef<FormFields>(pickFormFields(draft));
   const venueMap = useWatch({ control, name: "eventVenue.mapsURLweb" });
+  const eventAt = dateTimeToEpoch(watched.eventDateTime ?? "");
+  const closesAt = dateTimeToEpoch(watched.registrationExpiryDateTime ?? "");
 
   useEffect(() => {
     void trigger();
@@ -198,51 +253,85 @@ export function EventDetailsEditor({ state }: { state: SectionState<"eventDetail
     >
       <Tabs value={tab} onValueChange={setTab}>
         <TabList aria-label="Event details">
-          <Tab value="general">General</Tab>
-          <Tab value="banners">Banners</Tab>
-          <Tab value="venue">Venue</Tab>
-          <Tab value="frames">Speaker frames</Tab>
-          <Tab value="perks">Perks</Tab>
-          <Tab value="points">Points to note</Tab>
-          <Tab value="community">Community and social</Tab>
+          <Tab value="general" icon="tune">General</Tab>
+          <Tab value="banners" icon="panorama">Banners</Tab>
+          <Tab value="venue" icon="location_on">Venue</Tab>
+          <Tab value="frames" icon="filter_frames">Speaker frames</Tab>
+          <Tab value="perks" icon="redeem">Perks</Tab>
+          <Tab value="points" icon="checklist">Points to note</Tab>
+          <Tab value="community" icon="share">Community and social</Tab>
         </TabList>
 
-        <Card variant="outlined" className="mt-4 p-4 medium:p-6">
-          <TabPanel value="general" forceMount hidden={tab !== "general"} className="flex flex-col gap-5">
-            <DateTimeInput control={control} name="eventDateTime" label="DevFest starts" />
-            <DateTimeInput
-              control={control}
-              name="registrationExpiryDateTime"
-              label="Registration closes"
-              supportingText="After this the website shows registration as closed."
-            />
-            <UrlInput control={control} name="eventTicketURL" label="Ticket link" leadingIcon="confirmation_number" warning={warnings.eventTicketURL} />
-            <TextInput control={control} name="bannerDescription" label="Banner description" multiline rows={4} />
-            <TextInput control={control} name="communityDescription" label="Community description" multiline rows={5} />
-            <SwitchInput control={control} name="eventMode" label="Event mode" supportingText="The eventMode flag the website reads" />
+        <div className="mt-5">
+          <TabPanel value="general" forceMount hidden={tab !== "general"} className="flex flex-col gap-4">
+            <FormSection title="Schedule" description="When the event begins and when ticket sales stop. All times are IST.">
+              <DateTimeInput
+                control={control}
+                name="eventDateTime"
+                label="DevFest starts"
+                summary={eventAt !== null && <SummaryChip tone="primary">{formatEventMoment(eventAt)}</SummaryChip>}
+              />
+              <DateTimeInput
+                control={control}
+                name="registrationExpiryDateTime"
+                label="Registration closes"
+                supportingText="After this the website shows registration as closed."
+                summary={
+                  eventAt !== null &&
+                  closesAt !== null && (
+                    <SummaryChip tone={closesAt > eventAt ? "error" : "neutral"}>{leadTime(eventAt, closesAt)}</SummaryChip>
+                  )
+                }
+              />
+            </FormSection>
+            <FormSection title="Tickets" description="Where the “Get your ticket” button sends people.">
+              <UrlInput control={control} name="eventTicketURL" label="Ticket link" leadingIcon="confirmation_number" warning={warnings.eventTicketURL} />
+            </FormSection>
+            <FormSection title="Descriptions" description="Copy shown on the DevFest banner and in the community section.">
+              <TextInput control={control} name="bannerDescription" label="Banner description" multiline rows={4} showCounter />
+              <TextInput control={control} name="communityDescription" label="Community description" multiline rows={4} showCounter />
+            </FormSection>
+            <EventModeCard control={control} />
           </TabPanel>
 
-          <TabPanel value="banners" forceMount hidden={tab !== "banners"} className="flex flex-col gap-5">
-            <ImageInput control={control} name="bannerImages.large" label="Large banner" shape="wide" supportingText="Hero image on the DevFest and home pages" />
-            <ImageInput control={control} name="bannerImages.long" label="Long banner" shape="wide" />
-            <ImageInput control={control} name="bannerImages.medium" label="Medium banner" shape="wide" />
-            <ImageInput control={control} name="bannerImages.small" label="Small banner" shape="wide" />
-            <ImageInput control={control} name="bannerImages.aisummit" label="AI Summit banner (optional)" shape="wide" supportingText="Shown below the hero when set" />
+          <TabPanel value="banners" forceMount hidden={tab !== "banners"}>
+            <FormSection title="Banners" description="Upload an image or paste a link for each slot.">
+              <div className="grid grid-cols-1 gap-5 medium:grid-cols-2">
+                <ImageInput control={control} name="bannerImages.large" label="Large banner" shape="wide" supportingText="Hero image on the DevFest and home pages" />
+                <ImageInput control={control} name="bannerImages.long" label="Long banner" shape="wide" />
+                <ImageInput control={control} name="bannerImages.medium" label="Medium banner" shape="wide" />
+                <ImageInput control={control} name="bannerImages.small" label="Small banner" shape="wide" />
+                <div className="medium:col-span-2">
+                  <ImageInput control={control} name="bannerImages.aisummit" label="AI Summit banner (optional)" shape="wide" supportingText="Shown below the hero when set" />
+                </div>
+              </div>
+            </FormSection>
           </TabPanel>
 
-          <TabPanel value="venue" forceMount hidden={tab !== "venue"} className="flex flex-col gap-5">
-            <TextInput control={control} name="eventVenue.name" label="Venue name" />
-            <ImageInput control={control} name="eventVenue.imageURL" label="Venue photo URL" shape="wide" />
-            <UrlInput control={control} name="eventVenue.mapsURL" label="Google Maps link" leadingIcon="map" supportingText="Opens in Google Maps" />
-            <UrlInput control={control} name="eventVenue.mapsURLweb" label="Google Maps embed URL" leadingIcon="map" supportingText="The src of the embed iframe" />
-            <MapPreview url={venueMap ?? ""} />
+          <TabPanel value="venue" forceMount hidden={tab !== "venue"}>
+            <FormSection title="Venue" description="Where DevFest happens, with the photo and map visitors see.">
+              <TextInput control={control} name="eventVenue.name" label="Venue name" />
+              <ImageInput control={control} name="eventVenue.imageURL" label="Venue photo URL" shape="wide" />
+              <UrlInput control={control} name="eventVenue.mapsURL" label="Google Maps link" leadingIcon="pin_drop" supportingText="Used by the “Directions” button." />
+              <UrlInput
+                control={control}
+                name="eventVenue.mapsURLweb"
+                label="Map embed"
+                leadingIcon="map"
+                supportingText="In Google Maps: Share → Embed a map → copy the src value."
+              />
+              <MapPreview url={venueMap ?? ""} />
+            </FormSection>
           </TabPanel>
 
-          <TabPanel value="frames" forceMount hidden={tab !== "frames"} className="flex flex-col gap-5">
-            <p className="text-body-medium text-on-surface-variant">Each speaker&apos;s track picks one of these frames.</p>
-            {(["AI", "App", "Cloud", "Web", "default"] as const).map((track) => (
-              <ImageInput key={track} control={control} name={`frames.speakers.${track}`} label={track === "default" ? "Default frame" : `${track} frame`} />
-            ))}
+          <TabPanel value="frames" forceMount hidden={tab !== "frames"}>
+            <FormSection title="Speaker frames" description="Each speaker’s track picks one of these frames.">
+              <div className="grid grid-cols-1 gap-5 medium:grid-cols-2">
+                {(["AI", "App", "Cloud", "Web", "default"] as const).map((track) => (
+                  <ImageInput key={track} control={control} name={`frames.speakers.${track}`} label={track === "default" ? "Default frame" : `${track} frame`} />
+                ))}
+              </div>
+            </FormSection>
           </TabPanel>
 
           <TabPanel value="perks" forceMount hidden={tab !== "perks"}>
@@ -283,22 +372,25 @@ export function EventDetailsEditor({ state }: { state: SectionState<"eventDetail
             </ToggledList>
           </TabPanel>
 
-          <TabPanel value="community" forceMount hidden={tab !== "community"} className="flex flex-col gap-5">
-            <TextInput control={control} name="communityEmail" label="Community email" />
-            <UrlInput control={control} name="communityJoinLink" label="Join the community link" warning={warnings.communityJoinLink} />
-            <h3 className="pt-2 text-title-medium text-on-surface">Social links</h3>
-            <ListEditor
-              items={draft.socialMediaLinks}
-              onChange={(socialMediaLinks) => setDraft((current) => ({ ...current, socialMediaLinks }))}
-              noun="social link"
-              summarize={(link) => ({ primary: link.name, secondary: link.url, image: link.image })}
-              createItem={() => ({ name: "", url: "", image: "" })}
-              Form={SocialLinkForm}
-              showFab={false}
-              issuesFor={(index) => itemIssues(editor.errors, editor.warnings, ["socialMediaLinks", index])}
-            />
+          <TabPanel value="community" forceMount hidden={tab !== "community"} className="flex flex-col gap-4">
+            <FormSection title="Community" description="How people reach and join GDG Siliguri.">
+              <TextInput control={control} name="communityEmail" label="Community email" />
+              <UrlInput control={control} name="communityJoinLink" label="Join the community link" warning={warnings.communityJoinLink} />
+            </FormSection>
+            <FormSection title="Social links" description="The icons in the website footer.">
+              <ListEditor
+                items={draft.socialMediaLinks}
+                onChange={(socialMediaLinks) => setDraft((current) => ({ ...current, socialMediaLinks }))}
+                noun="social link"
+                summarize={(link) => ({ primary: link.name, secondary: link.url, image: link.image })}
+                createItem={() => ({ name: "", url: "", image: "" })}
+                Form={SocialLinkForm}
+                showFab={false}
+                issuesFor={(index) => itemIssues(editor.errors, editor.warnings, ["socialMediaLinks", index])}
+              />
+            </FormSection>
           </TabPanel>
-        </Card>
+        </div>
       </Tabs>
     </SectionEditorLayout>
   );

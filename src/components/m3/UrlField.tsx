@@ -5,6 +5,7 @@ import type { Ref } from "react";
 import { isHttpsUrl, suggestUrlFix } from "@/lib/url";
 
 import { Button } from "./Button";
+import { Icon } from "./Icon";
 import { TextField } from "./TextField";
 
 export type UrlFieldProps = {
@@ -64,6 +65,20 @@ export function UrlField({
         supportingText={supportingText}
         onChange={(event) => onChange(event.target.value)}
         onBlur={onBlur}
+        trailing={
+          isHttpsUrl(value.trim()) ? (
+            <a
+              href={value.trim()}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Open ${label}`}
+              title="Open link"
+              className="focus-ring grid size-10 place-items-center rounded-full text-on-surface-variant transition-colors duration-300 hover:bg-on-surface/8"
+            >
+              <Icon name="open_in_new" size={20} />
+            </a>
+          ) : undefined
+        }
       />
       {fix && !disabled && (
         <div className="flex items-center gap-2 px-4">

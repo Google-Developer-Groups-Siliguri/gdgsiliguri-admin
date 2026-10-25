@@ -86,7 +86,7 @@ test("publishing goes live without a rebuild step", async ({ page }) => {
   await signInAs(page, TEST_USERS.owner, "/community/reviews");
   await page.getByRole("button", { name: /^More actions for/ }).first().click();
   await page.getByRole("menuitem", { name: "Move down" }).click();
-  await page.getByRole("button", { name: "Publish" }).click();
+  await page.getByRole("button", { name: "Publish", exact: true }).click();
   await expect(page.getByText("Reviews published. It's live on gdgsiliguri.com.").first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Rebuild/ })).toHaveCount(0);
   const response = await page.goto("/settings/rebuild");

@@ -7,6 +7,7 @@ import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
 import { ConfirmDialog } from "@/components/m3/Dialog";
 import { IconButton } from "@/components/m3/IconButton";
+import { LoadingIndicator } from "@/components/m3/LoadingIndicator";
 import { SECTIONS, type SectionKey } from "@/lib/content/sections";
 import { formatDateTime } from "@/lib/time";
 
@@ -53,48 +54,60 @@ export function SectionHeader({
   const hasChanges = dirty || hasDraftChanges;
 
   return (
-    <header className="sticky top-16 z-20 -mx-4 flex flex-col gap-4 bg-surface px-4 pt-2 pb-4 medium:-mx-6 medium:px-6">
-      <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
-        <PageTitle title={definition.label} eyebrow={definition.group} size="medium" className="me-auto" />
-        <StatusChip status={sectionStatus(publishedEnabled, hasChanges)} />
+    <header className="z-20 -mx-4 flex flex-wrap items-end justify-between gap-x-6 gap-y-4 bg-surface-container-low px-4 pt-2 pb-5 medium:sticky medium:top-16 medium:-mx-6 medium:px-6 expanded:-mx-10 expanded:px-10">
+      <PageTitle title={definition.label} eyebrow={definition.group} size="medium" className="me-auto">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <StatusChip status={sectionStatus(publishedEnabled, hasChanges)} />
+          <span className="text-body-small text-on-surface-variant" title={formatDateTime(publishedAt)}>
+            Published <RelativeTime iso={publishedAt} />
+            {publishedBy ? ` by ${publishedBy}` : ""} · version {version}
+          </span>
+        </div>
+      </PageTitle>
+      <div className="ms-auto flex flex-wrap items-center justify-end gap-x-1.5 gap-y-3">
         {definition.hasEnabled && publishedEnabled !== null && (
-          <SectionToggle
-            sectionKey={sectionKey}
-            enabled={publishedEnabled}
-            version={version}
-            labelled
-          />
+          <div className="me-2">
+            <SectionToggle sectionKey={sectionKey} enabled={publishedEnabled} version={version} labelled />
+          </div>
         )}
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <span
-          className="me-auto text-body-small text-on-surface-variant"
-          title={formatDateTime(publishedAt)}
-        >
-          Published <RelativeTime iso={publishedAt} />
-          {publishedBy ? ` by ${publishedBy}` : ""} · version {version}
-        </span>
         {extra}
         <IconButton icon="history" label="History" onClick={() => setRevisionsOpen(true)} />
-        <Button
-          variant="text"
-          disabled={!hasChanges || busy !== null}
-          onClick={() => setConfirmDiscard(true)}
-        >
-          Discard
-        </Button>
-        {onSave && (
-          <Button variant="tonal" icon="save" disabled={!dirty || busy !== null} onClick={onSave}>
-            {busy === "save" ? "Saving…" : "Save draft"}
+        <div className="hidden compact:block">
+          <Button
+            variant="text"
+            size="large"
+            className="text-on-surface"
+            disabled={!hasChanges || busy !== null}
+            onClick={() => setConfirmDiscard(true)}
+          >
+            Discard
           </Button>
-        )}
-        <Button
-          icon="publish"
-          disabled={!hasChanges || !canPublish || busy !== null}
-          onClick={onPublish}
-        >
-          {busy === "publish" ? "Publishing…" : "Publish"}
-        </Button>
+        </div>
+        <div className="flex gap-0.5">
+          {onSave && (
+            <Button
+              variant="secondary"
+              size="large"
+              connected="start"
+              icon="save"
+              disabled={!dirty || busy !== null}
+              onClick={onSave}
+            >
+              {busy === "save" ? "Saving…" : "Save draft"}
+            </Button>
+          )}
+          <Button
+            size="large"
+            connected={onSave ? "end" : undefined}
+            icon={busy === "publish" ? undefined : "publish"}
+            className="min-w-33"
+            disabled={!hasChanges || !canPublish || busy !== null}
+            onClick={onPublish}
+          >
+            {busy === "publish" && <LoadingIndicator label="Publishing" size={20} color="currentColor" />}
+            {busy === "publish" ? "Publishing" : "Publish"}
+          </Button>
+        </div>
       </div>
       <RevisionsSheet
         sectionKey={sectionKey}

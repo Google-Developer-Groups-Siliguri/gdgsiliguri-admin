@@ -2,11 +2,16 @@ import type { SectionValues } from "./schemas";
 import { SPONSOR_TIERS } from "./schemas";
 import type { SectionKey } from "./sections";
 
+export type ItemBadge = { label: string; color: string };
+
 export type ItemSummary = {
   primary: string;
   secondary?: string;
   image?: string;
   group?: string;
+  badge?: ItemBadge;
+  meta?: string;
+  shape?: string;
 };
 
 function capitalize(value: string): string {

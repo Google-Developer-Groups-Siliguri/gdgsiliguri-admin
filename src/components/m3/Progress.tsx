@@ -1,5 +1,9 @@
 import { cn } from "@/lib/cn";
 
+import { LoadingIndicator } from "./LoadingIndicator";
+
+export { LoadingIndicator };
+
 type ProgressProps = {
   value?: number;
   label?: string;
@@ -8,53 +12,31 @@ type ProgressProps = {
 
 export function LinearProgress({ value, label = "Loading", className }: ProgressProps) {
   const indeterminate = value === undefined;
+  const fraction = indeterminate ? 0 : Math.min(1, Math.max(0, value));
   return (
     <div
       role="progressbar"
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={indeterminate ? undefined : Math.round(value * 100)}
-      className={cn(
-        "relative h-1.5 w-full overflow-hidden rounded-full bg-secondary-container",
-        className,
-      )}
+      aria-valuenow={indeterminate ? undefined : Math.round(fraction * 100)}
+      className={cn("relative h-3.5 w-full overflow-hidden", className)}
     >
       <div
+        className="absolute end-0 top-1/2 h-1 -translate-y-1/2 rounded-full bg-primary-container transition-[left] duration-medium ease-emph"
+        style={{ left: indeterminate ? 0 : `calc(${fraction * 100}% + 6px)` }}
+      />
+      <div className="absolute end-0 top-1/2 size-1 -translate-y-1/2 rounded-full bg-primary" />
+      <div
         className={cn(
-          "absolute inset-y-0 rounded-full bg-primary",
-          indeterminate
-            ? "animate-linear-indeterminate"
-            : "start-0 transition-[width] duration-medium ease-standard",
+          "absolute inset-y-0",
+          indeterminate ? "animate-linear-indeterminate" : "start-0 transition-[width] duration-medium ease-emph",
         )}
-        style={indeterminate ? undefined : { width: `${Math.min(1, Math.max(0, value)) * 100}%` }}
-      />
+        style={indeterminate ? undefined : { width: `${fraction * 100}%` }}
+      >
+        <div className="wavy size-full bg-primary" />
+      </div>
     </div>
-  );
-}
-
-export function LoadingIndicator({
-  label = "Loading",
-  size = 48,
-  contained = false,
-  className,
-}: Omit<ProgressProps, "value"> & { size?: number; contained?: boolean }) {
-  return (
-    <span
-      role="progressbar"
-      aria-label={label}
-      className={cn(
-        "inline-grid shrink-0 place-items-center rounded-full",
-        contained && "bg-primary-container",
-        className,
-      )}
-      style={{ width: size, height: size }}
-    >
-      <span
-        className={cn("animate-shape-morph", contained ? "bg-on-primary-container" : "bg-primary")}
-        style={{ width: size * 0.7, height: size * 0.7, clipPath: "var(--s-cookie9)" }}
-      />
-    </span>
   );
 }
 

@@ -42,7 +42,13 @@ export function Select({
   const pill = variant === "pill";
   const message = error || supportingText;
   return (
-    <div className={cn("flex w-full flex-col", className)}>
+    <div className={cn("flex w-full flex-col gap-2", className)}>
+      {!pill && (
+        <span id={`${id}-label`} className="px-1 text-label-large text-on-surface">
+          {label}
+          {required && <span aria-hidden> *</span>}
+        </span>
+      )}
       <RadixSelect.Root
         value={value}
         defaultValue={defaultValue}
@@ -57,28 +63,27 @@ export function Select({
           aria-invalid={Boolean(error) || undefined}
           aria-describedby={message ? `${id}-support` : undefined}
           className={cn(
-            "group state-layer relative flex h-14 w-full cursor-pointer items-center pt-5 pe-3 text-start outline-none ring-inset",
+            "group state-layer field-fill relative flex h-14 w-full cursor-pointer items-center pe-3 text-start outline-none ring-inset",
             "transition-[box-shadow,border-radius] duration-medium ease-emph disabled:cursor-default disabled:opacity-60",
-            pill
-              ? "rounded-full bg-surface-container-high ps-6 data-[state=open]:rounded-lg"
-              : "rounded-md bg-surface-container-highest ps-4",
+            pill ? "rounded-full ps-6 pt-5 data-[state=open]:rounded-lg" : "rounded-md ps-4",
             error
               ? "ring-2 ring-error"
               : "focus-visible:ring-2 focus-visible:ring-primary data-[state=open]:ring-2 data-[state=open]:ring-primary",
           )}
         >
-          <span
-            id={`${id}-label`}
-            className={cn(
-              "pointer-events-none absolute top-2 text-body-small",
-              pill ? "start-6" : "start-4",
-              error ? "text-error" : "text-on-surface-variant group-data-[state=open]:text-primary",
-            )}
-          >
-            {label}
-            {required && <span aria-hidden> *</span>}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-body-large text-on-surface">
+          {pill && (
+            <span
+              id={`${id}-label`}
+              className={cn(
+                "pointer-events-none absolute start-6 top-2 text-label-small font-semibold tracking-[0.04em]",
+                error ? "text-error" : "text-on-surface-variant group-data-[state=open]:text-primary",
+              )}
+            >
+              {label}
+              {required && <span aria-hidden> *</span>}
+            </span>
+          )}
+          <span className="min-w-0 flex-1 truncate text-body-large font-semibold text-on-surface">
             <RadixSelect.Value placeholder=" " />
           </span>
           <Icon
@@ -113,7 +118,7 @@ export function Select({
       {message && (
         <span
           id={`${id}-support`}
-          className={cn("px-4 pt-1 text-body-small", error ? "text-error" : "text-on-surface-variant")}
+          className={cn("px-4 text-body-small", error ? "font-semibold text-error" : "text-on-surface-variant")}
         >
           {message}
         </span>

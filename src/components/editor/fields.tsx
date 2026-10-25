@@ -34,7 +34,8 @@ export function TextInput<T extends FieldValues>({
   rows,
   maxLength,
   autoFocus,
-}: BaseProps<T> & { multiline?: boolean; rows?: number; maxLength?: number; autoFocus?: boolean }) {
+  showCounter,
+}: BaseProps<T> & { multiline?: boolean; rows?: number; maxLength?: number; autoFocus?: boolean; showCounter?: boolean }) {
   return (
     <Controller
       control={control}
@@ -50,7 +51,7 @@ export function TextInput<T extends FieldValues>({
           warning,
           supportingText,
           maxLength,
-          showCounter: Boolean(maxLength),
+          showCounter: showCounter ?? Boolean(maxLength),
           autoFocus,
         };
         return multiline ? (

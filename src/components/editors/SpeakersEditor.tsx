@@ -56,7 +56,16 @@ function SpeakerForm(props: ItemFormProps<Speaker>) {
   );
 }
 
-export function SpeakersEditor({ state, frames }: { state: SectionState<"speakers">; frames: Frames }) {
+const TRACK_COLORS: Record<string, string> = { AI: "#F8D8D8", App: "#FFE7A5", Cloud: "#C3ECF6", Web: "#CCF6C5" };
+const TRACK_SHAPES: Record<string, string> = { AI: "arch", App: "cookie9", Cloud: "clover4", Web: "sunny" };
+
+type SpeakersEditorProps = {
+  state: SectionState<"speakers">;
+  frames: Frames;
+  slotTimes: Record<string, string>;
+};
+
+export function SpeakersEditor({ state, frames, slotTimes }: SpeakersEditorProps) {
   return (
     <FramesContext value={frames}>
       <ListSectionEditor
@@ -66,8 +75,13 @@ export function SpeakersEditor({ state, frames }: { state: SectionState<"speaker
       roundThumbnails
       summarize={(speaker) => ({
         primary: speaker.name,
-        secondary: [speaker.designation, speaker.description].filter(Boolean).join(" · "),
+        secondary: speaker.description,
         image: speaker.profilePictureURL,
+        badge: TRACK_COLORS[speaker.designation]
+          ? { label: speaker.designation, color: TRACK_COLORS[speaker.designation] }
+          : undefined,
+        shape: TRACK_SHAPES[speaker.designation],
+        meta: slotTimes[speaker.name.trim()] ?? "",
       })}
       createItem={() => ({
         name: "",
@@ -81,6 +95,7 @@ export function SpeakersEditor({ state, frames }: { state: SectionState<"speaker
       Form={SpeakerForm}
       filters={["AI", "App", "Cloud", "Web"].map((track) => ({
         label: track,
+        dot: TRACK_COLORS[track],
         test: (speaker: Speaker) => speaker.designation === track,
       }))}
       />
