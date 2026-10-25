@@ -202,13 +202,20 @@ test("leaving with unsaved changes asks first", async ({ page }) => {
   await expect(page).toHaveURL("/");
 });
 
-test("an enabled section cannot be emptied", async ({ page }) => {
+test("an enabled section cannot be emptied until it is turned off", async ({ page }) => {
   await openEditor(page, "/community/faq");
   for (let index = 0; index < 3; index += 1) {
     await page.getByRole("button", { name: /^More actions for/ }).first().click();
     await page.getByRole("menuitem", { name: "Delete" }).click();
     await page.getByRole("alertdialog").getByRole("button", { name: "Delete" }).click();
   }
-  await expect(page.getByText("Home FAQ has no items. Add at least one, or turn the section off instead.")).toBeVisible();
+  const emptyMessage = page.getByText("Home FAQ has no items. Add at least one, or turn the section off instead.");
+  await expect(emptyMessage).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish" })).toBeDisabled();
+
+  await page.getByRole("switch", { name: "Show Home FAQ on the website" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Turn off" }).click();
+  await expect(emptyMessage).toBeHidden();
+  await publish(page, "Home FAQ");
+  expect(await readRtdb("home/gdgFAQs")).toEqual({ enabled: false });
 });

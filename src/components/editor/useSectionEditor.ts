@@ -64,8 +64,10 @@ export function useSectionEditor<K extends SectionKey>(
 
   if (synced.key !== syncKey(state)) {
     const hadLocalChanges = !deepEqual(draft, synced.draft);
+    const enabled = isEnabled(key, state.draft);
     setSynced({ key: syncKey(state), draft: state.draft });
     if (!hadLocalChanges || deepEqual(draft, state.draft)) setDraftState(state.draft);
+    else if (enabled !== null && enabled !== isEnabled(key, draft)) setDraftState({ ...draft, enabled });
   }
 
   const dirty = !deepEqual(draft, state.draft);
