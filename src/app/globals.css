@@ -386,6 +386,12 @@
 }
 
 @layer base {
+  * {
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
+  }
   html {
     background-color: var(--md-sys-color-surface);
     color: var(--md-sys-color-on-surface);

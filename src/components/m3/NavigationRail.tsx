@@ -22,7 +22,7 @@ export function NavigationRail({ groups, header, footer, className }: Navigation
     <nav
       aria-label="Main"
       className={cn(
-        "flex w-24 shrink-0 flex-col items-center gap-1 overflow-y-auto bg-surface py-4 [scrollbar-width:thin]",
+        "flex w-24 shrink-0 flex-col items-center gap-1 overflow-y-auto bg-surface py-4",
         className,
       )}
     >

@@ -51,14 +51,13 @@ test.describe("app shell", () => {
 
   test("the theme choice survives a reload", async ({ page }) => {
     await signInAs(page, TEST_USERS.owner);
-    await page.getByRole("button", { name: "Theme" }).click();
-    await page.getByRole("menuitem", { name: "Dark" }).click();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+    await page.getByRole("button", { name: "Switch to dark mode" }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
     await page.reload();
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-    await page.getByRole("button", { name: "Theme" }).click();
-    await page.getByRole("menuitem", { name: "System" }).click();
-    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+    await page.getByRole("button", { name: "Switch to light mode" }).click();
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   });
 
   test("signs out from the account menu", async ({ page }) => {
