@@ -1,42 +1,82 @@
 "use client";
 
-import { useCallback, useState, type ComponentType, type ReactNode } from "react";
+import { createContext, use, useCallback, useMemo, useState, type ComponentType, type ReactNode } from "react";
 
-import type { SectionState } from "@/lib/content/repository";
-import type { SectionValues } from "@/lib/content/schemas";
-import type { SectionKey } from "@/lib/content/sections";
-import type { ItemSummary } from "@/lib/content/summary";
-import type { WarningContext } from "@/lib/content/warnings";
+import { Icon } from "@/components/m3/Icon";
+import type { MenuItem } from "@/components/m3/Menu";
+import { useSectionDef } from "@/components/registry/RegistryProvider";
+import type { ContentIssue } from "@/lib/cms/errors";
+import type { SectionDef } from "@/lib/sections/registry";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
 
 import { itemIssues } from "./issues";
+import type { ItemSummary } from "./summary";
 import { ListEditor, type ItemFormProps, type ListFilter } from "./ListEditor";
 import { SectionEditorLayout } from "./SectionEditorLayout";
-import { useSectionEditor } from "./useSectionEditor";
+import { useSectionEditor, type SectionEditor } from "./useSectionEditor";
 
-type ListSectionKey = {
-  [K in SectionKey]: SectionValues[K] extends { data: unknown[] } ? K : never;
-}[SectionKey];
+export type ListItem = Record<string, unknown> & { id: string; order?: number };
+type ListDraft<T> = { items: T[] } & Record<string, unknown>;
 
-type ItemOf<K extends ListSectionKey> = SectionValues[K]["data"][number];
+const PublishedIdsContext = createContext<ReadonlySet<string>>(new Set());
+const SectionIdContext = createContext<string | null>(null);
 
-export type ListSectionEditorProps<K extends ListSectionKey> = {
-  state: SectionState<K>;
+export function useEditingSection(): SectionDef {
+  const id = use(SectionIdContext);
+  if (!id) throw new Error("useEditingSection needs a ListSectionEditor");
+  return useSectionDef(id);
+}
+
+export function usePublishedIds(): ReadonlySet<string> {
+  return use(PublishedIdsContext);
+}
+
+export function IdNote({ id }: { id: string }) {
+  const published = usePublishedIds();
+  if (!id) {
+    return <p className="px-1 text-body-small text-on-surface-variant">The id is made from the name when you save.</p>;
+  }
+  const locked = published.has(id);
+  return (
+    <p className="flex items-center gap-1.5 px-1 text-body-small text-on-surface-variant">
+      <Icon name={locked ? "lock" : "tag"} size={16} />
+      <span>
+        Id <code className="font-mono">{id}</code>
+        {locked ? " · locked because the app stores it" : ""}
+      </span>
+    </p>
+  );
+}
+
+export function withOrder<T extends { order?: number }>(items: T[]): T[] {
+  return items.map((item, index) => (item.order === (index + 1) * 10 ? item : { ...item, order: (index + 1) * 10 }));
+}
+
+export type ListSectionEditorProps<T extends ListItem> = {
+  state: SectionState<ListDraft<T>>;
+  visibility?: Visibility;
   noun: string;
   fieldLabels: Record<string, string>;
-  summarize: (item: ItemOf<K>) => ItemSummary;
-  createItem: (items: ItemOf<K>[]) => ItemOf<K>;
-  Form: ComponentType<ItemFormProps<ItemOf<K>>>;
-  filters?: ListFilter<ItemOf<K>>[];
+  summarize: (item: T) => ItemSummary;
+  createItem: (items: T[]) => T;
+  Form: ComponentType<ItemFormProps<T>>;
+  filters?: ListFilter<T>[];
   roundThumbnails?: boolean;
   showThumbnails?: boolean;
   wideDialog?: boolean;
-  context?: WarningContext;
-  aside?: ReactNode;
-  wrapList?: (items: ItemOf<K>[], list: ReactNode) => ReactNode;
+  warnings?: (draft: ListDraft<T>) => ContentIssue[];
+  canDelete?: (item: T) => string | null;
+  aside?: (editor: SectionEditor<ListDraft<T>>) => ReactNode;
+  wrapList?: (items: T[], list: ReactNode) => ReactNode;
+  keepOrder?: boolean;
+  prepareItems?: (items: T[]) => T[];
+  extraActions?: (item: T, index: number) => MenuItem[];
 };
 
-export function ListSectionEditor<K extends ListSectionKey>({
+export function ListSectionEditor<T extends ListItem>({
   state,
+  visibility,
   noun,
   fieldLabels,
   summarize,
@@ -46,22 +86,31 @@ export function ListSectionEditor<K extends ListSectionKey>({
   roundThumbnails,
   showThumbnails,
   wideDialog,
-  context,
+  warnings,
+  canDelete,
   aside,
   wrapList,
-}: ListSectionEditorProps<K>) {
-  const editor = useSectionEditor(state, context);
+  keepOrder = false,
+  prepareItems = (next) => next,
+  extraActions,
+}: ListSectionEditorProps<T>) {
+  const editor = useSectionEditor(state, { warnings, visibility });
   const [openRequest, setOpenRequest] = useState<{ index: number; at: number } | null>(null);
-  const items = editor.draft.data as ItemOf<K>[];
+  const items = editor.draft.items;
+  const publishedIds = useMemo(
+    () => new Set(editor.state.published.items.map((item) => item.id).filter(Boolean)),
+    [editor.state.published.items],
+  );
 
   const { setDraft } = editor;
   const setItems = useCallback(
-    (next: ItemOf<K>[]) => setDraft((current) => ({ ...current, data: next }) as SectionValues[K]),
-    [setDraft],
+    (next: T[]) =>
+      setDraft((current) => ({ ...current, items: keepOrder ? prepareItems(next) : withOrder(prepareItems(next)) })),
+    [setDraft, keepOrder, prepareItems],
   );
 
   function describePath(path: (string | number)[]) {
-    if (path[0] !== "data" || typeof path[1] !== "number") return "Section";
+    if (path[0] !== "items" || typeof path[1] !== "number") return editor.def.label;
     const item = items[path[1]];
     const name = item ? summarize(item).primary : "";
     const field = typeof path[2] === "string" ? (fieldLabels[path[2]] ?? path[2]) : "";
@@ -81,22 +130,27 @@ export function ListSectionEditor<K extends ListSectionKey>({
       showThumbnails={showThumbnails}
       wideDialog={wideDialog}
       openRequest={openRequest}
-      issuesFor={(index) => itemIssues(editor.errors, editor.warnings, ["data", index])}
+      copyItem={(item) => ({ ...structuredClone(item), id: "" })}
+      canDelete={canDelete}
+      extraActions={extraActions}
+      issuesFor={(index) => itemIssues(editor.errors, editor.warnings, ["items", index])}
     />
   );
 
   return (
-    <SectionEditorLayout
-      editor={editor}
-      describePath={describePath}
-      onSelectIssue={(path) => {
-        if (path[0] === "data" && typeof path[1] === "number") {
-          setOpenRequest({ index: path[1], at: Date.now() });
-        }
-      }}
-    >
-      {aside}
-      {wrapList ? wrapList(items, list) : list}
-    </SectionEditorLayout>
+    <SectionIdContext value={state.id}>
+      <PublishedIdsContext value={publishedIds}>
+        <SectionEditorLayout
+          editor={editor as unknown as SectionEditor}
+          describePath={describePath}
+          onSelectIssue={(path) => {
+            if (path[0] === "items" && typeof path[1] === "number") setOpenRequest({ index: path[1], at: Date.now() });
+          }}
+        >
+          {aside?.(editor)}
+          {wrapList ? wrapList(items, list) : list}
+        </SectionEditorLayout>
+      </PublishedIdsContext>
+    </SectionIdContext>
   );
 }

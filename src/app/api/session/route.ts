@@ -7,6 +7,10 @@ import { adminAuth } from "@/lib/firebase/admin";
 
 const RECENT_SIGN_IN_SECONDS = 5 * 60;
 
+function isLocalHost(hostname: string): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+}
+
 function failure(status: number, error: string, message: string) {
   return NextResponse.json({ error, message }, { status });
 }
@@ -49,7 +53,7 @@ export async function POST(request: Request) {
   const response = NextResponse.json({ ok: true, role: admin.role });
   response.cookies.set(SESSION_COOKIE, sessionCookie, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: !isLocalHost(new URL(request.url).hostname),
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_MS / 1000,

@@ -14,14 +14,14 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useEmulators } from "@/lib/firebase/config";
 
 import { AccountMenu } from "./AccountMenu";
-import { NAV_GROUPS } from "./nav-config";
+import type { RegistryInput } from "@/lib/sections/registry";
+
+import { navGroups } from "./nav-config";
 import type { ShellUser } from "./ShellUser";
 
 export type ShellData = { user: ShellUser | null };
 type ShellPromise = Promise<ShellData>;
-
-const EDITOR_GROUPS = visibleGroups(NAV_GROUPS, false);
-const OWNER_GROUPS = visibleGroups(NAV_GROUPS, true);
+type Groups = { editor: NavGroup[]; owner: NavGroup[] };
 
 function EmulatorBadge() {
   if (!useEmulators) return null;
@@ -36,41 +36,50 @@ function ResolvedAccount({ shellPromise }: { shellPromise: ShellPromise }) {
   return <AccountMenu user={use(shellPromise).user} />;
 }
 
-function WithGroups({
-  shellPromise,
-  render,
-}: {
+type NavProps = {
   shellPromise: ShellPromise;
+  registry: Promise<RegistryInput>;
+  fallback: Groups;
   render: (groups: NavGroup[]) => ReactNode;
-}) {
-  const { user } = use(shellPromise);
-  return render(user?.role === "owner" ? OWNER_GROUPS : EDITOR_GROUPS);
+};
+
+function groupsFor(registry: RegistryInput, pathname: string): Groups {
+  const all = navGroups(registry, pathname);
+  return { editor: visibleGroups(all, false), owner: visibleGroups(all, true) };
 }
 
-function RoleAwareNav({
-  shellPromise,
-  render,
-}: {
-  shellPromise: ShellPromise;
-  render: (groups: NavGroup[]) => ReactNode;
-}) {
+function WithGroups({ shellPromise, registry, render }: NavProps) {
+  const pathname = usePathname();
+  const { user } = use(shellPromise);
+  const groups = groupsFor(use(registry), pathname);
+  return render(user?.role === "owner" ? groups.owner : groups.editor);
+}
+
+function RoleAwareNav(props: NavProps) {
   return (
-    <Suspense fallback={render(EDITOR_GROUPS)}>
-      <WithGroups shellPromise={shellPromise} render={render} />
+    <Suspense fallback={props.render(props.fallback.editor)}>
+      <WithGroups {...props} />
     </Suspense>
   );
 }
 
-export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromise; children: ReactNode }) {
+type AppFrameProps = { shellPromise: ShellPromise; registry: Promise<RegistryInput>; children: ReactNode };
+
+const FALLBACK_REGISTRY: RegistryInput = { activeEdition: new Date().getFullYear(), editionYears: [], modules: [] };
+
+export function AppFrame({ shellPromise, registry, children }: AppFrameProps) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const current = findNavItem(OWNER_GROUPS, pathname);
+  const groups = groupsFor(FALLBACK_REGISTRY, pathname);
+  const current = findNavItem(groups.owner, pathname);
 
   return (
     <div className="flex min-h-dvh bg-surface">
       <aside className="sticky top-0 hidden h-dvh medium:flex expanded:hidden">
         <RoleAwareNav
           shellPromise={shellPromise}
+          registry={registry}
+          fallback={groups}
           render={(groups) => (
             <NavigationRail
               groups={groups}
@@ -90,6 +99,8 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
         </Link>
         <RoleAwareNav
           shellPromise={shellPromise}
+          registry={registry}
+          fallback={groups}
           render={(groups) => <NavigationDrawerContent groups={groups} />}
         />
       </aside>
@@ -108,9 +119,7 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
             }
             title={
               <span className="flex items-center gap-3">
-                <span className="truncate medium:hidden">
-                  {current?.label ?? "GDG Siliguri Admin"}
-                </span>
+                <span className="truncate medium:hidden">{current?.label ?? "GDG Siliguri Admin"}</span>
                 <EmulatorBadge />
               </span>
             }
@@ -131,6 +140,8 @@ export function AppFrame({ shellPromise, children }: { shellPromise: ShellPromis
 
       <RoleAwareNav
         shellPromise={shellPromise}
+        registry={registry}
+        fallback={groups}
         render={(groups) => (
           <NavigationDrawer
             open={drawerOpen}

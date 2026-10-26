@@ -16,7 +16,7 @@ import { adminDatabaseFor, adminFirestoreFor } from "@/lib/firebase/admin-app";
 import { ContentError, type ContentIssue } from "./errors";
 import { normalizeForSave } from "./normalize";
 import { toRtdbValue } from "./rtdb-value";
-import type { SectionValues } from "./schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
 import { isEnabled, itemCount, parseSection, SECTIONS, validateForPublish, type SectionKey } from "./sections";
 
 export type Actor = { email: string };

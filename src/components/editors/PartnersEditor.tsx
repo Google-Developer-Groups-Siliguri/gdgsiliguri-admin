@@ -1,45 +1,60 @@
 "use client";
 
-import type { z } from "zod";
-
-import { ImageInput, TextInput, UrlInput } from "@/components/editor/fields";
+import { MediaInput } from "@/components/editor/content-fields";
+import { TextInput, UrlInput } from "@/components/editor/fields";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
-import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
-import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type Partner } from "@/lib/content/schemas";
+import { IdNote, ListSectionEditor } from "@/components/editor/ListSectionEditor";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
+import { sectionWarnings } from "@/lib/cms/warnings";
+import type { Partner } from "@/lib/schema/v2";
+
+import { useItemSchema } from "./forms";
 
 function PartnerForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Partner>) {
-  const form = useItemForm<Partner>(strictSchemas.items.partner as unknown as z.ZodType<Partner, Partner>, item, isNew);
+  const form = useItemForm<Partner>(useItemSchema<Partner>({ logo: "name" }), item, isNew);
   const warnings = warningsByField(issues);
   const { control } = form;
   return (
     <ItemFormShell form={form} formId={formId} item={item} onSubmit={onSubmit}>
-      <TextInput control={control} name="communityName" label="Community name" required autoFocus={isNew} />
-      <ImageInput control={control} name="icon" label="Logo URL" required warning={warnings.icon} />
+      <TextInput control={control} name="name" label="Community name" required autoFocus={isNew} />
+      <IdNote id={item.id} />
+      <MediaInput
+        control={control}
+        name="logo"
+        label="Logo URL"
+        required
+        warning={warnings["logo.url"]}
+        altLabel="Logo description"
+      />
       <UrlInput
         control={control}
-        name="socialMediaLink"
+        name="url"
         label="Community link"
-        warning={warnings.socialMediaLink}
+        warning={warnings.url}
         supportingText="Where the logo links to"
       />
     </ItemFormShell>
   );
 }
 
-export function PartnersEditor({ state }: { state: SectionState<"communityPartners"> }) {
+export function PartnersEditor({
+  state,
+  visibility,
+}: {
+  state: SectionState<{ items: Partner[] }>;
+  visibility: Visibility;
+}) {
   return (
-    <ListSectionEditor
+    <ListSectionEditor<Partner>
       state={state}
+      visibility={visibility}
       noun="partner"
-      fieldLabels={{ communityName: "Name", icon: "Logo", socialMediaLink: "Link" }}
-      summarize={(partner) => ({
-        primary: partner.communityName,
-        secondary: partner.socialMediaLink,
-        image: partner.icon,
-      })}
-      createItem={() => ({ communityName: "", icon: "", socialMediaLink: "" })}
+      fieldLabels={{ name: "Name", logo: "Logo", url: "Link" }}
+      warnings={(draft) => sectionWarnings(state.id, draft)}
+      summarize={(partner) => ({ primary: partner.name, secondary: partner.url, image: partner.logo?.url })}
+      createItem={() => ({ id: "", name: "", logo: { url: "", alt: "" }, order: 0 })}
       Form={PartnerForm}
     />
   );

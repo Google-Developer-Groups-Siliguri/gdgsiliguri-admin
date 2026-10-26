@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  checks:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_USE_EMULATORS: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run schema:check
+      - name: Integration tests
+        run: npx firebase emulators:exec --project demo-gdg-siliguri --only auth,firestore,database "npm run test:integration"
+      - run: npx playwright install --with-deps chromium
+      - name: End-to-end tests
+        run: npx firebase emulators:exec --project demo-gdg-siliguri --only auth,firestore,database "npx playwright test"
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+
+  parity:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Read-only credentials
+        env:
+          GCP_SA_READONLY: ${{ secrets.GCP_SA_READONLY }}
+        run: |
+          node -e '
+            const account = JSON.parse(process.env.GCP_SA_READONLY);
+            const fs = require("fs");
+            const lines = [
+              "NEXT_PUBLIC_USE_EMULATORS=false",
+              `FIREBASE_ADMIN_PROJECT_ID=${account.project_id}`,
+              `FIREBASE_ADMIN_CLIENT_EMAIL=${account.client_email}`,
+              "NEXT_PUBLIC_FIREBASE_DATABASE_URL=https://devfest-siliguri-default-rtdb.asia-southeast1.firebasedatabase.app",
+            ];
+            fs.appendFileSync(process.env.GITHUB_ENV, lines.join("\n") + "\n");
+            fs.appendFileSync(process.env.GITHUB_ENV, "FIREBASE_ADMIN_PRIVATE_KEY<<KEY\n" + account.private_key + "\nKEY\n");
+          '
+      - name: Verify RTDB parity with Firestore
+        run: npm run verify:parity -- --production
+      - name: Open an issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Nightly RTDB parity check failed (${new Date().toISOString().slice(0, 10)})`,
+              body: `The legacy RTDB copy no longer matches Firestore v2. See ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });

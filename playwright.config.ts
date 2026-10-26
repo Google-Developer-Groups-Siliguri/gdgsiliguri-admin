@@ -1,6 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 import { E2E_NAMESPACE, E2E_PORT } from "./e2e/support/emulator";
+import { assertEmulatorTarget } from "./e2e/support/guard";
+
+assertEmulatorTarget();
 
 export default defineConfig({
   testDir: "./e2e",
@@ -9,6 +12,7 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 15_000 },
   workers: 1,
+  retries: process.env.CI ? 1 : 0,
   use: {
     baseURL: `http://localhost:${E2E_PORT}`,
     trace: "retain-on-failure",
@@ -23,12 +27,13 @@ export default defineConfig({
   webServer: {
     command: `npx next dev -p ${E2E_PORT}`,
     url: `http://localhost:${E2E_PORT}/login`,
-    reuseExistingServer: true,
+    reuseExistingServer: false,
     timeout: 180_000,
     env: {
       NEXT_PUBLIC_USE_EMULATORS: "true",
       EMULATOR_NAMESPACE: E2E_NAMESPACE,
       NEXT_DIST_DIR: ".next-e2e",
+      BLOG_AUTO_SYNC: "false",
     },
   },
 });

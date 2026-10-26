@@ -3,104 +3,99 @@
 import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { useSnackbar } from "@/components/m3/Snackbar";
-import {
-  discardDraftAction,
-  publishAction,
-  saveDraftAction,
-  type ActionFailure,
-} from "@/lib/content/actions";
-import { ContentError, type ContentIssue } from "@/lib/content/errors";
-import type { SectionState } from "@/lib/content/repository";
-import { toRtdbValue } from "@/lib/content/rtdb-value";
-import type { SectionValues } from "@/lib/content/schemas";
-import { isEnabled, SECTIONS, validateForPublish, type SectionKey } from "@/lib/content/sections";
-import { sectionWarnings, type WarningContext } from "@/lib/content/warnings";
+import { useSectionDef } from "@/components/registry/RegistryProvider";
+import { discardDraftAction, publishAction, saveDraftAction, type ActionFailure } from "@/lib/cms/actions";
+import type { ContentIssue } from "@/lib/cms/errors";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
 import { deepEqual } from "@/lib/deep-equal";
+import { stripEmpty } from "@/lib/schema/v2/clean";
+import type { SectionDef } from "@/lib/sections/registry";
 
+type Doc = Record<string, unknown>;
 type Busy = "save" | "publish" | "discard" | null;
 
 function syncKey(state: SectionState): string {
-  return `${state.version}|${state.draftUpdatedAt ?? ""}|${state.publishedAt ?? ""}`;
+  return `${state.version}|${state.draftVersion}`;
 }
 
 function isNewer(candidate: SectionState, base: SectionState): boolean {
   if (candidate.version !== base.version) return candidate.version > base.version;
-  return (candidate.draftUpdatedAt ?? "") > (base.draftUpdatedAt ?? "");
+  return candidate.draftVersion > base.draftVersion;
 }
 
-function strictIssues(key: SectionKey, draft: unknown): ContentIssue[] {
-  const result = validateForPublish(key, draft);
+function awaitingId(draft: unknown, path: (string | number)[]): boolean {
+  if (path.length !== 3 || path[0] !== "items" || path[2] !== "id" || typeof path[1] !== "number") return false;
+  const items = (draft as { items?: { id?: string }[] }).items;
+  return !items?.[path[1]]?.id;
+}
+
+export function strictIssues(def: SectionDef, draft: unknown): ContentIssue[] {
+  const result = def.schema.strict.safeParse(stripEmpty(draft));
   if (result.success) return [];
-  return result.error.issues.map((issue) => ({
-    path: issue.path.filter((part): part is string | number => typeof part !== "symbol"),
-    message: issue.message,
-  }));
+  return result.error.issues
+    .map((issue) => ({
+      path: issue.path.filter((part): part is string | number => typeof part !== "symbol"),
+      message: issue.message,
+    }))
+    .filter((issue) => !awaitingId(draft, issue.path));
 }
 
-function emptyProblem(key: SectionKey, draft: unknown): string | null {
-  try {
-    toRtdbValue(key, draft);
-    return null;
-  } catch (error) {
-    return error instanceof ContentError ? error.message : null;
-  }
-}
+type EditorOptions<T> = { warnings?: (draft: T) => ContentIssue[]; visibility?: Visibility };
 
-export function useSectionEditor<K extends SectionKey>(
-  serverState: SectionState<K>,
-  context: WarningContext = {},
-) {
-  const key = serverState.key;
-  const [latest, setLatest] = useState<SectionState<K> | null>(null);
+export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, options: EditorOptions<T> = {}) {
+  const def = useSectionDef(serverState.id);
+  const [latest, setLatest] = useState<SectionState<T> | null>(null);
   const state = latest && isNewer(latest, serverState) ? latest : serverState;
   const showSnackbar = useSnackbar();
-  const [draft, setDraftState] = useState<SectionValues[K]>(state.draft);
+  const [draft, setDraftState] = useState<T>(state.draft);
   const [synced, setSynced] = useState({ key: syncKey(state), draft: state.draft });
   const [busy, setBusy] = useState<Busy>(null);
   const [serverIssues, setServerIssues] = useState<ContentIssue[]>([]);
   const [, startTransition] = useTransition();
 
+  const shown = options.visibility?.enabled ?? null;
+  const [seenShown, setSeenShown] = useState(shown);
+  if (seenShown !== shown) {
+    setSeenShown(shown);
+    setServerIssues([]);
+  }
+
   if (synced.key !== syncKey(state)) {
     const hadLocalChanges = !deepEqual(draft, synced.draft);
-    const enabled = isEnabled(key, state.draft);
     setSynced({ key: syncKey(state), draft: state.draft });
     if (!hadLocalChanges || deepEqual(draft, state.draft)) setDraftState(state.draft);
-    else if (enabled !== null && enabled !== isEnabled(key, draft)) setDraftState({ ...draft, enabled });
   }
 
   const dirty = !deepEqual(draft, state.draft);
-  const errors = useMemo(() => strictIssues(key, draft), [key, draft]);
-  const speakers = context.speakers;
-  const warnings = useMemo(() => sectionWarnings(key, draft, { speakers }), [key, draft, speakers]);
-  const emptyMessage = useMemo(() => emptyProblem(key, draft), [key, draft]);
+  const errors = useMemo(() => strictIssues(def, draft), [def, draft]);
+  const { warnings: warn } = options;
+  const warnings = useMemo(() => warn?.(draft) ?? [], [warn, draft]);
 
-  const setDraft = useCallback((next: SectionValues[K] | ((current: SectionValues[K]) => SectionValues[K])) => {
+  const setDraft = useCallback((next: T | ((current: T) => T)) => {
     setServerIssues([]);
     setDraftState(next);
   }, []);
 
   function fail(result: ActionFailure) {
     if (result.issues?.length) setServerIssues(result.issues);
+    const stale = result.code === "stale_version" || result.code === "stale_draft";
     showSnackbar({
-      message:
-        result.code === "stale_version"
-          ? "Someone else published this section. Reload the page to see their changes."
-          : result.message,
+      message: stale ? "Someone else changed this section. Reload the page to see their changes." : result.message,
       tone: "error",
-      ...(result.code === "stale_version"
-        ? { actionLabel: "Reload", onAction: () => window.location.reload() }
-        : {}),
+      ...(stale ? { actionLabel: "Reload", onAction: () => window.location.reload() } : {}),
     });
   }
 
-  async function saveNow(): Promise<boolean> {
-    const result = await saveDraftAction(key, draft);
+  async function saveNow(): Promise<SectionState<T> | null> {
+    const result = await saveDraftAction(def.id, draft, state.draftVersion);
     if (!result.ok) {
       fail(result);
-      return false;
+      return null;
     }
-    setLatest(result.data as SectionState<K>);
-    return true;
+    const saved = result.data as SectionState<T>;
+    setLatest(saved);
+    return saved;
   }
 
   function save() {
@@ -114,20 +109,24 @@ export function useSectionEditor<K extends SectionKey>(
   function publish(note?: string) {
     setBusy("publish");
     startTransition(async () => {
-      if (dirty && !(await saveNow())) {
+      const saved = dirty ? await saveNow() : state;
+      if (!saved) {
         setBusy(null);
         return;
       }
-      const result = await publishAction(key, state.version, note);
+      const result = await publishAction(def.id, saved.version, note);
       setBusy(null);
       if (!result.ok) {
         fail(result);
         return;
       }
-      setLatest(result.data as SectionState<K>);
+      setLatest(result.data.state as SectionState<T>);
       setServerIssues([]);
+      const pending = result.data.warnings.includes("legacy_sync_pending");
       showSnackbar({
-        message: `${SECTIONS[key].label} published. It's live on gdgsiliguri.com.`,
+        message: pending
+          ? `${def.label} published. The copy for older app versions will update shortly.`
+          : `${def.label} published. It's live on gdgsiliguri.com.`,
         duration: 10_000,
       });
     });
@@ -136,14 +135,14 @@ export function useSectionEditor<K extends SectionKey>(
   function discard() {
     setBusy("discard");
     startTransition(async () => {
-      const result = await discardDraftAction(key);
+      const result = await discardDraftAction(def.id);
       setBusy(null);
       if (!result.ok) {
         fail(result);
         return;
       }
-      setLatest(result.data as SectionState<K>);
-      setDraftState(result.data.draft as SectionValues[K]);
+      setLatest(result.data as SectionState<T>);
+      setDraftState(result.data.draft as T);
       setServerIssues([]);
       showSnackbar({ message: "Draft discarded." });
     });
@@ -152,30 +151,33 @@ export function useSectionEditor<K extends SectionKey>(
   const allErrors = serverIssues.length ? serverIssues : errors;
   const errorPaths = new Set(allErrors.map((issue) => issue.path.join(".")));
   const distinctWarnings = warnings.filter((issue) => !errorPaths.has(issue.path.join(".")));
+  const canPublish = allErrors.length === 0;
 
   return {
-    key,
+    def,
+    state,
     draft,
     setDraft,
     dirty,
     busy,
     errors: allErrors,
     warnings: distinctWarnings,
-    emptyMessage,
-    canPublish: allErrors.length === 0 && emptyMessage === null,
+    canPublish,
     save,
     publish,
     discard,
     headerProps: {
-      sectionKey: key,
+      sectionId: def.id,
+      label: def.label,
+      group: def.group,
       version: state.version,
-      publishedEnabled: isEnabled(key, state.published),
+      visibility: options.visibility ?? null,
       hasDraftChanges: state.hasDraftChanges,
       dirty,
       publishedAt: state.publishedAt,
       publishedBy: state.publishedBy,
       busy,
-      canPublish: allErrors.length === 0 && emptyMessage === null,
+      canPublish,
       onSave: save,
       onPublish: () => publish(),
       onDiscard: () => {
@@ -186,4 +188,4 @@ export function useSectionEditor<K extends SectionKey>(
   };
 }
 
-export type SectionEditor<K extends SectionKey> = ReturnType<typeof useSectionEditor<K>>;
+export type SectionEditor<T extends Doc = Doc> = ReturnType<typeof useSectionEditor<T>>;

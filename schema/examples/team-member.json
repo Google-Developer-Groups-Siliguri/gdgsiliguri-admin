@@ -1,0 +1,11 @@
+{
+  "name": "Debajit Mallick",
+  "role": "organizer",
+  "headline": "Software Engineer @Ergeon",
+  "photo": { "url": "https://ik.imagekit.io/gdgsiliguri1/teams/Debajit%20Mallick.webp", "alt": "Debajit Mallick" },
+  "links": { "github": "https://github.com/debajit13/", "linkedin": "https://www.linkedin.com/in/debajit-mallick/", "x": "https://twitter.com/MallickDebajit/" },
+  "editions": [2024, 2025, 2026],
+  "active": true,
+  "order": 10,
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

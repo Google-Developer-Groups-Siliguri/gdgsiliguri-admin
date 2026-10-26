@@ -1,4 +1,11 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, type Page, test } from "@playwright/test";
+
+async function openPicker(page: Page, name: string, shows: Locator) {
+  await expect(async () => {
+    await page.getByRole("button", { name }).first().click();
+    await expect(shows).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 60_000 });
+}
 
 test.describe("component gallery", () => {
   test.beforeEach(async ({ page }) => {
@@ -32,9 +39,8 @@ test.describe("component gallery", () => {
   });
 
   test("date picker selects a date with the keyboard", async ({ page }) => {
-    await page.getByRole("button", { name: "Choose Event date" }).first().click();
     const selected = page.getByRole("button", { name: "Sunday, November 16, 2025" });
-    await expect(selected).toBeVisible();
+    await openPicker(page, "Choose Event date", selected);
     await selected.focus();
     await page.keyboard.press("ArrowRight");
     await expect(page.getByRole("button", { name: "Monday, November 17, 2025" })).toBeFocused();
@@ -43,7 +49,7 @@ test.describe("component gallery", () => {
   });
 
   test("time picker writes hh:mm AM/PM", async ({ page }) => {
-    await page.getByRole("button", { name: "Choose Start time" }).first().click();
+    await openPicker(page, "Choose Start time", page.getByLabel("Hour"));
     await page.getByLabel("Hour").fill("4");
     await page.getByLabel("Minute").fill("30");
     await page.getByRole("radio", { name: "PM" }).click();

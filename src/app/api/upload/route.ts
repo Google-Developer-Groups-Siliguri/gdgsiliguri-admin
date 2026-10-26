@@ -29,8 +29,8 @@ export async function POST(request: Request) {
   if (!(file instanceof File) || !isUploadKind(kind)) return failure(400, "Choose an image to upload.");
 
   try {
-    const url = await uploadToImageKit(file, uploadFolder(kind, uploadYear(form!.get("year"))), config);
-    return NextResponse.json({ url });
+    const image = await uploadToImageKit(file, uploadFolder(kind, uploadYear(form!.get("year"))), config);
+    return NextResponse.json(image);
   } catch (error) {
     if (error instanceof UploadError) return failure(error.status, error.message);
     console.error(error);

@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": {
+    "$timestamp": "2026-11-01T10:00:05+05:30"
+  },
+  "sourceVersions": {
+    "edition-2026": 4,
+    "edition-2026-sessions": 6,
+    "edition-2026-speakers": 5
+  },
+  "edition": {
+    "year": 2026,
+    "title": "DevFest Siliguri 2026",
+    "timeZone": "Asia/Kolkata",
+    "startAt": {
+      "$timestamp": "2026-11-14T08:00:00+05:30"
+    },
+    "endAt": {
+      "$timestamp": "2026-11-14T17:30:00+05:30"
+    },
+    "tracks": [
+      {
+        "id": "cloud",
+        "label": "Cloud",
+        "color": "#FBBC04",
+        "order": 30
+      }
+    ],
+    "sections": {
+      "schedule": true,
+      "speakers": true,
+      "sponsors": true,
+      "partners": true,
+      "faqs": true,
+      "perks": true,
+      "notes": true,
+      "registration": false
+    }
+  },
+  "sessions": [
+    {
+      "id": "registration-0800",
+      "title": "Registration",
+      "type": "registration",
+      "startAt": {
+        "$timestamp": "2026-11-14T08:00:00+05:30"
+      },
+      "endAt": {
+        "$timestamp": "2026-11-14T10:00:00+05:30"
+      },
+      "speakerIds": [],
+      "speakers": [],
+      "order": 10
+    },
+    {
+      "id": "supercharge-app-dev-with-gen-ai-utilery-1000",
+      "title": "Supercharge App Dev with Gen AI - Utilery",
+      "type": "talk",
+      "startAt": {
+        "$timestamp": "2026-11-14T10:00:00+05:30"
+      },
+      "endAt": {
+        "$timestamp": "2026-11-14T10:45:00+05:30"
+      },
+      "trackId": "cloud",
+      "speakerIds": [
+        "satish-vj"
+      ],
+      "speakers": [
+        {
+          "id": "satish-vj",
+          "name": "Satish VJ",
+          "headline": "Tech Architect, Investor",
+          "photo": {
+            "url": "https://ik.imagekit.io/gdgsiliguri1/speakers/2025/Satish%20VJ.jpeg",
+            "alt": "Satish VJ"
+          }
+        }
+      ],
+      "order": 20
+    }
+  ],
+  "speakers": [
+    {
+      "id": "satish-vj",
+      "name": "Satish VJ",
+      "headline": "Tech Architect, Investor",
+      "photo": {
+        "url": "…",
+        "alt": "Satish VJ"
+      },
+      "trackId": "cloud",
+      "links": {
+        "linkedin": "https://www.linkedin.com/in/sathishvj/"
+      },
+      "order": 10,
+      "sessionIds": [
+        "supercharge-app-dev-with-gen-ai-utilery-1000"
+      ]
+    }
+  ],
+  "sponsors": [
+    {
+      "id": "google-for-developers",
+      "name": "Google for Developers",
+      "tier": "platinum",
+      "logo": {
+        "url": "…",
+        "alt": "Google for Developers"
+      },
+      "url": "https://developers.google.com/",
+      "order": 10
+    }
+  ],
+  "partners": [],
+  "faqs": [],
+  "showcase": [],
+  "modules": []
+}

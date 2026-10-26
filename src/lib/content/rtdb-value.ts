@@ -1,5 +1,5 @@
 import { ContentError } from "./errors";
-import { SPONSOR_TIERS } from "./schemas";
+import { SPONSOR_TIERS } from "@/lib/legacy/schemas";
 import { SECTIONS, type SectionKey } from "./sections";
 
 type Json = Record<string, unknown>;

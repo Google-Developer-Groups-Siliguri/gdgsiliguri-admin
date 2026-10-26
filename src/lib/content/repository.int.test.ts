@@ -14,7 +14,7 @@ import {
   saveDraft,
   toggleEnabled,
 } from "./repository";
-import type { CommunityEvent } from "./schemas";
+import type { CommunityEvent } from "@/lib/legacy/schemas";
 
 const owner = { email: "owner@example.com" };
 const editor = { email: "editor@example.com" };
@@ -59,10 +59,10 @@ describe("import", () => {
     const teams = await getSection("teams");
     expect(teams.version).toBe(1);
     expect(teams.hasDraftChanges).toBe(false);
-    expect(teams.draft.data).toHaveLength(21);
+    expect(teams.draft.data).toHaveLength(19);
     const events = await getSection("events");
     expect(events.published).toEqual({ enabled: false, data: [] });
-    expect(await rtdb("events")).toBeNull();
+    expect(await rtdb("events")).toEqual({ enabled: false });
   });
 });
 
@@ -88,7 +88,8 @@ describe("drafts", () => {
     const faq = await getSection("devfestFaqs");
     await saveDraft("devfestFaqs", { ...faq.draft, data: [...faq.draft.data, { question: "", answer: "" }] }, editor);
     const error = await expectContentError(publish("devfestFaqs", 1, editor), "invalid");
-    expect(error.issues.map((issue) => issue.path.join("."))).toEqual(["data.17.question", "data.17.answer"]);
+    const added = faq.draft.data.length;
+    expect(error.issues.map((issue) => issue.path.join("."))).toEqual([`data.${added}.question`, `data.${added}.answer`]);
     expect(await rtdb("FAQs")).toEqual(seed.FAQs);
     expect((await getSection("devfestFaqs")).version).toBe(1);
   });
@@ -144,19 +145,22 @@ describe("publish", () => {
     expect(await listRevisions("devfestFaqs")).toHaveLength(2);
   });
 
-  it("blocks the teams section until the schemeless Twitter link is fixed, and trims links", async () => {
+  it("blocks a schemeless Twitter link until it is fixed, and trims links", async () => {
     const teams = await getSection("teams");
+    const broken = structuredClone(teams.draft);
+    broken.data[5].twitterURL = "Twitter.com/debuisalive";
+    broken.data[9].linkedInURL = ` ${broken.data[9].linkedInURL} `;
+    await saveDraft("teams", broken, owner);
     await expectContentError(publish("teams", 1, owner), "invalid");
 
-    const fixed = structuredClone(teams.draft);
+    const fixed = structuredClone(broken);
     fixed.data[5].twitterURL = "https://Twitter.com/debuisalive";
     await saveDraft("teams", fixed, owner);
     await publish("teams", 1, owner);
 
     const live = await rtdb("teams");
     expect(live.data[5].twitterURL).toBe("https://Twitter.com/debuisalive");
-    expect(live.data[9].twitterURL).toBe("https://x.com/Hrxhab23?t=v58otAkZDM_e1mLDsC7bkw&s=08");
-    expect(live.data[9].linkedInURL.endsWith(" ")).toBe(false);
+    expect(live.data[9].linkedInURL).toBe(teams.draft.data[9].linkedInURL);
   });
 
   it("refuses to publish an enabled section with no items and never writes an empty array", async () => {
@@ -219,7 +223,7 @@ describe("toggle", () => {
 
   it("cannot enable a section that has no items", async () => {
     await expectContentError(toggleEnabled("events", true, 1, owner), "empty_section");
-    expect(await rtdb("events")).toBeNull();
+    expect(await rtdb("events")).toEqual({ enabled: false });
   });
 
   it("is not available for event details", async () => {

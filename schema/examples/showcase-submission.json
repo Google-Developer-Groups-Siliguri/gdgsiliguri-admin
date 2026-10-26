@@ -1,0 +1,18 @@
+{
+  "status": "pending",
+  "payload": {
+    "title": "KrishiMitra",
+    "summary": "A Gemini-powered assistant that helps tea garden workers identify leaf diseases from a photo.",
+    "team": [{ "name": "Priya Sharma" }, { "name": "Rahul Das" }],
+    "links": { "repo": "https://github.com/priya/krishimitra" },
+    "images": [],
+    "tags": ["Gemini", "Flutter"],
+    "edition": 2026
+  },
+  "contact": { "email": "priya@example.com" },
+  "consent": true,
+  "source": "google-form",
+  "dedupeKey": "3f1c…",
+  "rawImageLinks": ["https://drive.google.com/open?id=…"],
+  "submittedAt": { "$timestamp": "2026-11-15T21:12:00+05:30" }
+}

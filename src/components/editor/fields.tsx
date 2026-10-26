@@ -133,7 +133,7 @@ export function ImageInput<T extends FieldValues>({
           error={fieldState.error?.message}
           warning={warning}
           supportingText={supportingText}
-          action={action ?? <UploadButton label={label} onUploaded={(url) => field.onChange(url)} />}
+          action={action ?? <UploadButton label={label} onUploaded={(image) => field.onChange(image.url)} />}
         />
       )}
     />

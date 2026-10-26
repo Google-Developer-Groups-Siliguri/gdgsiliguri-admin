@@ -1,0 +1,11 @@
+[
+  { "node": "schedule", "pointer": "/data", "reason": "2026 has no lineup yet; the 2025 sessions are now in editions/2025 only" },
+  { "node": "speakers", "pointer": "/data", "reason": "2026 has no speakers yet; the 2025 speakers are now in editions/2025 only" },
+  { "node": "sponsors", "pointer": "/platinum", "reason": "2026 has no sponsors yet" },
+  { "node": "sponsors", "pointer": "/gold", "reason": "2026 has no sponsors yet" },
+  { "node": "sponsors", "pointer": "/silver", "reason": "2026 has no sponsors yet" },
+  { "node": "eventDetails", "pointer": "/eventMode", "reason": "Omitted when organisers choose auto" },
+  { "node": "eventDetails", "pointer": "/registrationExpiryDateTime", "reason": "2026 registration is pending, so it falls back to the event start" },
+  { "node": "eventDetails", "pointer": "/eventTicketURL", "reason": "2026 registration is pending" },
+  { "node": "home/pastDevfests", "pointer": "", "reason": "New node listing past editions (hidden until organisers switch it on)" }
+]

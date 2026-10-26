@@ -1,0 +1,162 @@
+{
+  "$id": "https://gdgsiliguri.com/schema/v2/site-config.schema.json",
+  "title": "SiteConfig",
+  "x-schema-version": 2,
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 2
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "tagline": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+    },
+    "joinUrl": {
+      "type": "string"
+    },
+    "links": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "website": {
+          "type": "string"
+        },
+        "github": {
+          "type": "string"
+        },
+        "linkedin": {
+          "type": "string"
+        },
+        "x": {
+          "type": "string"
+        },
+        "instagram": {
+          "type": "string"
+        },
+        "facebook": {
+          "type": "string"
+        },
+        "youtube": {
+          "type": "string"
+        },
+        "medium": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "region": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "appLinks": {
+      "type": "object",
+      "properties": {
+        "android": {
+          "type": "string"
+        },
+        "ios": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "activeEdition": {
+      "type": "integer",
+      "minimum": 2000,
+      "maximum": 2100
+    },
+    "eventMode": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "on",
+        "off"
+      ]
+    },
+    "eventModeLeadDays": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 365
+    },
+    "sections": {
+      "default": {
+        "team": false,
+        "events": false,
+        "testimonials": false,
+        "faqs": false,
+        "blogs": false,
+        "showcase": false,
+        "pastEditions": false
+      },
+      "type": "object",
+      "properties": {
+        "team": {
+          "type": "boolean"
+        },
+        "events": {
+          "type": "boolean"
+        },
+        "testimonials": {
+          "type": "boolean"
+        },
+        "faqs": {
+          "type": "boolean"
+        },
+        "blogs": {
+          "type": "boolean"
+        },
+        "showcase": {
+          "type": "boolean"
+        },
+        "pastEditions": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "team",
+        "events",
+        "testimonials",
+        "faqs",
+        "blogs",
+        "showcase",
+        "pastEditions"
+      ],
+      "additionalProperties": false
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "name",
+    "description",
+    "email",
+    "joinUrl",
+    "links",
+    "activeEdition",
+    "eventMode",
+    "sections"
+  ],
+  "additionalProperties": false
+}

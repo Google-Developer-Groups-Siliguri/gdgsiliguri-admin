@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": {
+    "$timestamp": "2026-10-26T10:00:05+05:30"
+  },
+  "sourceVersions": {
+    "site-config": 3,
+    "edition-2026": 2,
+    "team": 7,
+    "faqs": 2
+  },
+  "site": {
+    "name": "GDG Siliguri",
+    "email": "gdgsiliguri@gmail.com",
+    "activeEdition": 2026,
+    "eventMode": "auto",
+    "sections": {
+      "team": true,
+      "events": true,
+      "testimonials": true,
+      "faqs": true,
+      "blogs": true,
+      "showcase": false,
+      "pastEditions": true
+    },
+    "links": {
+      "x": "https://twitter.com/GDGSiliguri"
+    }
+  },
+  "edition": {
+    "year": 2026,
+    "title": "DevFest Siliguri 2026",
+    "timeZone": "Asia/Kolkata",
+    "startAt": {
+      "$timestamp": "2026-11-14T08:00:00+05:30"
+    },
+    "endAt": {
+      "$timestamp": "2026-11-14T17:30:00+05:30"
+    },
+    "sections": {
+      "schedule": false,
+      "speakers": false,
+      "sponsors": false,
+      "partners": true,
+      "faqs": true,
+      "perks": true,
+      "notes": true,
+      "registration": false
+    }
+  },
+  "sponsors": [],
+  "partners": [
+    {
+      "id": "flutterflow-students-community-india",
+      "name": "Flutterflow Students Community India",
+      "logo": {
+        "url": "https://ik.imagekit.io/gdgsiliguri1/community%20partners/2025/FFSC.png",
+        "alt": "Flutterflow Students Community India"
+      },
+      "url": "https://www.linkedin.com/company/ffscindia/",
+      "order": 30
+    }
+  ],
+  "editionFaqs": [
+    {
+      "id": "a1",
+      "question": "What is DevFest Siliguri?",
+      "answer": "…",
+      "order": 10
+    }
+  ],
+  "faqs": [
+    {
+      "id": "b1",
+      "question": "What is GDG Siliguri?",
+      "answer": "…",
+      "order": 10
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "c1",
+      "name": "Sahil Saha",
+      "title": "Awesome Experience!",
+      "body": "…",
+      "eventLabel": "@Devfest'19",
+      "featured": true,
+      "order": 50
+    }
+  ],
+  "team": [
+    {
+      "id": "debajit-mallick",
+      "name": "Debajit Mallick",
+      "role": "organizer",
+      "headline": "Software Engineer @Ergeon",
+      "photo": {
+        "url": "…",
+        "alt": "Debajit Mallick"
+      },
+      "active": true,
+      "order": 10
+    }
+  ],
+  "events": [],
+  "blogs": [],
+  "showcaseFeatured": [],
+  "modules": [],
+  "pastEditions": [
+    {
+      "year": 2025,
+      "title": "DevFest Siliguri 2025",
+      "highlight": "11 sessions on AI, Cloud and Android",
+      "startAt": {
+        "$timestamp": "2025-11-16T08:00:00+05:30"
+      },
+      "banner": {
+        "url": "…",
+        "alt": ""
+      }
+    }
+  ]
+}

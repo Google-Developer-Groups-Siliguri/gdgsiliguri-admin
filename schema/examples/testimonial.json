@@ -1,0 +1,10 @@
+{
+  "name": "Sahil Saha",
+  "title": "Awesome Experience!",
+  "body": "Got to learn a lot from the amazing speakers. I had a lot of fun interacting with other like minded developers from the region and participating in the hackathon! Eagerly waiting for the next Devfest!",
+  "eventLabel": "@Devfest'19",
+  "edition": 2019,
+  "featured": true,
+  "order": 50,
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

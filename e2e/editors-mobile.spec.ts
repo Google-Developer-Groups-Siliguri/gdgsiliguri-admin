@@ -16,7 +16,7 @@ test("adds a review on a phone with the full-screen editor", async ({ page }) =>
   expect(box?.width).toBe(360);
 
   await dialog.getByLabel("Name").fill("Priya Sharma");
-  await dialog.getByLabel("Event attended").fill("@Devfest'25");
+  await dialog.getByLabel("Event", { exact: true }).fill("@Devfest'25");
   await dialog.getByLabel("Title").fill("Loved the workshops");
   await dialog.getByLabel("Review").fill("Great sessions and friendly volunteers.");
   await dialog.getByRole("button", { name: "Add", exact: true }).first().click();

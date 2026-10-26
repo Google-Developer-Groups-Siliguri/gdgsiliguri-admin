@@ -1,0 +1,15 @@
+{
+  "title": "Build with AI Siliguri",
+  "tagline": "Hands-on with Gemini",
+  "description": "A half-day workshop on building apps with the Gemini API.",
+  "startAt": { "$timestamp": "2026-12-20T10:00:00+05:30" },
+  "endAt": { "$timestamp": "2026-12-20T14:00:00+05:30" },
+  "timeZone": "Asia/Kolkata",
+  "venue": { "name": "Siliguri Institute of Technology" },
+  "registration": { "url": "https://gdg.community.dev/events/details/…", "closesAt": { "$timestamp": "2026-12-15T23:59:00+05:30" } },
+  "cover": { "url": "https://ik.imagekit.io/gdgsiliguri1/events/2026/build-with-ai-cover.webp", "alt": "Build with AI Siliguri" },
+  "thumbnail": { "url": "https://ik.imagekit.io/gdgsiliguri1/events/2026/build-with-ai-thumb.webp", "alt": "" },
+  "speakers": [{ "name": "Geeta Kakrani", "headline": "Founder @kanishka IT" }],
+  "tags": ["ai", "workshop"],
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

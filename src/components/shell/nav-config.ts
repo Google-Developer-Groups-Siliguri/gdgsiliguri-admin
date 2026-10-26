@@ -1,51 +1,77 @@
 import type { NavGroup } from "@/components/m3/navigation";
-import { SECTIONS, type SectionKey } from "@/lib/content/sections";
+import { isItemModule } from "@/lib/schema/v2/modules";
+import type { RegistryInput } from "@/lib/sections/registry";
 
-const SHORT_LABELS: Partial<Record<SectionKey, string>> = {
-  eventDetails: "Event",
-  communityPartners: "Partners",
-  devfestFaqs: "FAQ",
-  gdgFaqs: "Home FAQ",
-};
+export const EDITION_PAGES = [
+  { route: "event", label: "Event", icon: "event" },
+  { route: "schedule", label: "Schedule", icon: "schedule" },
+  { route: "speakers", label: "Speakers", icon: "record_voice_over" },
+  { route: "sponsors", label: "Sponsors", icon: "handshake" },
+  { route: "partners", label: "Partners", icon: "diversity_3" },
+  { route: "faq", label: "FAQ", icon: "quiz" },
+] as const;
 
-function sectionItems(keys: SectionKey[]) {
-  return keys.map((key) => ({
-    href: SECTIONS[key].href,
-    label: SECTIONS[key].label,
-    shortLabel: SHORT_LABELS[key],
-    icon: SECTIONS[key].icon,
-  }));
+export function editionFromPath(pathname: string): number | null {
+  const match = /^\/devfest\/(\d{4})(?:\/|$)/.exec(pathname);
+  return match ? Number(match[1]) : null;
 }
 
-export const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "Overview",
-    icon: "dashboard",
-    items: [{ href: "/", label: "Dashboard", icon: "dashboard" }],
-  },
-  {
-    label: "DevFest",
-    icon: "festival",
-    items: sectionItems([
-      "eventDetails",
-      "schedule",
-      "speakers",
-      "sponsors",
-      "communityPartners",
-      "devfestFaqs",
-    ]),
-  },
-  {
-    label: "Community",
-    icon: "groups",
-    items: sectionItems(["events", "teams", "gdgFaqs", "feedbacks"]),
-  },
-  {
-    label: "Settings",
-    icon: "settings",
-    items: [
-      { href: "/settings/admins", label: "Admins", icon: "admin_panel_settings", ownerOnly: true },
-      { href: "/settings/activity", label: "Activity log", shortLabel: "Activity", icon: "history" },
-    ],
-  },
-];
+export function navGroups(registry: RegistryInput, pathname: string): NavGroup[] {
+  const year = editionFromPath(pathname) ?? registry.activeEdition;
+  return [
+    {
+      label: "Overview",
+      icon: "dashboard",
+      items: [{ href: "/", label: "Dashboard", icon: "dashboard" }],
+    },
+    {
+      label: `DevFest ${year}`,
+      icon: "festival",
+      items: [
+        ...EDITION_PAGES.map((page) => ({
+          href: `/devfest/${year}/${page.route}`,
+          label: page.label,
+          icon: page.icon,
+        })),
+        { href: "/devfest", label: "All editions", shortLabel: "Editions", icon: "event_repeat" },
+      ],
+    },
+    {
+      label: "Community",
+      icon: "groups",
+      items: [
+        { href: "/community/team", label: "Team", icon: "groups" },
+        { href: "/community/events", label: "Events", icon: "calendar_month" },
+        { href: "/community/reviews", label: "Reviews", icon: "reviews" },
+        { href: "/community/faq", label: "FAQ", icon: "help" },
+        { href: "/community/blogs", label: "Blogs", icon: "article" },
+        { href: "/community/showcase", label: "Showcase", icon: "rocket_launch" },
+      ],
+    },
+    {
+      label: "Modules",
+      icon: "widgets",
+      items: [
+        ...registry.modules
+          .filter((module) => isItemModule(module.type))
+          .map((module) => ({
+            href: `/modules/${module.id}`,
+            label: module.title || module.id,
+            icon: module.icon || "widgets",
+          })),
+        { href: "/modules", label: "Manage modules", shortLabel: "Modules", icon: "tune" },
+      ],
+    },
+    {
+      label: "Settings",
+      icon: "settings",
+      items: [
+        { href: "/settings/site", label: "Site", icon: "tune" },
+        { href: "/settings/app", label: "App", icon: "smartphone", ownerOnly: true },
+        { href: "/settings/showcase", label: "Showcase form", shortLabel: "Form", icon: "assignment", ownerOnly: true },
+        { href: "/settings/admins", label: "Admins", icon: "admin_panel_settings", ownerOnly: true },
+        { href: "/settings/activity", label: "Activity log", shortLabel: "Activity", icon: "history" },
+      ],
+    },
+  ];
+}

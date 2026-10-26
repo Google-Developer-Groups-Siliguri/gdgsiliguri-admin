@@ -1,24 +1,34 @@
 "use client";
 
 import { createContext, use } from "react";
+import { useWatch } from "react-hook-form";
 
-import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
+import { LinksInput, MarkdownInput, MediaInput, OptionalSelectInput } from "@/components/editor/content-fields";
+import { TextInput } from "@/components/editor/fields";
+import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
-import type { SectionState } from "@/lib/content/repository";
-import type { EventDetails, Speaker } from "@/lib/content/schemas";
+import { IdNote, ListSectionEditor } from "@/components/editor/ListSectionEditor";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
+import { sectionWarnings } from "@/lib/cms/warnings";
+import type { Edition, Session, Speaker } from "@/lib/schema/v2";
 import { isHttpsUrl } from "@/lib/url";
 
-import { MEMBER_FIELD_LABELS, MemberForm } from "./MemberForm";
+import { PERSON_LINKS, useItemSchema } from "./forms";
 
-type Frames = EventDetails["frames"]["speakers"];
+type SpeakerContext = { edition: Edition; sessions: Session[] };
 
-const FramesContext = createContext<Frames | null>(null);
+const Context = createContext<SpeakerContext | null>(null);
 
-function FramePreview({ speaker, frames }: { speaker: Speaker; frames: Frames }) {
-  const track = speaker.designation as "AI" | "App" | "Cloud" | "Web";
-  const trackFrame: string = frames[track] ?? "";
-  const frame = trackFrame || frames.default;
-  const photo = speaker.profilePictureURL.trim();
+function frameFor(edition: Edition, trackId: string | undefined): string {
+  const track = edition.tracks.find((candidate) => candidate.id === trackId);
+  return track?.frame?.url || edition.speakerFrameDefault?.url || "";
+}
+
+function FramePreview({ edition, speaker }: { edition: Edition; speaker: Speaker }) {
+  const frame = frameFor(edition, speaker.trackId);
+  const photo = speaker.photo?.url?.trim() ?? "";
+  const track = edition.tracks.find((candidate) => candidate.id === speaker.trackId);
   return (
     <div className="flex items-center gap-4 rounded-md bg-surface-container p-3">
       <div className="relative size-28 shrink-0 overflow-hidden rounded-md bg-surface-container-highest">
@@ -34,71 +44,97 @@ function FramePreview({ speaker, frames }: { speaker: Speaker; frames: Frames })
       <div className="flex min-w-0 flex-col gap-1">
         <span className="text-title-small text-on-surface">Frame preview</span>
         <span className="text-body-small text-on-surface-variant">
-          {trackFrame
-            ? `Uses the ${track} frame from Event details.`
-            : isHttpsUrl(frames.default)
-              ? `No ${track || "track"} frame is set, so the default frame is used.`
-              : `No frame is set for ${track || "this track"} in Event details.`}
+          {track?.frame?.url
+            ? `Uses the ${track.label} frame from the event's tracks.`
+            : frame
+              ? "No frame for this track, so the default frame is used."
+              : "No frame is set for this track."}
         </span>
       </div>
     </div>
   );
 }
 
-function SpeakerForm(props: ItemFormProps<Speaker>) {
-  const frames = use(FramesContext);
+function SpeakerForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Speaker>) {
+  const context = use(Context)!;
+  const form = useItemForm<Speaker>(useItemSchema<Speaker>({ photo: "name" }), item, isNew);
+  const warnings = warningsByField(issues);
+  const { control } = form;
+  const values = useWatch({ control }) as Speaker;
+  const talks = context.sessions.filter((session) => item.id && session.speakerIds.includes(item.id));
   return (
-    <MemberForm
-      {...(props as ItemFormProps<Speaker>)}
-      kind="speaker"
-      preview={frames ? (member) => <FramePreview speaker={member as Speaker} frames={frames} /> : undefined}
-    />
+    <ItemFormShell form={form} formId={formId} item={item} onSubmit={onSubmit}>
+      <TextInput control={control} name="name" label="Name" required autoFocus={isNew} warning={warnings.name} />
+      <IdNote id={item.id} />
+      <TextInput
+        control={control}
+        name="headline"
+        label="Headline"
+        supportingText="For example: Senior Engineer @Mercedes-Benz"
+        warning={warnings.headline}
+      />
+      <TextInput control={control} name="company" label="Company" />
+      <OptionalSelectInput
+        control={control}
+        name="trackId"
+        label="Track"
+        noneLabel="No track"
+        options={context.edition.tracks.map((track) => ({ value: track.id, label: track.label }))}
+        supportingText="Picks the speaker frame and colour"
+      />
+      <FramePreview edition={context.edition} speaker={values} />
+      <MediaInput control={control} name="photo" label="Photo URL" required shape="circle" />
+      <MarkdownInput control={control} name="bio" label="Bio" rows={4} />
+      <LinksInput control={control} name="links" keys={[...PERSON_LINKS]} />
+      {talks.length > 0 && (
+        <p className="px-1 text-body-small text-on-surface-variant">
+          Speaks in: {talks.map((session) => session.title).join(", ")}
+        </p>
+      )}
+    </ItemFormShell>
   );
 }
 
-const TRACK_COLORS: Record<string, string> = { AI: "#F8D8D8", App: "#FFE7A5", Cloud: "#C3ECF6", Web: "#CCF6C5" };
-const TRACK_SHAPES: Record<string, string> = { AI: "arch", App: "cookie9", Cloud: "clover4", Web: "sunny" };
-
 type SpeakersEditorProps = {
-  state: SectionState<"speakers">;
-  frames: Frames;
-  slotTimes: Record<string, string>;
+  state: SectionState<{ items: Speaker[] }>;
+  visibility: Visibility;
+  edition: Edition;
+  sessions: Session[];
 };
 
-export function SpeakersEditor({ state, frames, slotTimes }: SpeakersEditorProps) {
+export function SpeakersEditor({ state, visibility, edition, sessions }: SpeakersEditorProps) {
+  const tracks = new Map(edition.tracks.map((track) => [track.id, track]));
+  const talkCount = (speaker: Speaker) =>
+    sessions.filter((session) => speaker.id && session.speakerIds.includes(speaker.id)).length;
   return (
-    <FramesContext value={frames}>
-      <ListSectionEditor
-      state={state}
-      noun="speaker"
-      fieldLabels={{ ...MEMBER_FIELD_LABELS, designation: "Track" }}
-      roundThumbnails
-      summarize={(speaker) => ({
-        primary: speaker.name,
-        secondary: speaker.description,
-        image: speaker.profilePictureURL,
-        badge: TRACK_COLORS[speaker.designation]
-          ? { label: speaker.designation, color: TRACK_COLORS[speaker.designation] }
-          : undefined,
-        shape: TRACK_SHAPES[speaker.designation],
-        meta: slotTimes[speaker.name.trim()] ?? "",
-      })}
-      createItem={() => ({
-        name: "",
-        designation: "AI",
-        description: "",
-        profilePictureURL: "",
-        githubURL: "",
-        linkedInURL: "",
-        twitterURL: "",
-      })}
-      Form={SpeakerForm}
-      filters={["AI", "App", "Cloud", "Web"].map((track) => ({
-        label: track,
-        dot: TRACK_COLORS[track],
-        test: (speaker: Speaker) => speaker.designation === track,
-      }))}
+    <Context value={{ edition, sessions }}>
+      <ListSectionEditor<Speaker>
+        state={state}
+        visibility={visibility}
+        noun="speaker"
+        fieldLabels={{ name: "Name", headline: "Headline", photo: "Photo", trackId: "Track", links: "Links" }}
+        roundThumbnails
+        warnings={(draft) => sectionWarnings(state.id, draft, { sessions })}
+        canDelete={(speaker) => (talkCount(speaker) > 0 ? `In ${talkCount(speaker)} session(s)` : null)}
+        summarize={(speaker) => {
+          const track = speaker.trackId ? tracks.get(speaker.trackId) : undefined;
+          const count = talkCount(speaker);
+          return {
+            primary: speaker.name,
+            secondary: speaker.headline,
+            image: speaker.photo?.url,
+            badge: track ? { label: track.label, color: track.color } : undefined,
+            meta: count ? `${count} session${count === 1 ? "" : "s"}` : "No session",
+          };
+        }}
+        createItem={() => ({ id: "", name: "", photo: { url: "", alt: "" }, order: 0 })}
+        Form={SpeakerForm}
+        filters={edition.tracks.map((track) => ({
+          label: track.label,
+          dot: track.color,
+          test: (speaker: Speaker) => speaker.trackId === track.id,
+        }))}
       />
-    </FramesContext>
+    </Context>
   );
 }

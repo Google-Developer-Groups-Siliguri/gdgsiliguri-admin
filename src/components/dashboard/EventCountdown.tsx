@@ -12,6 +12,7 @@ type EventCountdownProps = {
   registrationClosesAt: number | null;
   venue: string;
   ticketUrl: string;
+  editHref: string;
 };
 
 function subscribe(callback: () => void) {
@@ -48,7 +49,7 @@ function Tiles({ values }: { values: [number, string][] }) {
   );
 }
 
-export function EventCountdown({ eventAt, registrationClosesAt, venue, ticketUrl }: EventCountdownProps) {
+export function EventCountdown({ eventAt, registrationClosesAt, venue, ticketUrl, editHref }: EventCountdownProps) {
   const now = useNow();
   const remaining = eventAt !== null && now !== null ? countdown(eventAt, now) : null;
   const registrationOpen =
@@ -115,7 +116,7 @@ export function EventCountdown({ eventAt, registrationClosesAt, venue, ticketUrl
 
         <div className="flex flex-wrap gap-1 max-compact:flex-col">
           <Link
-            href="/devfest/event-details"
+            href={editHref}
             className={cn(
               "focus-ring press flex h-14 flex-[1_1_200px] items-center max-compact:flex-none justify-center gap-2 bg-primary px-6 font-display text-[17px] font-extrabold text-on-primary hover:rounded-[28px]",
               ticketUrl ? "rounded-[28px_10px_10px_28px] max-compact:rounded-[28px_28px_10px_10px]" : "rounded-[28px]",

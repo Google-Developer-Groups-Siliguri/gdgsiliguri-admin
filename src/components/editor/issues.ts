@@ -1,4 +1,4 @@
-import type { ContentIssue } from "@/lib/content/errors";
+import type { ContentIssue } from "@/lib/cms/errors";
 
 export type PathPart = string | number;
 

@@ -5,7 +5,7 @@ import { PageTitle } from "@/components/PageTitle";
 import { EditorFallback } from "@/components/section/EditorFallback";
 import { AdminsManager } from "@/components/settings/AdminsManager";
 import { requireAdminPage } from "@/lib/auth/session";
-import { loadAdmins } from "@/lib/content/queries";
+import { loadAdmins } from "@/lib/cms/queries";
 
 export const metadata: Metadata = { title: "Admins" };
 

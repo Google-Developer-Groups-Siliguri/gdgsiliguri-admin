@@ -12,12 +12,13 @@ import { cn } from "@/lib/cn";
 import { ALLOWED_IMAGE_TYPES } from "@/lib/uploads/folders";
 import { isHttpsUrl } from "@/lib/url";
 
-import { useImageUpload } from "./upload";
+import { useImageUpload, type UploadedImage } from "./upload";
 
 type ImageSlotProps = {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onUpload?: (image: UploadedImage) => void;
   size?: string;
   aspect?: string;
   fit?: "cover" | "contain";
@@ -40,6 +41,7 @@ export function ImageSlot({
   label,
   value,
   onChange,
+  onUpload,
   size,
   aspect = "16 / 9",
   fit = "contain",
@@ -58,7 +60,7 @@ export function ImageSlot({
   const showLink = editing || !available || Boolean(error) || Boolean(warning) || (url !== "" && !isHttpsUrl(url));
 
   function accept(file: File | undefined) {
-    if (file) void upload(file).then((uploaded) => uploaded && onChange(uploaded));
+    if (file) void upload(file).then((uploaded) => uploaded && (onUpload ? onUpload(uploaded) : onChange(uploaded.url)));
   }
 
   function onDrop(event: DragEvent<HTMLDivElement>) {

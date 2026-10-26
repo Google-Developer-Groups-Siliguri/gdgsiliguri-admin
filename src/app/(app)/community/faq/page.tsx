@@ -3,12 +3,16 @@ import { Suspense } from "react";
 
 import { FaqEditor } from "@/components/editors/FaqEditor";
 import { EditorFallback } from "@/components/section/EditorFallback";
-import { loadSection } from "@/lib/content/queries";
+import { orNotFound } from "@/lib/cms/load";
+import { loadSection } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
+import type { Faq } from "@/lib/schema/v2";
 
-export const metadata: Metadata = { title: "Home FAQ" };
+export const metadata: Metadata = { title: "Community FAQ" };
 
 async function Editor() {
-  return <FaqEditor state={await loadSection("gdgFaqs")} />;
+  const { state, visibility } = await orNotFound(loadSection("faqs"));
+  return <FaqEditor state={state as SectionState<{ items: Faq[] }>} visibility={visibility} />;
 }
 
 export default function Page() {

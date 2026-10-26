@@ -4,8 +4,7 @@ loadEnvConfig(process.cwd(), true, { info: () => undefined, error: console.error
 
 type Check = { name: string; required: boolean; validate?: (value: string) => string | null };
 
-const pattern = (regex: RegExp, hint: string) => (value: string) =>
-  regex.test(value) ? null : hint;
+const pattern = (regex: RegExp, hint: string) => (value: string) => (regex.test(value) ? null : hint);
 
 const CHECKS: Check[] = [
   {
@@ -13,15 +12,52 @@ const CHECKS: Check[] = [
     required: false,
     validate: pattern(/^(true|false)$/, "should be true or false"),
   },
-  { name: "NEXT_PUBLIC_FIREBASE_API_KEY", required: true, validate: pattern(/^AIza[\w-]{35}$/, "does not look like a Firebase web API key") },
-  { name: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN", required: true, validate: pattern(/^[\w-]+\.(firebaseapp\.com|web\.app)$|^[\w.-]+\.[a-z]{2,}$/, "should be a bare domain such as <project>.firebaseapp.com") },
-  { name: "NEXT_PUBLIC_FIREBASE_PROJECT_ID", required: true, validate: pattern(/^[a-z][a-z0-9-]{4,29}$/, "does not look like a project id") },
-  { name: "NEXT_PUBLIC_FIREBASE_DATABASE_URL", required: true, validate: pattern(/^https:\/\/[\w-]+\.(firebaseio\.com|[\w-]+\.firebasedatabase\.app)\/?$/, "should be https://<db>.firebaseio.com or https://<db>.<region>.firebasedatabase.app") },
+  {
+    name: "NEXT_PUBLIC_FIREBASE_API_KEY",
+    required: true,
+    validate: pattern(/^AIza[\w-]{35}$/, "does not look like a Firebase web API key"),
+  },
+  {
+    name: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+    required: true,
+    validate: pattern(
+      /^[\w-]+\.(firebaseapp\.com|web\.app)$|^[\w.-]+\.[a-z]{2,}$/,
+      "should be a bare domain such as <project>.firebaseapp.com",
+    ),
+  },
+  {
+    name: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+    required: true,
+    validate: pattern(/^[a-z][a-z0-9-]{4,29}$/, "does not look like a project id"),
+  },
+  {
+    name: "NEXT_PUBLIC_FIREBASE_DATABASE_URL",
+    required: true,
+    validate: pattern(
+      /^https:\/\/[\w-]+\.(firebaseio\.com|[\w-]+\.firebasedatabase\.app)\/?$/,
+      "should be https://<db>.firebaseio.com or https://<db>.<region>.firebasedatabase.app",
+    ),
+  },
   { name: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET", required: false },
   { name: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID", required: false, validate: pattern(/^\d+$/, "should be digits") },
-  { name: "NEXT_PUBLIC_FIREBASE_APP_ID", required: true, validate: pattern(/^1:\d+:web:[0-9a-f]+$/, "should look like 1:<digits>:web:<hex>") },
-  { name: "FIREBASE_ADMIN_PROJECT_ID", required: true, validate: pattern(/^[a-z][a-z0-9-]{4,29}$/, "does not look like a project id") },
-  { name: "FIREBASE_ADMIN_CLIENT_EMAIL", required: true, validate: pattern(/^[\w-]+@[\w-]+\.iam\.gserviceaccount\.com$/, "should be a service account email ending in .iam.gserviceaccount.com") },
+  {
+    name: "NEXT_PUBLIC_FIREBASE_APP_ID",
+    required: true,
+    validate: pattern(/^1:\d+:web:[0-9a-f]+$/, "should look like 1:<digits>:web:<hex>"),
+  },
+  {
+    name: "FIREBASE_ADMIN_PROJECT_ID",
+    required: true,
+    validate: pattern(/^[a-z][a-z0-9-]{4,29}$/, "does not look like a project id"),
+  },
+  {
+    name: "FIREBASE_ADMIN_CLIENT_EMAIL",
+    required: true,
+    validate: pattern(
+      /^[\w-]+@[\w-]+\.iam\.gserviceaccount\.com$/,
+      "should be a service account email ending in .iam.gserviceaccount.com",
+    ),
+  },
   {
     name: "FIREBASE_ADMIN_PRIVATE_KEY",
     required: true,
@@ -43,12 +79,17 @@ const CHECKS: Check[] = [
       if (!key.startsWith("-----BEGIN PRIVATE KEY-----")) {
         return `has ${value.indexOf("-----BEGIN")} unexpected characters before -----BEGIN PRIVATE KEY-----`;
       }
-      if (!key.trimEnd().endsWith("-----END PRIVATE KEY-----")) return "should end with -----END PRIVATE KEY----- (is it truncated?)";
+      if (!key.trimEnd().endsWith("-----END PRIVATE KEY-----"))
+        return "should end with -----END PRIVATE KEY----- (is it truncated?)";
       if (!key.includes("\n")) return "has no line breaks; keep the \\n sequences from the JSON file";
       return null;
     },
   },
-  { name: "IMAGEKIT_URL_ENDPOINT", required: false, validate: pattern(/^https:\/\/ik\.imagekit\.io\/[\w-]+\/?$/, "should be https://ik.imagekit.io/<id>") },
+  {
+    name: "IMAGEKIT_URL_ENDPOINT",
+    required: false,
+    validate: pattern(/^https:\/\/ik\.imagekit\.io\/[\w-]+\/?$/, "should be https://ik.imagekit.io/<id>"),
+  },
   { name: "IMAGEKIT_PUBLIC_KEY", required: false, validate: pattern(/^public_/, "should start with public_") },
   { name: "IMAGEKIT_PRIVATE_KEY", required: false, validate: pattern(/^private_/, "should start with private_") },
 ];
@@ -63,8 +104,7 @@ for (const check of CHECKS) {
   }
   const multiline = check.name === "FIREBASE_ADMIN_PRIVATE_KEY";
   const issue =
-    check.validate?.(value) ??
-    (!multiline && value !== value.trim() ? "has leading or trailing spaces" : null);
+    check.validate?.(value) ?? (!multiline && value !== value.trim() ? "has leading or trailing spaces" : null);
   console.log(issue ? `✗ INVALID  ${check.name}: ${issue}` : `✓ ok       ${check.name}`);
   if (issue) problems += 1;
 }
@@ -101,9 +141,7 @@ async function finish() {
   if (problems === 0 && process.argv.includes("--live") && !(await verifyServiceAccount())) {
     problems += 1;
   }
-  console.log(
-    problems === 0 ? "\nAll required settings look valid." : `\n${problems} problem(s) found.`,
-  );
+  console.log(problems === 0 ? "\nAll required settings look valid." : `\n${problems} problem(s) found.`);
   process.exitCode = problems === 0 ? 0 : 1;
 }
 

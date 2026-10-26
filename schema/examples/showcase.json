@@ -1,0 +1,13 @@
+{
+  "title": "KrishiMitra",
+  "summary": "A Gemini-powered assistant that helps tea garden workers identify leaf diseases from a photo.",
+  "body": "Built during DevFest Siliguri 2026 with Flutter, Firebase and Gemini.",
+  "team": [{ "name": "Priya Sharma", "links": { "github": "https://github.com/priya" } }, { "name": "Rahul Das" }],
+  "links": { "repo": "https://github.com/priya/krishimitra", "demo": "https://krishimitra.web.app" },
+  "images": [{ "url": "https://ik.imagekit.io/gdgsiliguri1/showcase/2026/krishimitra-1.webp", "alt": "KrishiMitra home screen" }],
+  "tags": ["Gemini", "Flutter", "Firebase"],
+  "edition": 2026,
+  "featured": true,
+  "order": 10,
+  "updatedAt": { "$timestamp": "2026-11-20T10:00:00+05:30" }
+}

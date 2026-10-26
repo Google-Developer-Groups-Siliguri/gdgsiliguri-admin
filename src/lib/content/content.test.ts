@@ -17,11 +17,13 @@ import {
 } from "./sections";
 import { sectionWarnings } from "./warnings";
 
-const seed = JSON.parse(readFileSync(new URL("../../../seed/rtdb-export.json", import.meta.url), "utf8"));
+const readSeed = (file: string) => JSON.parse(readFileSync(new URL(`../../../seed/${file}`, import.meta.url), "utf8"));
+const seed = readSeed("rtdb-export.json");
+const uncleaned = readSeed("rtdb-export.uncleaned.json");
 const seededKeys = SECTION_KEYS.filter((key) => valueAtPath(seed, SECTIONS[key].rtdbPath) != null);
 
-function seedValue(key: SectionKey) {
-  return structuredClone(valueAtPath(seed, SECTIONS[key].rtdbPath));
+function seedValue(key: SectionKey, root: unknown = seed) {
+  return structuredClone(valueAtPath(root, SECTIONS[key].rtdbPath));
 }
 
 function messagesAt(issues: { path: PropertyKey[]; message: string }[], path: PropertyKey[]) {
@@ -46,8 +48,8 @@ describe("section map", () => {
     });
   });
 
-  it("has seed data for every section except events", () => {
-    expect(SECTION_KEYS.filter((key) => !seededKeys.includes(key))).toEqual(["events"]);
+  it("has seed data for every section", () => {
+    expect(SECTION_KEYS.filter((key) => !seededKeys.includes(key))).toEqual([]);
   });
 });
 
@@ -118,16 +120,31 @@ describe("empty arrays", () => {
 });
 
 describe("publish validation", () => {
-  it.each(seededKeys.filter((key) => key !== "teams"))("%s: production data is publishable", (key) => {
+  it.each(seededKeys)("%s: production data is publishable", (key) => {
     const result = validateForPublish(key, parseSection(key, seedValue(key)));
     expect(result.success ? [] : result.error.issues).toEqual([]);
   });
 
-  it("flags the schemeless Twitter URL in teams", () => {
-    const result = validateForPublish("teams", parseSection("teams", seedValue("teams")));
-    expect(result.success).toBe(false);
-    const paths = result.error!.issues.map((issue) => issue.path.join("."));
-    expect(paths).toContain("data.5.twitterURL");
+  it("flags a schemeless Twitter URL in teams", () => {
+    const teams = parseSection("teams", seedValue("teams"));
+    teams.data[5].twitterURL = "Twitter.com/debuisalive";
+    const result = validateForPublish("teams", teams);
+    expect(result.error!.issues.map((issue) => issue.path.join("."))).toContain("data.5.twitterURL");
+  });
+
+  it("rejects the iframe attributes pasted into the production maps embed", () => {
+    const details = parseSection("eventDetails", seedValue("eventDetails", uncleaned));
+    const result = validateForPublish("eventDetails", details);
+    expect(result.error!.issues.map((issue) => issue.path.join("."))).toEqual(["eventVenue.mapsURLweb"]);
+    expect(validateForPublish("eventDetails", parseSection("eventDetails", seedValue("eventDetails"))).success).toBe(true);
+  });
+
+  it("rejects quotes and spaces inside any link", () => {
+    const partners = parseSection("communityPartners", seedValue("communityPartners"));
+    partners.data[0].socialMediaLink = 'https://example.com/a" width="600';
+    partners.data[1].socialMediaLink = "https://example.com/a b";
+    const messages = validateForPublish("communityPartners", partners).error!.issues.map((issue) => issue.message);
+    expect(messages).toEqual(["Links can't contain quotes or spaces", "Links can't contain quotes or spaces"]);
   });
 
   it("requires names, titles, questions and logos", () => {
@@ -167,9 +184,13 @@ describe("publish validation", () => {
 });
 
 describe("known production data issues are surfaced", () => {
-  const schedule = parseSection("schedule", seedValue("schedule"));
-  const speakers = parseSection("speakers", seedValue("speakers")).data;
+  const schedule = parseSection("schedule", seedValue("schedule", uncleaned));
+  const speakers = parseSection("speakers", seedValue("speakers", uncleaned)).data;
   const scheduleIssues = sectionWarnings("schedule", schedule, { speakers });
+  const warningsFor = (key: SectionKey) =>
+    sectionWarnings(key, parseSection(key, seedValue(key, uncleaned)), { speakers }).map(
+      (issue) => `${issue.path.join(".")}: ${issue.message}`,
+    );
 
   it("flags the 12:10 AM panel discussion", () => {
     expect(messagesAt(scheduleIssues, ["data", 4, "startTime"])).toEqual([
@@ -177,8 +198,13 @@ describe("known production data issues are surfaced", () => {
     ]);
   });
 
-  it("flags the speaker-name typo", () => {
-    expect(messagesAt(scheduleIssues, ["data", 9, "subTitle"])).toEqual([
+  it("flags a session speaker that matches no speaker", () => {
+    expect(messagesAt(scheduleIssues, ["data", 9, "subTitle"])).toEqual(['"Nitin Praksh" matches no speaker.']);
+  });
+
+  it("suggests the closest speaker for a typo", () => {
+    const withNitin = [...speakers, { ...speakers[0], name: "Nitin Prakash" }];
+    expect(messagesAt(sectionWarnings("schedule", schedule, { speakers: withNitin }), ["data", 9, "subTitle"])).toEqual([
       'Did you mean the speaker "Nitin Prakash"?',
     ]);
   });
@@ -190,7 +216,7 @@ describe("known production data issues are surfaced", () => {
   });
 
   it("flags the swapped partner links", () => {
-    const partners = parseSection("communityPartners", seedValue("communityPartners"));
+    const partners = parseSection("communityPartners", seedValue("communityPartners", uncleaned));
     const issues = sectionWarnings("communityPartners", partners);
     expect(issues.map((issue) => issue.path.join("."))).toEqual([
       "data.0.socialMediaLink",
@@ -198,19 +224,50 @@ describe("known production data issues are surfaced", () => {
     ]);
   });
 
-  it("flags a ticket link for a different year's event", () => {
-    const details = parseSection("eventDetails", seedValue("eventDetails"));
-    expect(messagesAt(sectionWarnings("eventDetails", details), ["eventTicketURL"])).toEqual([]);
-    const nextYear = { ...details, eventDateTime: "2026-11-14 08:00:00.000" };
-    expect(messagesAt(sectionWarnings("eventDetails", nextYear), ["eventTicketURL"])).toEqual([
-      "This link points to the 2025 event page, but DevFest is in 2026.",
+  it("flags the same link used by two partners or two sponsors", () => {
+    const partners = parseSection("communityPartners", seedValue("communityPartners"));
+    partners.data[2].socialMediaLink = `${partners.data[3].socialMediaLink}/`;
+    expect(messagesAt(sectionWarnings("communityPartners", partners), ["data", 2, "socialMediaLink"])).toEqual([
+      `Same link as "${partners.data[3].communityName}".`,
+    ]);
+    const sponsors = parseSection("sponsors", seedValue("sponsors"));
+    sponsors.gold[0].socialMediaLink = sponsors.platinum[0].socialMediaLink;
+    expect(messagesAt(sectionWarnings("sponsors", sponsors), ["platinum", 0, "socialMediaLink"])).toEqual([
+      `Same link as "${sponsors.gold[0].sponsorName}".`,
     ]);
   });
 
-  it("flags the schemeless Twitter URL and the trailing spaces in teams", () => {
+  it("flags a ticket link for a different year's event", () => {
+    expect(warningsFor("eventDetails")).toContain(
+      "eventTicketURL: This link points to the 2025 event page, but DevFest is in 2026.",
+    );
+  });
+
+  it("flags E2E and test content once per item", () => {
+    const test = "Looks like test content. Remove it before publishing.";
+    expect(warningsFor("teams")).toEqual([`data.18: ${test}`]);
+    expect(warningsFor("feedbacks")).toEqual([`data.5: ${test}`]);
+    expect(warningsFor("gdgFaqs")).toEqual([`data.3: ${test}`]);
+    expect(warningsFor("events")).toEqual([`data.0: ${test}`]);
+    expect(warningsFor("eventDetails")).toEqual(
+      expect.arrayContaining([`perks.data.8: ${test}`, `pointsToNote.data.6: ${test}`]),
+    );
+  });
+
+  it("flags a schemeless link and trailing spaces in teams", () => {
     const teams = parseSection("teams", seedValue("teams"));
+    teams.data[5].twitterURL = "Twitter.com/debuisalive";
+    teams.data[9].linkedInURL = `${teams.data[9].linkedInURL} `;
     const paths = sectionWarnings("teams", teams).map((issue) => issue.path.join("."));
-    expect(paths).toEqual(["data.5.twitterURL", "data.9.linkedInURL", "data.9.twitterURL"]);
+    expect(paths).toEqual(["data.5.twitterURL", "data.9.linkedInURL"]);
+  });
+
+  it("finds nothing to check in the cleaned seed", () => {
+    const cleanSpeakers = parseSection("speakers", seedValue("speakers")).data;
+    const found = seededKeys.flatMap((key) =>
+      sectionWarnings(key, parseSection(key, seedValue(key)), { speakers: cleanSpeakers }),
+    );
+    expect(found).toEqual([]);
   });
 });
 
@@ -224,7 +281,7 @@ describe("normalizeForSave", () => {
 
 describe("dashboard helpers", () => {
   it("counts items and reads enabled state", () => {
-    expect(itemCount("teams", seedValue("teams"))).toBe(21);
+    expect(itemCount("teams", seedValue("teams"))).toBe(19);
     expect(itemCount("sponsors", seedValue("sponsors"))).toBe(4);
     expect(itemCount("eventDetails", seedValue("eventDetails"))).toBeNull();
     expect(isEnabled("speakers", seedValue("speakers"))).toBe(false);

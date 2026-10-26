@@ -22,18 +22,18 @@ test("owners add, promote, demote and remove admins", async ({ page }) => {
   await expect(dialog).toBeHidden();
   const row = page.getByRole("list", { name: "Admins" }).getByRole("listitem").filter({ hasText: "new.volunteer@example.com" });
   await expect(row).toBeVisible();
-  expect(await readFirestoreDoc("admins/new.volunteer@example.com")).toMatchObject({ role: "editor" });
+  expect(await readFirestoreDoc("cms/root/admins/new.volunteer@example.com")).toMatchObject({ role: "editor" });
 
   await row.getByRole("combobox", { name: "Role" }).click();
   await page.getByRole("option", { name: "Owner" }).click();
   await expect(page.getByText("new.volunteer@example.com is now an owner.").first()).toBeVisible();
-  expect(await readFirestoreDoc("admins/new.volunteer@example.com")).toMatchObject({ role: "owner" });
+  expect(await readFirestoreDoc("cms/root/admins/new.volunteer@example.com")).toMatchObject({ role: "owner" });
 
   await row.getByRole("button", { name: "Remove new.volunteer@example.com" }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Remove" }).click();
   await expect(page.getByText("new.volunteer@example.com was removed.").first()).toBeVisible();
   await expect(row).toBeHidden();
-  await expect.poll(() => readFirestoreDoc("admins/new.volunteer@example.com")).toBeNull();
+  await expect.poll(() => readFirestoreDoc("cms/root/admins/new.volunteer@example.com")).toBeNull();
 });
 
 test("the last owner cannot be demoted", async ({ page }) => {
@@ -43,7 +43,7 @@ test("the last owner cannot be demoted", async ({ page }) => {
   await row.getByRole("combobox", { name: "Role" }).click();
   await page.getByRole("option", { name: "Editor" }).click();
   await expect(page.getByText("There must always be at least one owner.").first()).toBeVisible();
-  expect(await readFirestoreDoc(`admins/${TEST_USERS.owner.email}`)).toMatchObject({ role: "owner" });
+  expect(await readFirestoreDoc(`cms/root/admins/${TEST_USERS.owner.email}`)).toMatchObject({ role: "owner" });
 });
 
 test("an editor cannot run admin actions even by replaying the request", async ({ page, browser }) => {
@@ -59,7 +59,7 @@ test("an editor cannot run admin actions even by replaying the request", async (
   await expect(dialog).toBeHidden();
   expect(captured).not.toBeNull();
   const action = captured as unknown as Request;
-  expect(await readFirestoreDoc("admins/captured@example.com")).toMatchObject({ role: "editor" });
+  expect(await readFirestoreDoc("cms/root/admins/captured@example.com")).toMatchObject({ role: "editor" });
 
   const editorContext = await browser.newContext();
   const editorPage = await editorContext.newPage();
@@ -75,7 +75,7 @@ test("an editor cannot run admin actions even by replaying the request", async (
     data: action.postData()?.replace("captured@example.com", "sneaky@example.com") ?? "",
   });
   expect(await replay.text()).toContain("Only owners can do this.");
-  expect(await readFirestoreDoc("admins/sneaky@example.com")).toBeNull();
+  expect(await readFirestoreDoc("cms/root/admins/sneaky@example.com")).toBeNull();
 
   await editorPage.goto("/settings/admins");
   await expect(editorPage).toHaveURL("/");
@@ -97,7 +97,7 @@ test("the activity log filters by section and person", async ({ page }) => {
   await signInAs(page, TEST_USERS.owner, "/settings/activity");
   await page.getByRole("combobox", { name: "Section" }).click();
   await page.getByRole("option", { name: "Reviews" }).click();
-  await expect(page).toHaveURL(/section=feedbacks/);
+  await expect(page).toHaveURL(/section=testimonials/);
   await expect(page.getByText(/Published Reviews/).first()).toBeVisible();
   await expect(page.getByText("Added new.volunteer@example.com as editor")).toHaveCount(0);
 

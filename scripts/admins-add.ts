@@ -2,6 +2,7 @@ import "./lib/load-env";
 
 import { FieldValue } from "firebase-admin/firestore";
 
+import { adminsRef, auditRef } from "../src/lib/cms/paths";
 import { adminFirestoreFor } from "../src/lib/firebase/admin-app";
 import { isRole, normalizeEmail } from "../src/lib/auth/roles";
 
@@ -19,7 +20,7 @@ async function main() {
 
   assertTargetAllowed(args);
   const email = normalizeEmail(rawEmail);
-  const ref = adminFirestoreFor().collection("admins").doc(email);
+  const ref = adminsRef(adminFirestoreFor()).doc(email);
   const existing = await ref.get();
 
   if (existing.exists) {
@@ -31,14 +32,12 @@ async function main() {
     console.log(`Added ${email} as ${role}`);
   }
 
-  await adminFirestoreFor()
-    .collection("auditLog")
-    .add({
-      at: FieldValue.serverTimestamp(),
-      actorEmail: "admins:add script",
-      action: existing.exists ? "admin_role" : "admin_add",
-      summary: existing.exists ? `Changed ${email} to ${role}` : `Added ${email} as ${role}`,
-    });
+  await auditRef(adminFirestoreFor()).add({
+    at: FieldValue.serverTimestamp(),
+    actorEmail: "admins:add script",
+    action: existing.exists ? "admin_role" : "admin_add",
+    summary: existing.exists ? `Changed ${email} to ${role}` : `Added ${email} as ${role}`,
+  });
 }
 
 main().catch((error: unknown) => fail((error as Error).message));

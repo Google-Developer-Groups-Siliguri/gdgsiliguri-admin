@@ -75,7 +75,15 @@ the email you added.
 | `npm run test:integration` | Repository tests against the emulators, in their own namespace |
 | `npm run test:e2e` | Playwright against its own dev server on :3200 and emulator namespace `e2e` |
 | `npm run emulators` | Firebase emulators, saving data to `.emulator-data` |
-| `npm run seed:emulator` | Loads the production snapshot into the emulators and imports it |
+| `npm run seed:emulator` | Loads the production snapshot into the emulators and imports it. `-- --migrate` also builds Firestore v2 from it; `-- --v2` loads `schema/examples` instead; `-- --rtdb <file> --firestore <file>` reloads a backup |
+| `npm run backup` / `backup:prod` | Writes the RTDB root and every Firestore document to `backups/` |
+| `npm run migrate:v2` | Builds Firestore v2 from RTDB and prints a report (dry run; `--apply` writes, `--report-file` saves Markdown, `--ios-url` sets the App Store link) |
+| `npm run verify:parity` | Compares RTDB with what Firestore v2 would generate; fails on anything not in `scripts/parity-allowlist.json`. Read-only |
+| `npm run sync:legacy` | Regenerates every legacy RTDB node from Firestore (`--pending` only retries failed ones) |
+| `npm run move:cms` | Copies `admins`, `settings/site` and `auditLog` under `cms/root` (dry run; `--apply` copies) |
+| `npm run schema:export` / `schema:check` | Writes `schema/v2/*.schema.json` for the website and app; the check fails when they are stale |
+| `npm run fix:content` | Fixes the known content bugs listed in the migration plan (dry run; `--apply` publishes) |
+| `npm run cleanup:e2e` | Removes E2E test rows from every section and lists `e2e-test` images in ImageKit (dry run; `--apply` publishes) |
 | `npm run import:rtdb` | Copies each RTDB section into Firestore if missing (`--force` replaces) |
 | `npm run admins:add -- --email … --role owner\|editor` | Adds or updates an admin |
 | `npm run theme:generate` | Regenerates `src/app/theme.css` from the gdgsiliguri.com palette |
@@ -99,12 +107,97 @@ always works too.
 
 - **Undo a bad publish:** open the section → History → **Load into draft** on an earlier version →
   Publish.
-- **Restore the whole Realtime Database from a backup:** backups are written to
-  `backups/rtdb-<timestamp>.json` before the first production write. In the Firebase console,
-  open Realtime Database → ⋮ → Import JSON at the root, choose the file, then run
+- **Take a backup:** `npm run backup:prod` writes `backups/rtdb-<timestamp>.json` (the RTDB root)
+  and `backups/firestore-<timestamp>.json` (every Firestore document, keyed by path, with
+  `{"$timestamp": …}` and `{"$geopoint": […]}` markers). Run it before any production write.
+- **Check a backup:** load it into the emulators with
+  `npm run seed:emulator -- --rtdb backups/rtdb-….json --firestore backups/firestore-….json`.
+- **Restore the whole Realtime Database from a backup:** in the Firebase console, open Realtime
+  Database → ⋮ → Import JSON at the root, choose the file, then run
   `npm run import:rtdb -- --production --force` so Firestore matches.
 - **Locked out:** run `npm run admins:add -- --email you@gmail.com --role owner --production`
   with the production credentials in `.env.local` and `NEXT_PUBLIC_USE_EMULATORS=false`.
+
+## Pre-migration clean-up (Phase 0)
+
+Run once against production, in this order, before the Firestore v2 migration. Each script prints
+its plan first; read it, then repeat with `--apply`. Both skip a section that has unpublished
+draft edits, so publish or discard those first.
+
+```
+npm run backup:prod
+npm run fix:content -- --production          # AM/PM, durations, speaker name, swapped links, venue, typos
+npm run fix:content -- --production --apply
+npm run cleanup:e2e -- --production          # the six E2E rows, plus e2e-test images to delete by hand
+npm run cleanup:e2e -- --production --apply
+```
+
+`fix:content` runs first because the stricter maps-embed check would otherwise block publishing
+event details. Afterwards, refresh `seed/rtdb-export.json` from a production export (see
+`seed/README.md`).
+
+Owner checks before the migration:
+
+- Firestore `(default)` database location: _not recorded yet_ (Console → Firestore → Settings).
+  If it does not exist, create it in `asia-south1`; it can't be changed later.
+- The deployed RTDB rules match `database.rules.json`.
+- The Netlify build hook is set in the production environment.
+
+## App settings, modules, blogs and showcase
+
+- **Settings → App** (owners): the mobile app's force-update builds, store links, hidden modules and
+  maintenance banner, published to `site/app`. Raising the minimum build blocks older installs.
+- **Modules**: extra sections without code changes. Cards, gallery and links modules get their own
+  item editor under Modules; text modules keep their Markdown on the module. Publishing the list
+  rebuilds the bundles; deleting a module also deletes its items.
+- **Community → Blogs**: posts come from the Hashnode RSS feed. **Sync now** fetches them, the
+  dashboard syncs again when the last sync is more than 6 hours old (`BLOG_AUTO_SYNC=false` turns
+  that off), and a scheduler can `POST /api/cron/blogs` with the `X-Cron-Secret` header set to
+  `CRON_SECRET`. Pins survive syncs; hidden posts are not re-added.
+- **Community → Showcase**: attendee projects from the Google Form (`integrations/google-form`)
+  wait here for review. Approving publishes them without any contact details; owners manage the
+  form secret at **Settings → Showcase form**. `npm run retention` removes contact details 60 days
+  after the edition and prunes old revisions.
+
+## Firestore v2 migration (production runbook)
+
+Run by an owner, after the Phase 0 clean-up, with production credentials in `.env.local` and
+`NEXT_PUBLIC_USE_EMULATORS=false`. Every step was rehearsed on the emulators from the uncleaned
+production snapshot.
+
+```
+npm run backup:prod
+npm run migrate:v2 -- --production --ios-url <App Store link> --report-file migration-report.md   # dry run
+#   read the report with the organisers: unmatched speakers, AM/PM anomalies, carried-over sections
+npm run migrate:v2 -- --production --ios-url <App Store link> --apply
+npm run verify:parity -- --production       # only the allow-listed differences below
+npm run move:cms -- --production --apply
+firebase deploy --only firestore:rules,firestore:indexes -P prod
+# deploy the admin build with the v2 pipeline
+npm run sync:legacy -- --production         # RTDB takes the 2026 shape
+# publish one harmless change (e.g. FAQ wording), then check RTDB, bundles/home and the website
+```
+
+Expected `verify:parity` differences before `sync:legacy`: `/schedule`, `/speakers` and `/sponsors`
+lose the 2025 lineup (it moves to `editions/2025`), `/eventDetails.registrationExpiryDateTime`
+falls back to the 2026 start because registration is pending, and `/home/pastDevfests` is new.
+URL cache-busters (`?updatedAt=`) and stray spaces are dropped; they show as "cosmetic". After
+`sync:legacy`, parity is exact.
+
+`migrate:v2` refuses to run twice; `--force` backs up and replaces the v2 data. Once
+`sync:legacy` has rewritten RTDB, RTDB no longer holds the 2025 lineup, so a forced re-run also
+needs `--from-file backups/rtdb-<timestamp>.json` from before the migration.
+
+Rolling back: RTDB was never stopped, so redeploy the previous admin build. The v2 data stays
+unused.
+
+## CI
+
+`.github/workflows/ci.yml` runs lint, typecheck, unit tests, the schema check, the integration
+tests and Playwright against the emulators on every pull request. A nightly job runs
+`verify:parity -- --production` with the read-only service account in the `GCP_SA_READONLY`
+secret (roles: Firebase Realtime Database Viewer and Cloud Datastore Viewer) and opens an issue if
+RTDB and Firestore drift apart. Deploy commands always name the project: `-P prod`.
 
 ## Project layout
 
