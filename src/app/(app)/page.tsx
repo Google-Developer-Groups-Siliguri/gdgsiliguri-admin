@@ -13,7 +13,9 @@ import { Icon } from "@/components/m3/Icon";
 import { LinearProgress } from "@/components/m3/Progress";
 import { getCurrentAdmin } from "@/lib/auth/session";
 import { loadAllSections, loadAudit, loadSection } from "@/lib/content/queries";
+import type { SectionState } from "@/lib/content/repository";
 import { SECTION_KEYS } from "@/lib/content/sections";
+import { sectionWarnings } from "@/lib/content/warnings";
 import { dateTimeToEpoch } from "@/lib/datetime";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -76,11 +78,18 @@ function LiveSiteCard() {
 
 async function SectionGrid() {
   const states = await loadAllSections();
+  const speakers = (states.speakers as SectionState<"speakers"> | undefined)?.draft.data;
+  const warningCounts = Object.fromEntries(
+    SECTION_KEYS.map((key) => {
+      const state = states[key];
+      return [key, state ? sectionWarnings(key, state.draft, { speakers }).length : 0];
+    }),
+  );
   return (
     <div className="grid grid-cols-1 gap-3 compact:grid-cols-2 expanded:grid-cols-3">
       {SECTION_KEYS.map((key, index) => (
         <Reveal key={key} index={index}>
-          <SectionCard sectionKey={key} state={states[key]} index={index} />
+          <SectionCard sectionKey={key} state={states[key]} index={index} warningCount={warningCounts[key]} />
         </Reveal>
       ))}
     </div>

@@ -1,8 +1,10 @@
 import { execFileSync } from "node:child_process";
 
 import { clearFirestore, E2E_NAMESPACE, FIRESTORE, putAdmin, TEST_USERS } from "./support/emulator";
+import { assertEmulatorTarget } from "./support/guard";
 
 export default async function globalSetup() {
+  assertEmulatorTarget();
   const reachable = await fetch(FIRESTORE).then(
     () => true,
     () => false,

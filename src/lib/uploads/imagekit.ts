@@ -16,11 +16,31 @@ export class UploadError extends Error {
 }
 
 const UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+const FILES_URL = "https://api.imagekit.io/v1/files";
 
 export function imageKitConfig(): ImageKitConfig | null {
   const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
   const urlEndpoint = process.env.IMAGEKIT_URL_ENDPOINT;
   return privateKey && urlEndpoint ? { privateKey, urlEndpoint } : null;
+}
+
+function authorization(config: ImageKitConfig): string {
+  return `Basic ${Buffer.from(`${config.privateKey}:`).toString("base64")}`;
+}
+
+export type ImageKitFile = { fileId: string; name: string; filePath: string; url: string };
+
+export async function listImageKitFiles(
+  searchQuery: string,
+  config: ImageKitConfig,
+  fetcher: Fetcher = fetch,
+): Promise<ImageKitFile[]> {
+  const response = await fetcher(`${FILES_URL}?${new URLSearchParams({ searchQuery, limit: "1000" })}`, {
+    headers: { Authorization: authorization(config) },
+    signal: AbortSignal.timeout(30_000),
+  });
+  if (!response.ok) throw new UploadError(`ImageKit file search failed: ${response.status}`, 502);
+  return (await response.json()) as ImageKitFile[];
 }
 
 export function checkImage(file: { type: string; size: number }): void {
@@ -51,7 +71,7 @@ export async function uploadToImageKit(
 
   const response = await fetcher(UPLOAD_URL, {
     method: "POST",
-    headers: { Authorization: `Basic ${Buffer.from(`${config.privateKey}:`).toString("base64")}` },
+    headers: { Authorization: authorization(config) },
     body,
     signal: AbortSignal.timeout(30_000),
   }).catch(() => null);

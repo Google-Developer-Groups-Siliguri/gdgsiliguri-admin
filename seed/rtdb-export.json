@@ -6,11 +6,11 @@
         "question": "What is Devfest Siliguri?"
       },
       {
-        "answer": "Devfest Siliguri will be held on November 16, 2025.",
+        "answer": "Devfest Siliguri will be held on November 14, 2026.",
         "question": "When is Devfest Siliguri?"
       },
       {
-        "answer": "Devfest Siliguri will be held at the Royal Sarovar, Siliguri.",
+        "answer": "Devfest Siliguri will be held at ITC Fortune Select Siliguri.",
         "question": "What is the venue for Devfest Siliguri?"
       },
       {
@@ -28,18 +28,6 @@
       {
         "answer": "We will have a variety of talks and workshops on a variety of topics, including web development, mobile development, machine learning, and artificial intelligence.",
         "question": "What kind of talks and workshops will be happening at Devfest Siliguri?"
-      },
-      {
-        "answer": "The Royal Sarovar is located at 11/12, Hill Cart Road, Siliguri, West Bengal 734001.",
-        "question": "Where is the Royal Sarovar?"
-      },
-      {
-        "answer": "The Royal Sarovar is located about 10 km from Siliguri Airport. You can take a taxi or auto-rickshaw from the airport to the venue.",
-        "question": "How do I get to the Royal Sarovar?"
-      },
-      {
-        "answer": "The Royal Sarovar has ample parking space on-site.",
-        "question": "What are the parking options available at the Royal Sarovar?"
       },
       {
         "answer": "You should bring your laptop, charger, and a notebook. You may also want to bring a business card to exchange with other attendees.",
@@ -77,12 +65,12 @@
       {
         "communityName": "GDG on Campus Jalpaiguri Govt. Engineering College",
         "icon": "https://ik.imagekit.io/gdgsiliguri1/community%20partners/2025/GDGoCJGEC.jpeg?updatedAt=1761896744905",
-        "socialMediaLink": "https://gdg.community.dev/gdg-on-campus-academy-of-technology-hooghly-india/"
+        "socialMediaLink": "https://gdg.community.dev/gdg-on-campus-jalpaiguri-government-engineering-college-jalpaiguri-india/"
       },
       {
         "communityName": "GDG on campus Academy of Technology",
         "icon": "https://ik.imagekit.io/gdgsiliguri1/community%20partners/2025/GDGoCAOT.png?updatedAt=1761896744350",
-        "socialMediaLink": "https://gdg.community.dev/gdg-on-campus-jalpaiguri-government-engineering-college-jalpaiguri-india/"
+        "socialMediaLink": "https://gdg.community.dev/gdg-on-campus-academy-of-technology-hooghly-india/"
       },
       {
         "communityName": "Flutterflow Students Community India",
@@ -133,7 +121,7 @@
     "enabled": true
   },
   "eventDetails": {
-    "bannerDescription": "Whether you're passionate about finding new opportunities, elevating your knowledge on the latest Google developer tools, or exploring how to use Google technogies to generate social and economic impact, DevFest offers an amazing platform for developers to connect locally, learn, and build on Google's tools.",
+    "bannerDescription": "Whether you're passionate about finding new opportunities, elevating your knowledge on the latest Google developer tools, or exploring how to use Google technologies to generate social and economic impact, DevFest offers an amazing platform for developers to connect locally, learn, and build on Google's tools.",
     "bannerImages": {
       "aisummit": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/India-AI-Impact-Summit-2026-Logo.png",
       "large": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/devfest2025_banner.png?updatedAt=1760814965087",
@@ -144,14 +132,14 @@
     "communityDescription": "GDG Siliguri is based out of Siliguri and handles the geographic region of North Bengal and Sikkim. We are a group consisting of both student and professional developers and we conduct a lot of events to empower the local tech community. These includes tech talks, hackathons, codelabs, workshops and more.",
     "communityEmail": "gdgsiliguri@gmail.com",
     "communityJoinLink": "https://gdg.community.dev/gdg-siliguri/",
-    "eventDateTime": "2025-11-16 08:00:00.000",
+    "eventDateTime": "2026-11-14 08:00:00.000",
     "eventMode": true,
-    "eventTicketURL": "https://www.commudle.com/communities/google-developers-group-siliguri/events/devfest-siliguri-2025",
+    "eventTicketURL": "",
     "eventVenue": {
       "imageURL": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/venue.webp",
-      "mapsURL": "https://maps.app.goo.gl/jeWSeQYpZ3EV6gMJ8",
-      "mapsURLweb": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3562.687240890537!2d88.43764057601207!3d26.75435496687695!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39e44150e6d5341f%3A0x3e9ecf67ac12449c!2sROYAL%20SAROVAR%20PORTICO!5e0!3m2!1sen!2sin!4v1696924762817!5m2!1sen!2sin",
-      "name": "ROYAL SAROVAR PORTICO, Sevoke Rd, Ward 42, Siliguri, West Bengal"
+      "mapsURL": "https://maps.app.goo.gl/pGy6NBJGr9e4P1cE7",
+      "mapsURLweb": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3563.128427322844!2d88.45560259999999!3d26.7402775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39e4410045eee279%3A0xffa1d24bc94b527e!2sFortune%20Select%20Siliguri%20-%20Member%20ITC%20Hotels%E2%80%99%20Group!5e0!3m2!1sen!2sin!4v1792922706677!5m2!1sen!2sin",
+      "name": "ITC Fortune Select Siliguri"
     },
     "frames": {
       "speakers": {
@@ -167,8 +155,8 @@
         "Hands on workshops",
         "Interaction with the community",
         "Network with like minded people",
-        "Participate in our givaways",
-        "Grow your knowledge on different technogies",
+        "Participate in our giveaways",
+        "Grow your knowledge on different technologies",
         "Learn to optimise your resources",
         "Interact with Industry Experts",
         "Get a chance to win exciting goodies"
@@ -179,14 +167,14 @@
       "data": [
         "Each ticket is valid for ONE admission only. If you are bringing a guest, they'll need their own ticket.",
         "Tickets are non-refundable.",
-        "You have to show your ticket to the voluneers and make sure your entry.",
+        "You have to show your ticket to the volunteers and make sure your entry.",
         "You can't copy ticket from others because each ticket have their specific QR code.",
         "Those who will get their tickets only they will attend.",
-        "It's important for us that everyone who attends DevFest 2025 Siliguri is treated equally, respected, and protected. By attending, you agree to abide by our terms."
+        "It's important for us that everyone who attends DevFest 2026 Siliguri is treated equally, respected, and protected. By attending, you agree to abide by our terms."
       ],
       "enabled": true
     },
-    "registrationExpiryDateTime": "2025-11-12 08:00:00.000",
+    "registrationExpiryDateTime": "2026-11-12 20:00:00.000",
     "socialMediaLinks": [
       {
         "image": "https://ik.imagekit.io/gdgsiliguri1/social%20media/x_light.svg?updatedAt=1730918497365",
@@ -214,6 +202,9 @@
         "url": "https://github.com/Google-Developer-Groups-Siliguri"
       }
     ]
+  },
+  "events": {
+    "enabled": false
   },
   "feedbacks": {
     "data": [
@@ -309,9 +300,9 @@
       },
       {
         "durationInMins": "30",
-        "endTime": "12:40 AM",
+        "endTime": "12:40 PM",
         "image": "",
-        "startTime": "12:10 AM",
+        "startTime": "12:10 PM",
         "subTitle": "",
         "timeZone": "IST",
         "title": "Panel Discussion"
@@ -357,12 +348,12 @@
         "endTime": "04:20 PM",
         "image": "https://ik.imagekit.io/gdgsiliguri1/speakers/2025/Nitin%20Prakash.jpeg?updatedAt=1761900042111",
         "startTime": "03:50 PM",
-        "subTitle": "Nitin Praksh",
+        "subTitle": "Nitin Prakash",
         "timeZone": "IST",
         "title": "AI in Android: From On-Device Intelligence to Cloud Solutions"
       },
       {
-        "durationInMins": "15",
+        "durationInMins": "30",
         "endTime": "05:00 PM",
         "image": "",
         "startTime": "04:30 PM",
@@ -380,19 +371,10 @@
         "title": "End Note"
       }
     ],
-    "enabled": true
+    "enabled": false
   },
   "speakers": {
     "data": [
-      {
-        "description": "Senior Software Engineer @Upswing Financial Technologies",
-        "designation": "App",
-        "githubURL": "https://github.com/NitinPraksash9911",
-        "linkedInURL": "https://www.linkedin.com/in/nitin-prakash9911/",
-        "name": "Nitin Prakash",
-        "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/speakers/2025/Nitin%20Prakash.jpeg?updatedAt=1761900042111",
-        "twitterURL": ""
-      },
       {
         "description": "Associate Data Scientist @Morgan Stanley Capital International ",
         "designation": "AI",
@@ -446,12 +428,21 @@
         "name": "Kazi Haque",
         "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/speakers/2025/Kazi%20Haque.jpeg?updatedAt=1761900073673",
         "twitterURL": ""
+      },
+      {
+        "description": "",
+        "designation": "App",
+        "githubURL": "",
+        "linkedInURL": "",
+        "name": "Nitin Prakash",
+        "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/speakers/2025/Nitin%20Prakash.jpeg?updatedAt=1761900042111",
+        "twitterURL": ""
       }
     ],
     "enabled": false
   },
   "sponsors": {
-    "enabled": true,
+    "enabled": false,
     "gold": [
       {
         "icon": "https://ik.imagekit.io/gdgsiliguri1/Sponsors/Rise%20In.png",
@@ -480,7 +471,7 @@
   "teams": {
     "data": [
       {
-        "description": "Senior SE L1 @P360",
+        "description": "Software Engineer @Ergeon",
         "designation": "Organizer",
         "githubURL": "https://github.com/debajit13/",
         "linkedInURL": "https://www.linkedin.com/in/debajit-mallick/",
@@ -498,15 +489,6 @@
         "twitterURL": "https://x.com/Srv0901?t=J55GhTy9g7zFF5r7UzvHqA&s=09"
       },
       {
-        "description": "System Engineer @TCS",
-        "designation": "Organizer",
-        "githubURL": "https://github.com/Srishtihere",
-        "linkedInURL": "https://www.linkedin.com/in/srishti-majumder?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
-        "name": "Srishti Majumder",
-        "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/teams/Srishti%20Majumder.webp",
-        "twitterURL": "https://x.com/MajumderSrishti?t=RjodYdzpA_RxURtT-CUFsA&s=09"
-      },
-      {
         "description": "Director & Founder @Blackspektro",
         "designation": "Organizer",
         "githubURL": "https://github.com/avirup171",
@@ -516,22 +498,13 @@
         "twitterURL": "https://twitter.com/avirup171"
       },
       {
-        "description": "Senior SE L1 @P360",
-        "designation": "Volunteer",
-        "githubURL": "https://github.com/Sankalan47",
-        "linkedInURL": "https://www.linkedin.com/in/sankalan-dasgupta",
-        "name": "Sankalan Dasgupta",
-        "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/teams/Sankalan%20Dasgupta.webp",
-        "twitterURL": "https://twitter.com/Sankalan47"
-      },
-      {
         "description": "SDE II @Blackspektro",
         "designation": "Volunteer",
         "githubURL": "https://github.com/debajyotisarkarhome",
         "linkedInURL": "https://www.linkedin.com/in/debajyoti-sarkar-oos",
         "name": "Debajyoti Sarkar",
         "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/teams/Debajyoti%20Sarkar.webp",
-        "twitterURL": "Twitter.com/debuisalive"
+        "twitterURL": ""
       },
       {
         "description": "Founder @Olivyn Labs",
@@ -564,10 +537,10 @@
         "description": "Designer",
         "designation": "Volunteer",
         "githubURL": "https://github.com/Hrishab69",
-        "linkedInURL": "https://www.linkedin.com/in/hrishab-biswas-799378254?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app ",
+        "linkedInURL": "https://www.linkedin.com/in/hrishab-biswas-799378254?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
         "name": "Hrishab Biswas",
         "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/teams/Hrisab%20Biswas.jpg?updatedAt=1732031471986",
-        "twitterURL": "https://x.com/Hrxhab23?t=v58otAkZDM_e1mLDsC7bkw&s=08 "
+        "twitterURL": "https://x.com/Hrxhab23?t=v58otAkZDM_e1mLDsC7bkw&s=08"
       },
       {
         "description": "Design Lead @Blackspektro",
@@ -611,7 +584,7 @@
         "githubURL": "https://github.com/Debosmita111",
         "linkedInURL": "https://www.linkedin.com/in/debosmita-ghosh-8a7b4a268/",
         "name": "Debosmita Ghosh",
-        "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/teams/Debosmita%20Ghosh.jpg?updatedAt=17631744463642",
+        "profilePictureURL": "https://ik.imagekit.io/gdgsiliguri1/teams/Debosmita%20Ghosh.jpg",
         "twitterURL": ""
       },
       {

@@ -75,7 +75,10 @@ the email you added.
 | `npm run test:integration` | Repository tests against the emulators, in their own namespace |
 | `npm run test:e2e` | Playwright against its own dev server on :3200 and emulator namespace `e2e` |
 | `npm run emulators` | Firebase emulators, saving data to `.emulator-data` |
-| `npm run seed:emulator` | Loads the production snapshot into the emulators and imports it |
+| `npm run seed:emulator` | Loads the production snapshot into the emulators and imports it. `-- --rtdb <file> --firestore <file>` reloads a backup instead |
+| `npm run backup` / `backup:prod` | Writes the RTDB root and every Firestore document to `backups/` |
+| `npm run fix:content` | Fixes the known content bugs listed in the migration plan (dry run; `--apply` publishes) |
+| `npm run cleanup:e2e` | Removes E2E test rows from every section and lists `e2e-test` images in ImageKit (dry run; `--apply` publishes) |
 | `npm run import:rtdb` | Copies each RTDB section into Firestore if missing (`--force` replaces) |
 | `npm run admins:add -- --email … --role owner\|editor` | Adds or updates an admin |
 | `npm run theme:generate` | Regenerates `src/app/theme.css` from the gdgsiliguri.com palette |
@@ -99,12 +102,41 @@ always works too.
 
 - **Undo a bad publish:** open the section → History → **Load into draft** on an earlier version →
   Publish.
-- **Restore the whole Realtime Database from a backup:** backups are written to
-  `backups/rtdb-<timestamp>.json` before the first production write. In the Firebase console,
-  open Realtime Database → ⋮ → Import JSON at the root, choose the file, then run
+- **Take a backup:** `npm run backup:prod` writes `backups/rtdb-<timestamp>.json` (the RTDB root)
+  and `backups/firestore-<timestamp>.json` (every Firestore document, keyed by path, with
+  `{"$timestamp": …}` and `{"$geopoint": […]}` markers). Run it before any production write.
+- **Check a backup:** load it into the emulators with
+  `npm run seed:emulator -- --rtdb backups/rtdb-….json --firestore backups/firestore-….json`.
+- **Restore the whole Realtime Database from a backup:** in the Firebase console, open Realtime
+  Database → ⋮ → Import JSON at the root, choose the file, then run
   `npm run import:rtdb -- --production --force` so Firestore matches.
 - **Locked out:** run `npm run admins:add -- --email you@gmail.com --role owner --production`
   with the production credentials in `.env.local` and `NEXT_PUBLIC_USE_EMULATORS=false`.
+
+## Pre-migration clean-up (Phase 0)
+
+Run once against production, in this order, before the Firestore v2 migration. Each script prints
+its plan first; read it, then repeat with `--apply`. Both skip a section that has unpublished
+draft edits, so publish or discard those first.
+
+```
+npm run backup:prod
+npm run fix:content -- --production          # AM/PM, durations, speaker name, swapped links, venue, typos
+npm run fix:content -- --production --apply
+npm run cleanup:e2e -- --production          # the six E2E rows, plus e2e-test images to delete by hand
+npm run cleanup:e2e -- --production --apply
+```
+
+`fix:content` runs first because the stricter maps-embed check would otherwise block publishing
+event details. Afterwards, refresh `seed/rtdb-export.json` from a production export (see
+`seed/README.md`).
+
+Owner checks before the migration:
+
+- Firestore `(default)` database location: _not recorded yet_ (Console → Firestore → Settings).
+  If it does not exist, create it in `asia-south1`; it can't be changed later.
+- The deployed RTDB rules match `database.rules.json`.
+- The Netlify build hook is set in the production environment.
 
 ## Project layout
 

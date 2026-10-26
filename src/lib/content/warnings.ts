@@ -3,6 +3,7 @@ import { isHttpsUrl } from "@/lib/url";
 
 import type { ContentIssue } from "./errors";
 import type { EventDetails, Partner, ScheduleItem, SectionValues, Speaker } from "./schemas";
+import { SPONSOR_TIERS } from "./schemas";
 import type { SectionKey } from "./sections";
 
 export type WarningContext = { speakers?: Speaker[] };
@@ -55,9 +56,10 @@ export function scheduleWarnings(items: ScheduleItem[], speakers: Speaker[] = []
       const close = speakerNames.find(
         (name) => levenshtein(name.toLowerCase(), subTitle.toLowerCase()) <= 2,
       );
-      if (close) {
-        warnings.push({ path: path("subTitle"), message: `Did you mean the speaker "${close}"?` });
-      }
+      warnings.push({
+        path: path("subTitle"),
+        message: close ? `Did you mean the speaker "${close}"?` : `"${subTitle}" matches no speaker.`,
+      });
     }
   });
   return warnings;
@@ -107,6 +109,55 @@ export function partnerWarnings(partners: Partner[]): ContentIssue[] {
   return warnings;
 }
 
+const TEST_TEXT = /\b(e2e|test)\b/i;
+
+function testTextPaths(value: unknown, path: (string | number)[]): (string | number)[][] {
+  if (typeof value === "string") return TEST_TEXT.test(value) ? [path] : [];
+  if (Array.isArray(value)) return value.flatMap((entry, index) => testTextPaths(entry, [...path, index]));
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([field, entry]) => testTextPaths(entry, [...path, field]));
+  }
+  return [];
+}
+
+function owningItem(path: (string | number)[]): (string | number)[] {
+  const index = path.findIndex((part) => typeof part === "number");
+  return index < 0 ? path : path.slice(0, index + 1);
+}
+
+export function testTextWarnings(value: unknown): ContentIssue[] {
+  const items = new Map<string, (string | number)[]>();
+  for (const path of testTextPaths(value, [])) {
+    const item = owningItem(path);
+    items.set(item.join("."), item);
+  }
+  return [...items.values()].map((path) => ({
+    path,
+    message: "Looks like test content. Remove it before publishing.",
+  }));
+}
+
+type LinkedItem = { path: (string | number)[]; name: string; url: string };
+
+export function duplicateLinkWarnings(items: LinkedItem[]): ContentIssue[] {
+  const byUrl = new Map<string, LinkedItem[]>();
+  for (const item of items) {
+    const url = item.url.trim().replace(/\/+$/, "").toLowerCase();
+    if (url) byUrl.set(url, [...(byUrl.get(url) ?? []), item]);
+  }
+  return [...byUrl.values()]
+    .filter((group) => new Set(group.map((item) => item.name)).size > 1)
+    .flatMap((group) =>
+      group.map((item) => ({
+        path: item.path,
+        message: `Same link as ${group
+          .filter((other) => other !== item)
+          .map((other) => `"${other.name}"`)
+          .join(", ")}.`,
+      })),
+    );
+}
+
 export function linkWarnings(value: unknown, path: (string | number)[] = []): ContentIssue[] {
   if (Array.isArray(value)) return value.flatMap((entry, index) => linkWarnings(entry, [...path, index]));
   if (value && typeof value === "object") {
@@ -141,7 +192,7 @@ export function sectionWarnings<K extends SectionKey>(
   value: SectionValues[K],
   context: WarningContext = {},
 ): ContentIssue[] {
-  const warnings = linkWarnings(value);
+  const warnings = [...linkWarnings(value), ...testTextWarnings(value)];
   if (key === "schedule") {
     warnings.push(...scheduleWarnings((value as SectionValues["schedule"]).data, context.speakers));
   }
@@ -149,7 +200,31 @@ export function sectionWarnings<K extends SectionKey>(
     warnings.push(...eventDetailsWarnings(value as SectionValues["eventDetails"]));
   }
   if (key === "communityPartners") {
-    warnings.push(...partnerWarnings((value as SectionValues["communityPartners"]).data));
+    const partners = (value as SectionValues["communityPartners"]).data;
+    warnings.push(...partnerWarnings(partners));
+    warnings.push(
+      ...duplicateLinkWarnings(
+        partners.map((partner, index) => ({
+          path: ["data", index, "socialMediaLink"],
+          name: partner.communityName,
+          url: partner.socialMediaLink,
+        })),
+      ),
+    );
+  }
+  if (key === "sponsors") {
+    const sponsors = value as SectionValues["sponsors"];
+    warnings.push(
+      ...duplicateLinkWarnings(
+        SPONSOR_TIERS.flatMap((tier) =>
+          sponsors[tier].map((sponsor, index) => ({
+            path: [tier, index, "socialMediaLink"],
+            name: sponsor.sponsorName,
+            url: sponsor.socialMediaLink,
+          })),
+        ),
+      ),
+    );
   }
   return warnings;
 }

@@ -31,7 +31,7 @@ export async function loadAdmins() {
   return listAdmins();
 }
 
-const SCRIPT_ACTORS = ["admins:add script", "import:rtdb script"];
+const SCRIPT_ACTORS = ["admins:add script", "import:rtdb script", "fix-content script", "cleanup-e2e script"];
 
 export async function loadActors() {
   await requireAdminPage();

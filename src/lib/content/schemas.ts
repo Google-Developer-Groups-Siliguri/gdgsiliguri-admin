@@ -11,6 +11,12 @@ export const SPONSOR_TIERS = ["platinum", "gold", "silver"] as const;
 export type SponsorTier = (typeof SPONSOR_TIERS)[number];
 
 const URL_MESSAGE = "Must be a full https:// link";
+const UNSAFE_URL_MESSAGE = "Links can't contain quotes or spaces";
+export const MAPS_EMBED_PATTERN = /^https:\/\/www\.google\.com\/maps\/embed\?pb=[^"\s]+$/;
+
+function isSafeUrl(value: string): boolean {
+  return !/["\s]/.test(value);
+}
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 function fields(mode: SchemaMode) {
@@ -19,13 +25,28 @@ function fields(mode: SchemaMode) {
   const requiredText = (label = "This") =>
     strict ? z.string().refine((value) => value.trim() !== "", `${label} is required`) : z.string();
   const optionalUrl = () =>
-    strict ? z.string().refine((value) => value === "" || isHttpsUrl(value), URL_MESSAGE) : z.string();
+    strict
+      ? z
+          .string()
+          .refine(isSafeUrl, UNSAFE_URL_MESSAGE)
+          .refine((value) => value === "" || isHttpsUrl(value), URL_MESSAGE)
+      : z.string();
   const requiredUrl = (label = "This link") =>
     strict
       ? z
           .string()
           .refine((value) => value !== "", `${label} is required`)
+          .refine(isSafeUrl, UNSAFE_URL_MESSAGE)
           .refine((value) => value === "" || isHttpsUrl(value), URL_MESSAGE)
+      : z.string();
+  const mapsEmbedUrl = () =>
+    strict
+      ? z
+          .string()
+          .refine(
+            (value) => value === "" || MAPS_EMBED_PATTERN.test(value),
+            "Paste only the https://www.google.com/maps/embed?pb=… link, not the whole iframe",
+          )
       : z.string();
   const choice = <const T extends readonly [string, ...string[]]>(options: T, label: string) =>
     strict
@@ -44,7 +65,18 @@ function fields(mode: SchemaMode) {
       ? z.string().refine((value) => value === "" || isValidDate(value), "Use a date as YYYY-MM-DD")
       : z.string();
   const minutes = () => (strict ? z.string().regex(/^\d+$/, "Must be a whole number") : z.string());
-  return { text, requiredText, optionalUrl, requiredUrl, choice, time12, dateTime, optionalDate, minutes };
+  return {
+    text,
+    requiredText,
+    optionalUrl,
+    requiredUrl,
+    mapsEmbedUrl,
+    choice,
+    time12,
+    dateTime,
+    optionalDate,
+    minutes,
+  };
 }
 
 function enabledList<T extends z.ZodType>(item: T) {
@@ -151,7 +183,7 @@ export function buildSchemas(mode: SchemaMode) {
       name: f.text(),
       imageURL: f.optionalUrl(),
       mapsURL: f.optionalUrl(),
-      mapsURLweb: f.optionalUrl(),
+      mapsURLweb: f.mapsEmbedUrl(),
     }),
     frames: z.looseObject({
       speakers: z.looseObject({

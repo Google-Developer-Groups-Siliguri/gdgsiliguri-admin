@@ -17,9 +17,9 @@ const TONES = [
   "bg-secondary-container text-on-secondary-container",
 ];
 
-type SectionCardProps = { sectionKey: SectionKey; state?: SectionState; index?: number };
+type SectionCardProps = { sectionKey: SectionKey; state?: SectionState; index?: number; warningCount?: number };
 
-export function SectionCard({ sectionKey, state, index = 0 }: SectionCardProps) {
+export function SectionCard({ sectionKey, state, index = 0, warningCount = 0 }: SectionCardProps) {
   const definition = SECTIONS[sectionKey];
   if (!state) {
     return (
@@ -69,6 +69,12 @@ export function SectionCard({ sectionKey, state, index = 0 }: SectionCardProps) 
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <StatusChip status={sectionStatus(enabled, state.hasDraftChanges)} />
+        {warningCount > 0 && (
+          <span className="inline-flex items-center gap-1 text-label-medium font-semibold text-tertiary">
+            <Icon name="warning" size={16} filled />
+            {warningCount} to check
+          </span>
+        )}
         <span
           className="min-w-0 truncate text-body-small text-on-surface-variant"
           title={formatDateTime(state.publishedAt)}
