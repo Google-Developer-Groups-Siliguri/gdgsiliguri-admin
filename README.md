@@ -77,7 +77,7 @@ the email you added.
 | `npm run emulators` | Firebase emulators, saving data to `.emulator-data` |
 | `npm run seed:emulator` | Loads the production snapshot into the emulators and imports it. `-- --migrate` also builds Firestore v2 from it; `-- --v2` loads `schema/examples` instead; `-- --rtdb <file> --firestore <file>` reloads a backup |
 | `npm run backup` / `backup:prod` | Writes the RTDB root and every Firestore document to `backups/` |
-| `npm run migrate:v2` | Builds Firestore v2 from RTDB and prints a report (dry run; `--apply` writes, `--report-file` saves Markdown, `--ios-url` sets the App Store link) |
+| `npm run migrate:v2` | Builds Firestore v2 from RTDB and prints a report (dry run; `--apply` writes, `--report-file` saves Markdown, `--ios-url` sets the App Store link if there is one) |
 | `npm run verify:parity` | Compares RTDB with what Firestore v2 would generate; fails on anything not in `scripts/parity-allowlist.json`. Read-only |
 | `npm run sync:legacy` | Regenerates every legacy RTDB node from Firestore (`--pending` only retries failed ones) |
 | `npm run move:cms` | Copies `admins`, `settings/site` and `auditLog` under `cms/root` (dry run; `--apply` copies) |
@@ -167,9 +167,9 @@ production snapshot.
 
 ```
 npm run backup:prod
-npm run migrate:v2 -- --production --ios-url <App Store link> --report-file migration-report.md   # dry run
+npm run migrate:v2 -- --production --report-file migration-report.md   # dry run
 #   read the report with the organisers: unmatched speakers, AM/PM anomalies, carried-over sections
-npm run migrate:v2 -- --production --ios-url <App Store link> --apply
+npm run migrate:v2 -- --production --apply
 npm run verify:parity -- --production       # only the allow-listed differences below
 npm run move:cms -- --production --apply
 firebase deploy --only firestore:rules,firestore:indexes -P prod

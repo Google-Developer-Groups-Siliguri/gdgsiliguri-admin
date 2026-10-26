@@ -34,8 +34,7 @@
         }
       },
       "required": [
-        "android",
-        "ios"
+        "android"
       ],
       "additionalProperties": false
     },
