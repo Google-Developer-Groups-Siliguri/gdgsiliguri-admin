@@ -103,6 +103,7 @@ test("community faq: a new question needs both fields and publishes", async ({ p
   await dialog.getByLabel("Answer").fill("Yes, free parking is available.");
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
   await publish(page, "Community FAQ");
+  await expect(page.getByRole("region", { name: "Unpublished changes" })).toBeHidden();
   const live = (await readRtdb("home/gdgFAQs/data")) as Json[];
   expect(live.at(-1)).toEqual({ question: "Is there parking at the venue?", answer: "Yes, free parking is available." });
   const home = (await readFirestoreDoc("bundles/home")) as { faqs: Json[] };
