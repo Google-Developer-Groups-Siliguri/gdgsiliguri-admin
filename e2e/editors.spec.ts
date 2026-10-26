@@ -108,6 +108,12 @@ test("community faq: a new question needs both fields and publishes", async ({ p
   expect(live.at(-1)).toEqual({ question: "Is there parking at the venue?", answer: "Yes, free parking is available." });
   const home = (await readFirestoreDoc("bundles/home")) as { faqs: Json[] };
   expect(home.faqs.at(-1)).toMatchObject({ question: "Is there parking at the venue?" });
+
+  await page.getByRole("button", { name: "More actions for Is there parking at the venue?" }).click();
+  await page.getByRole("menuitem", { name: "Delete" }).click();
+  await expect(page.getByRole("alertdialog")).toContainText("Delete Is there parking at the venue?");
+  await expect(page.getByRole("alertdialog")).not.toContainText("??");
+  await page.getByRole("alertdialog").getByRole("button", { name: "Cancel" }).click();
 });
 
 test("sponsors: move a 2025 sponsor to another tier, then hide them", async ({ page }) => {
@@ -277,4 +283,23 @@ test("a shown section cannot be emptied until it is turned off", async ({ page }
   await toggle(page, "2026 · DevFest FAQ", false);
   await publish(page, "2026 · DevFest FAQ");
   expect(await readRtdb("FAQs")).toEqual({ enabled: false });
+});
+
+test("event details: loading an older version shows it in the form", async ({ page }) => {
+  await openEditor(page, "/devfest/2026/event");
+  const theme = page.getByRole("main").getByLabel("Theme");
+  const before = await theme.inputValue();
+  await theme.fill("Restore check");
+  await publish(page, "2026 · Event");
+  await page.reload();
+  await expect(theme).toHaveValue("Restore check");
+
+  await page.getByRole("button", { name: "History" }).click();
+  await page.getByRole("listitem").filter({ hasText: "Version 1" }).getByRole("button", { name: "Load into draft" }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Load" }).click();
+  await expect(page.getByText("Version 1 loaded into the draft.", { exact: false }).first()).toBeVisible();
+
+  await expect(theme).toHaveValue(before);
+  await publish(page, "2026 · Event");
+  expect(((await readFirestoreDoc("editions/2026")) as Json).theme ?? "").toBe(before);
 });
