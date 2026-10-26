@@ -21,6 +21,15 @@ export const LEGACY_NODES = [
 ] as const;
 export type LegacyNode = (typeof LEGACY_NODES)[number];
 
+export const ALL_LEGACY_EDITION_NODES: LegacyNode[] = [
+  "eventDetails",
+  "schedule",
+  "speakers",
+  "sponsors",
+  "communityPartners",
+  "FAQs",
+];
+
 export type BundleId = "home" | "editions" | `edition-${number}`;
 export type SectionKind = "singleton" | "list";
 export type SectionGroup = "Site" | "DevFest" | "Community" | "Modules";
@@ -220,7 +229,7 @@ export function editionSections(year: number, { activeEdition }: { activeEdition
     scope: { type: "edition", year },
     schema: schemas("edition"),
     target: { type: "doc", path: `editions/${year}` },
-    legacyNodes: active ? ["eventDetails", "schedule", "speakers", "home/pastDevfests"] : ["home/pastDevfests"],
+    legacyNodes: active ? [...ALL_LEGACY_EDITION_NODES, "home/pastDevfests"] : ["home/pastDevfests"],
     bundles: ["home", editionBundle, "editions"],
   };
   const lists = EDITION_LISTS.map((spec): SectionDef => ({
@@ -401,12 +410,3 @@ export function visibilitySectionId(def: SectionDef): string | null {
   if (def.visibilityKey.doc === "site") return "site-config";
   return def.scope.type === "edition" ? `edition-${def.scope.year}` : null;
 }
-
-export const ALL_LEGACY_EDITION_NODES: LegacyNode[] = [
-  "eventDetails",
-  "schedule",
-  "speakers",
-  "sponsors",
-  "communityPartners",
-  "FAQs",
-];

@@ -1,4 +1,4 @@
-import { lenientSchemas, strictSchemas, type SectionValues } from "./schemas";
+import { lenientSchemas, strictSchemas, type SectionValues } from "@/lib/legacy/schemas";
 
 export const SECTION_KEYS = [
   "eventDetails",

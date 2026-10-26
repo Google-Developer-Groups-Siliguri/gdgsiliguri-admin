@@ -93,7 +93,15 @@ describe("registry", () => {
     expect(nodes).toMatchObject({
       "site-config": ["eventDetails", "home/gdgFAQs", "teams", "feedbacks", "events", "home/pastDevfests"],
       "site-app": [],
-      "edition-2026": ["eventDetails", "schedule", "speakers", "home/pastDevfests"],
+      "edition-2026": [
+        "eventDetails",
+        "schedule",
+        "speakers",
+        "sponsors",
+        "communityPartners",
+        "FAQs",
+        "home/pastDevfests",
+      ],
       "edition-2026-sessions": ["schedule"],
       "edition-2026-speakers": ["speakers", "schedule"],
       "edition-2026-sponsors": ["sponsors"],

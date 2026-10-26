@@ -55,15 +55,10 @@ function fields(mode: SchemaMode) {
         })
       : z.string();
   const time12 = () =>
-    strict
-      ? z.string().regex(TIME_12H_PATTERN, "Use hh:mm AM or hh:mm PM, for example 08:00 AM")
-      : z.string();
-  const dateTime = () =>
-    strict ? z.string().regex(DATETIME_PATTERN, "Use YYYY-MM-DD HH:mm:ss.SSS") : z.string();
+    strict ? z.string().regex(TIME_12H_PATTERN, "Use hh:mm AM or hh:mm PM, for example 08:00 AM") : z.string();
+  const dateTime = () => (strict ? z.string().regex(DATETIME_PATTERN, "Use YYYY-MM-DD HH:mm:ss.SSS") : z.string());
   const optionalDate = () =>
-    strict
-      ? z.string().refine((value) => value === "" || isValidDate(value), "Use a date as YYYY-MM-DD")
-      : z.string();
+    strict ? z.string().refine((value) => value === "" || isValidDate(value), "Use a date as YYYY-MM-DD") : z.string();
   const minutes = () => (strict ? z.string().regex(/^\d+$/, "Must be a whole number") : z.string());
   return {
     text,
@@ -137,10 +132,7 @@ export function buildSchemas(mode: SchemaMode) {
     description: f.text(),
   });
   const communityEvent = z.looseObject({
-    id:
-      mode === "strict"
-        ? z.string().regex(SLUG_PATTERN, "Use lowercase letters, numbers and hyphens")
-        : z.string(),
+    id: mode === "strict" ? z.string().regex(SLUG_PATTERN, "Use lowercase letters, numbers and hyphens") : z.string(),
     name: f.requiredText("Name"),
     tagline: f.text(),
     description: f.text(),
@@ -170,7 +162,7 @@ export function buildSchemas(mode: SchemaMode) {
     communityJoinLink: f.optionalUrl(),
     eventDateTime: f.dateTime(),
     registrationExpiryDateTime: f.dateTime(),
-    eventMode: z.boolean(),
+    eventMode: z.boolean().optional(),
     eventTicketURL: f.optionalUrl(),
     bannerImages: z.looseObject({
       large: f.optionalUrl(),
@@ -216,7 +208,18 @@ export function buildSchemas(mode: SchemaMode) {
   };
 
   return {
-    items: { teamMember, speaker, scheduleItem, sponsor, partner, faq, feedback, communityEvent, eventSpeaker, socialLink },
+    items: {
+      teamMember,
+      speaker,
+      scheduleItem,
+      sponsor,
+      partner,
+      faq,
+      feedback,
+      communityEvent,
+      eventSpeaker,
+      socialLink,
+    },
     sections: {
       eventDetails,
       schedule: enabledList(scheduleItem),

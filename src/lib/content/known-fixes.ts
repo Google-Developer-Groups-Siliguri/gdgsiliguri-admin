@@ -1,7 +1,7 @@
 import { durationInMins } from "@/lib/datetime";
 
 import type { Change, PatchResult } from "./cleanup";
-import type { SectionValues } from "./schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
 
 const NITIN = "Nitin Prakash";
 const EMBED_URL = /^https:\/\/www\.google\.com\/maps\/embed\?pb=[^"\s]+/;

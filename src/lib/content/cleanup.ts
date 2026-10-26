@@ -1,5 +1,5 @@
-import type { SectionValues } from "./schemas";
-import { SPONSOR_TIERS } from "./schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
+import { SPONSOR_TIERS } from "@/lib/legacy/schemas";
 import { SECTIONS, type SectionKey } from "./sections";
 
 export const E2E_PATTERN = /\bE2E\b|e2e-test/i;

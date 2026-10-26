@@ -134,7 +134,7 @@ export function buildEdition(mode: Mode) {
   const speaker = f.object({
     id: f.slug("Speaker id"),
     name: f.requiredText("Name", 100),
-    headline: f.requiredText("Headline", 200),
+    headline: f.optionalText("Headline", 200),
     company: f.optionalText("Company", 100),
     bio: f.markdown("Bio").optional(),
     photo: f.required(f.media("Photo", { altRequired: true })),

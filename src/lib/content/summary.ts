@@ -1,5 +1,5 @@
-import type { SectionValues } from "./schemas";
-import { SPONSOR_TIERS } from "./schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
+import { SPONSOR_TIERS } from "@/lib/legacy/schemas";
 import type { SectionKey } from "./sections";
 
 export type ItemBadge = { label: string; color: string };

@@ -159,7 +159,6 @@ describe("lenient drafts", () => {
     expect(lenient.speaker.parse({})).toMatchObject({
       id: "",
       name: "",
-      headline: "",
       photo: { url: "", alt: "" },
       order: 0,
     });

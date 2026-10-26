@@ -12,7 +12,7 @@ import { SortableList } from "@/components/editor/SortableList";
 import { Button } from "@/components/m3/Button";
 import { IconButton } from "@/components/m3/IconButton";
 import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type CommunityEvent } from "@/lib/content/schemas";
+import { strictSchemas, type CommunityEvent } from "@/lib/legacy/schemas";
 
 const OtherIdsContext = createContext<(event: CommunityEvent) => string[]>(() => []);
 

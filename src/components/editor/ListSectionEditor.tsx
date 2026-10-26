@@ -3,7 +3,7 @@
 import { useCallback, useState, type ComponentType, type ReactNode } from "react";
 
 import type { SectionState } from "@/lib/content/repository";
-import type { SectionValues } from "@/lib/content/schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
 import type { SectionKey } from "@/lib/content/sections";
 import type { ItemSummary } from "@/lib/content/summary";
 import type { WarningContext } from "@/lib/content/warnings";

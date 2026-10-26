@@ -11,7 +11,7 @@ import { SectionEditorLayout } from "@/components/editor/SectionEditorLayout";
 import { useSectionEditor } from "@/components/editor/useSectionEditor";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/m3/Tabs";
 import type { SectionState } from "@/lib/content/repository";
-import { SPONSOR_TIERS, strictSchemas, type Sponsor, type SponsorTier } from "@/lib/content/schemas";
+import { SPONSOR_TIERS, strictSchemas, type Sponsor, type SponsorTier } from "@/lib/legacy/schemas";
 
 const TIER_LABELS: Record<SponsorTier, string> = { platinum: "Platinum", gold: "Gold", silver: "Silver" };
 const FIELD_LABELS: Record<string, string> = { sponsorName: "Name", icon: "Logo", socialMediaLink: "Link" };

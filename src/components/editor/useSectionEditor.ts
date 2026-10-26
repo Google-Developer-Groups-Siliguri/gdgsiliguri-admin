@@ -12,7 +12,7 @@ import {
 import { ContentError, type ContentIssue } from "@/lib/content/errors";
 import type { SectionState } from "@/lib/content/repository";
 import { toRtdbValue } from "@/lib/content/rtdb-value";
-import type { SectionValues } from "@/lib/content/schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
 import { isEnabled, SECTIONS, validateForPublish, type SectionKey } from "@/lib/content/sections";
 import { sectionWarnings, type WarningContext } from "@/lib/content/warnings";
 import { deepEqual } from "@/lib/deep-equal";

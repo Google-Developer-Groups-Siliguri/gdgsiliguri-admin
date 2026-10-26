@@ -10,7 +10,7 @@ import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import { Icon } from "@/components/m3/Icon";
 import { Select } from "@/components/m3/Select";
 import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type ScheduleItem, type Speaker } from "@/lib/content/schemas";
+import { strictSchemas, type ScheduleItem, type Speaker } from "@/lib/legacy/schemas";
 import { durationInMins, time12ToMinutes } from "@/lib/datetime";
 
 const SpeakersContext = createContext<Speaker[]>([]);

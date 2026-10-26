@@ -23,6 +23,12 @@ describe("toFirestore / fromFirestore", () => {
     expect((stored.venue as { geo: GeoPoint }).geo).toBeInstanceOf(GeoPoint);
   });
 
+  it("keeps an empty alt, which marks a decorative image", () => {
+    expect(toFirestore({ banner: { url: "https://a.dev/b.png", alt: "" } })).toEqual({
+      banner: { url: "https://a.dev/b.png", alt: "" },
+    });
+  });
+
   it("omits undefined, empty strings and empty objects, but keeps empty arrays", () => {
     expect(
       toFirestore({ a: undefined, b: "", c: {}, d: { e: "" }, speakerIds: [], f: 0, g: false, h: ["", "x"] }),
@@ -58,8 +64,8 @@ function stripEmpty(value: unknown): unknown {
     const entries = Object.entries(value)
       .map(([key, entry]) => [key, stripEmpty(entry)] as const)
       .filter(
-        ([, entry]) =>
-          entry !== "" &&
+        ([key, entry]) =>
+          (entry !== "" || key === "alt") &&
           !(entry && typeof entry === "object" && !Array.isArray(entry) && Object.keys(entry).length === 0),
       );
     return Object.fromEntries(entries);

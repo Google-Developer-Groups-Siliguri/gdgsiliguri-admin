@@ -7,7 +7,7 @@ import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type Faq } from "@/lib/content/schemas";
+import { strictSchemas, type Faq } from "@/lib/legacy/schemas";
 
 function FaqForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Faq>) {
   const form = useItemForm<Faq>(strictSchemas.items.faq as unknown as z.ZodType<Faq, Faq>, item, isNew);

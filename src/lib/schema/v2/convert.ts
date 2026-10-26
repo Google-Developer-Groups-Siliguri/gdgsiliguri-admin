@@ -1,6 +1,7 @@
 import { GeoPoint, Timestamp } from "firebase-admin/firestore";
 
 const INSTANT_KEY = /At$/;
+const KEEP_EMPTY = new Set(["alt"]);
 const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -32,7 +33,10 @@ function convert(key: string | null, value: unknown): unknown {
   const entries = Object.entries(value)
     .map(([field, entry]) => [field, convert(field, entry)] as const)
     .filter(
-      ([, entry]) => entry !== undefined && entry !== "" && !(isPlainObject(entry) && Object.keys(entry).length === 0),
+      ([field, entry]) =>
+        entry !== undefined &&
+        (entry !== "" || KEEP_EMPTY.has(field)) &&
+        !(isPlainObject(entry) && Object.keys(entry).length === 0),
     );
   return Object.fromEntries(entries);
 }

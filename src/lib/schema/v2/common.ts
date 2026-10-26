@@ -202,7 +202,7 @@ export function uniqueIds(items: Identified[], context: z.RefinementCtx, path: P
 }
 
 export function listOf<T extends z.ZodType<Identified>>(item: T, mode: Mode) {
+  if (mode === "lenient") return z.looseObject({ items: z.array(item).default([]) });
   const items = z.array(item).max(MAX_LIST_ITEMS, `A list can have at most ${MAX_LIST_ITEMS} items`);
-  if (mode === "lenient") return z.looseObject({ items: items.default([]) });
   return z.strictObject({ items }).superRefine((value, context) => uniqueIds(value.items as Identified[], context));
 }

@@ -12,7 +12,7 @@ import {
 } from "@/components/editor/fields";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
-import { SPEAKER_TRACKS, strictSchemas, TEAM_DESIGNATIONS, type Speaker, type TeamMember } from "@/lib/content/schemas";
+import { SPEAKER_TRACKS, strictSchemas, TEAM_DESIGNATIONS, type Speaker, type TeamMember } from "@/lib/legacy/schemas";
 
 type Member = TeamMember | Speaker;
 

@@ -12,7 +12,6 @@
     },
     "headline": {
       "type": "string",
-      "minLength": 1,
       "maxLength": 200
     },
     "company": {
@@ -98,7 +97,6 @@
   },
   "required": [
     "name",
-    "headline",
     "photo",
     "order"
   ],

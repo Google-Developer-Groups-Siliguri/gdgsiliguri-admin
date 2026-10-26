@@ -5,7 +5,7 @@ import { createContext, use } from "react";
 import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import type { SectionState } from "@/lib/content/repository";
-import type { EventDetails, Speaker } from "@/lib/content/schemas";
+import type { EventDetails, Speaker } from "@/lib/legacy/schemas";
 import { isHttpsUrl } from "@/lib/url";
 
 import { MEMBER_FIELD_LABELS, MemberForm } from "./MemberForm";

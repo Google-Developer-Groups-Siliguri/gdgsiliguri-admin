@@ -7,7 +7,7 @@ import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type Feedback } from "@/lib/content/schemas";
+import { strictSchemas, type Feedback } from "@/lib/legacy/schemas";
 
 function ReviewForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Feedback>) {
   const form = useItemForm<Feedback>(strictSchemas.items.feedback as unknown as z.ZodType<Feedback, Feedback>, item, isNew);

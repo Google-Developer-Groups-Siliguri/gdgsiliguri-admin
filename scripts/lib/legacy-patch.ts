@@ -1,6 +1,6 @@
 import type { PatchResult } from "../../src/lib/content/cleanup";
 import { getAllSections, publish, saveDraft, type Actor } from "../../src/lib/content/repository";
-import type { SectionValues } from "../../src/lib/content/schemas";
+import type { SectionValues } from "../../src/lib/legacy/schemas";
 import { SECTIONS, type SectionKey } from "../../src/lib/content/sections";
 import { deepEqual } from "../../src/lib/deep-equal";
 

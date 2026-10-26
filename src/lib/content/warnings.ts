@@ -2,8 +2,8 @@ import { durationInMins, time12ToMinutes } from "@/lib/datetime";
 import { isHttpsUrl } from "@/lib/url";
 
 import type { ContentIssue } from "./errors";
-import type { EventDetails, Partner, ScheduleItem, SectionValues, Speaker } from "./schemas";
-import { SPONSOR_TIERS } from "./schemas";
+import type { EventDetails, Partner, ScheduleItem, SectionValues, Speaker } from "@/lib/legacy/schemas";
+import { SPONSOR_TIERS } from "@/lib/legacy/schemas";
 import type { SectionKey } from "./sections";
 
 export type WarningContext = { speakers?: Speaker[] };

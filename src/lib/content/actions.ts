@@ -16,7 +16,7 @@ import {
   type RevisionSummary,
   type SectionState,
 } from "./repository";
-import type { SectionValues } from "./schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
 import { isSectionKey, type SectionKey } from "./sections";
 
 export type ActionFailure = {

@@ -633,7 +633,6 @@
           },
           "headline": {
             "type": "string",
-            "minLength": 1,
             "maxLength": 200
           },
           "company": {
@@ -721,7 +720,6 @@
         "required": [
           "id",
           "name",
-          "headline",
           "photo",
           "order",
           "sessionIds"

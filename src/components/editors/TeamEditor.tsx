@@ -3,7 +3,7 @@
 import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import type { SectionState } from "@/lib/content/repository";
-import type { TeamMember } from "@/lib/content/schemas";
+import type { TeamMember } from "@/lib/legacy/schemas";
 
 import { MEMBER_FIELD_LABELS, MemberForm } from "./MemberForm";
 

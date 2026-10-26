@@ -7,7 +7,7 @@ import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type Partner } from "@/lib/content/schemas";
+import { strictSchemas, type Partner } from "@/lib/legacy/schemas";
 
 function PartnerForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Partner>) {
   const form = useItemForm<Partner>(strictSchemas.items.partner as unknown as z.ZodType<Partner, Partner>, item, isNew);

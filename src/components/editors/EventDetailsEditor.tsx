@@ -19,7 +19,7 @@ import { Icon } from "@/components/m3/Icon";
 import { Switch } from "@/components/m3/Switch";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/m3/Tabs";
 import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type EventDetails, type SocialLink } from "@/lib/content/schemas";
+import { strictSchemas, type EventDetails, type SocialLink } from "@/lib/legacy/schemas";
 import { dateTimeToEpoch } from "@/lib/datetime";
 import { deepEqual } from "@/lib/deep-equal";
 import { formatEventMoment, leadTime } from "@/lib/time";

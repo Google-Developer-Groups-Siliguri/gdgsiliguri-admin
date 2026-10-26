@@ -7,7 +7,7 @@ import { applyKnownFixes } from "./known-fixes";
 import { normalizeForSave } from "./normalize";
 import { valueAtPath } from "./paths";
 import { toRtdbValue } from "./rtdb-value";
-import type { SectionValues } from "./schemas";
+import type { SectionValues } from "@/lib/legacy/schemas";
 import { parseSection, SECTION_KEYS, SECTIONS, validateForPublish, type SectionKey } from "./sections";
 
 const readSeed = (file: string) =>

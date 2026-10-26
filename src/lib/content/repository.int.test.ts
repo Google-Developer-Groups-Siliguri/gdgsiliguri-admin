@@ -14,7 +14,7 @@ import {
   saveDraft,
   toggleEnabled,
 } from "./repository";
-import type { CommunityEvent } from "./schemas";
+import type { CommunityEvent } from "@/lib/legacy/schemas";
 
 const owner = { email: "owner@example.com" };
 const editor = { email: "editor@example.com" };
