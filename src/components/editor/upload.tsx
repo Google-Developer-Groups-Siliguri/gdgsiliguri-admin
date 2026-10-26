@@ -9,6 +9,8 @@ import { ALLOWED_IMAGE_TYPES, MAX_UPLOAD_BYTES, type UploadKind } from "@/lib/up
 
 type UploadTarget = { kind: UploadKind; year?: number };
 
+export type UploadedImage = { url: string; width?: number; height?: number };
+
 const UploadContext = createContext<UploadTarget | null>(null);
 
 export function UploadProvider({ kind, year, children }: UploadTarget & { children: ReactNode }) {
@@ -32,7 +34,7 @@ export function useImageUpload() {
   const showSnackbar = useSnackbar();
   const [uploading, setUploading] = useState(false);
 
-  async function upload(file: File): Promise<string | null> {
+  async function upload(file: File): Promise<UploadedImage | null> {
     if (!target) return null;
     const problem = localProblem(file);
     if (problem) {
@@ -45,20 +47,20 @@ export function useImageUpload() {
     body.set("kind", target.kind);
     if (target.year) body.set("year", String(target.year));
     const response = await fetch("/api/upload", { method: "POST", body }).catch(() => null);
-    const result = (await response?.json().catch(() => null)) as { url?: string; error?: string } | null;
+    const result = (await response?.json().catch(() => null)) as (Partial<UploadedImage> & { error?: string }) | null;
     setUploading(false);
     if (!response?.ok || !result?.url) {
       showSnackbar({ message: result?.error ?? "The upload failed. Try again.", tone: "error" });
       return null;
     }
     showSnackbar({ message: "Image uploaded." });
-    return result.url;
+    return { url: result.url, width: result.width, height: result.height };
   }
 
   return { available: target !== null, uploading, upload };
 }
 
-export function UploadButton({ label, onUploaded }: { label: string; onUploaded: (url: string) => void }) {
+export function UploadButton({ label, onUploaded }: { label: string; onUploaded: (image: UploadedImage) => void }) {
   const { available, uploading, upload } = useImageUpload();
   const input = useRef<HTMLInputElement>(null);
   if (!available) return null;
@@ -75,7 +77,7 @@ export function UploadButton({ label, onUploaded }: { label: string; onUploaded:
         onChange={(event) => {
           const file = event.target.files?.[0];
           event.target.value = "";
-          if (file) void upload(file).then((url) => url && onUploaded(url));
+          if (file) void upload(file).then((image) => image && onUploaded(image));
         }}
       />
       <div>

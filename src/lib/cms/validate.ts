@@ -111,7 +111,19 @@ async function siteIssues(read: FirestoreReader, site: SiteConfig): Promise<Cont
   return issues;
 }
 
+async function emptyWhileShown(def: SectionDef, value: Doc, read: FirestoreReader): Promise<ContentIssue[]> {
+  const items = value.items;
+  if (!def.visibilityKey || !Array.isArray(items) || items.length > 0) return [];
+  const parsed = parseSectionId(def.id);
+  const ownerPath = parsed.type === "edition" ? `editions/${parsed.year}` : "site/config";
+  const owner = (await read.doc(ownerPath)) as { sections?: Record<string, boolean> } | null;
+  if (!owner?.sections?.[def.visibilityKey.key]) return [];
+  return [{ path: ["items"], message: `${def.label} is shown on the website. Turn it off before removing the last item.` }];
+}
+
 export async function crossSectionIssues(def: SectionDef, value: Doc, read: FirestoreReader): Promise<ContentIssue[]> {
+  const empty = await emptyWhileShown(def, value, read);
+  if (empty.length) return empty;
   const parsed = parseSectionId(def.id);
   if (parsed.type === "site-config") return siteIssues(read, value as SiteConfig);
   if (parsed.type !== "edition") return [];

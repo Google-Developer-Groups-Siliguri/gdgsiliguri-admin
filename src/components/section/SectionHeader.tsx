@@ -8,7 +8,7 @@ import { Button } from "@/components/m3/Button";
 import { ConfirmDialog } from "@/components/m3/Dialog";
 import { IconButton } from "@/components/m3/IconButton";
 import { LoadingIndicator } from "@/components/m3/LoadingIndicator";
-import { SECTIONS, type SectionKey } from "@/lib/content/sections";
+import type { Visibility } from "@/lib/cms/queries";
 import { formatDateTime } from "@/lib/time";
 
 import { RevisionsSheet } from "./RevisionsSheet";
@@ -16,9 +16,11 @@ import { SectionToggle } from "./SectionToggle";
 import { sectionStatus, StatusChip } from "./StatusChip";
 
 export type SectionHeaderProps = {
-  sectionKey: SectionKey;
+  sectionId: string;
+  label: string;
+  group: string;
   version: number;
-  publishedEnabled: boolean | null;
+  visibility: Visibility;
   hasDraftChanges: boolean;
   dirty: boolean;
   publishedAt: string | null;
@@ -33,9 +35,11 @@ export type SectionHeaderProps = {
 };
 
 export function SectionHeader({
-  sectionKey,
+  sectionId,
+  label,
+  group,
   version,
-  publishedEnabled,
+  visibility,
   hasDraftChanges,
   dirty,
   publishedAt,
@@ -48,12 +52,12 @@ export function SectionHeader({
   onReverted,
   extra,
 }: SectionHeaderProps) {
-  const definition = SECTIONS[sectionKey];
   const [revisionsOpen, setRevisionsOpen] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const hasChanges = dirty || hasDraftChanges;
 
-  const hasToggle = definition.hasEnabled && publishedEnabled !== null;
+  const hasToggle = visibility !== null;
+  const publishedEnabled = visibility?.enabled ?? null;
 
   const actions = (
     <div className="ms-auto flex flex-wrap items-center justify-end gap-x-1.5 gap-y-3">
@@ -101,7 +105,7 @@ export function SectionHeader({
   return (
     <header className="z-20 -mx-4 flex flex-col gap-4 bg-surface-container-low px-4 pt-2 pb-5 medium:sticky medium:top-16 medium:-mx-6 medium:px-6 expanded:-mx-10 expanded:px-10">
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
-        <PageTitle title={definition.label} eyebrow={definition.group} size="medium" className="me-auto">
+        <PageTitle title={label} eyebrow={group} size="medium" className="me-auto">
           <div className="flex flex-wrap items-center gap-2.5">
             <StatusChip status={sectionStatus(publishedEnabled, hasChanges)} />
             <span className="text-body-small text-on-surface-variant" title={formatDateTime(publishedAt)}>
@@ -112,7 +116,7 @@ export function SectionHeader({
         </PageTitle>
         {hasToggle ? (
           <div className="ms-auto">
-            <SectionToggle sectionKey={sectionKey} enabled={publishedEnabled} version={version} labelled />
+            <SectionToggle sectionId={sectionId} label={label} enabled={visibility.enabled} labelled />
           </div>
         ) : (
           actions
@@ -120,7 +124,8 @@ export function SectionHeader({
       </div>
       {hasToggle && actions}
       <RevisionsSheet
-        sectionKey={sectionKey}
+        sectionId={sectionId}
+        label={label}
         open={revisionsOpen}
         onOpenChange={setRevisionsOpen}
         currentVersion={version}

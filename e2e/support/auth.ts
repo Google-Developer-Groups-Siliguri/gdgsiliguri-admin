@@ -71,3 +71,10 @@ export async function signInAs(page: Page, user: TestUser, path = "/") {
     timeout: 60_000,
   });
 }
+
+export async function openAccountMenu(page: Page, email: string) {
+  await expect(async () => {
+    await page.getByRole("button", { name: `Account: ${email}` }).click();
+    await expect(page.getByRole("menu")).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+}

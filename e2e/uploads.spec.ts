@@ -36,7 +36,7 @@ test("files that are not images are refused in the browser", async ({ page }) =>
     called = true;
     return route.abort();
   });
-  await signInAs(page, TEST_USERS.owner, "/devfest/sponsors");
+  await signInAs(page, TEST_USERS.owner, "/devfest/2026/sponsors");
   await page.getByRole("button", { name: "Add platinum sponsor" }).click();
   await page.getByLabel("Upload Logo URL").setInputFiles({
     name: "contract.pdf",

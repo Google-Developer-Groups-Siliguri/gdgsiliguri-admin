@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { signInAs } from "./support/auth";
+import { openAccountMenu, signInAs } from "./support/auth";
 import { readRtdb, TEST_USERS } from "./support/emulator";
 
 function isMobile(width: number | undefined) {
@@ -62,7 +62,7 @@ test.describe("app shell", () => {
 
   test("signs out from the account menu", async ({ page }) => {
     await signInAs(page, TEST_USERS.owner);
-    await page.getByRole("button", { name: `Account: ${TEST_USERS.owner.email}` }).click();
+    await openAccountMenu(page, TEST_USERS.owner.email);
     await page.getByRole("menuitem", { name: "Sign out" }).click();
     await expect(page).toHaveURL("/login");
   });
@@ -72,7 +72,7 @@ test.describe("dashboard", () => {
   test("shows every section with its state", async ({ page }) => {
     await signInAs(page, TEST_USERS.owner);
     const sections = page.getByRole("region", { name: "Sections" });
-    for (const name of ["Event details", "Schedule", "Speakers", "Sponsors", "Team", "Reviews", "Events"]) {
+    for (const name of ["2026 · Event", "2026 · Schedule", "2026 · Speakers", "2026 · Sponsors", "Team", "Reviews", "Events"]) {
       await expect(sections.getByRole("link", { name, exact: true })).toBeVisible();
     }
     await expect(sections.getByText("19 items")).toBeVisible();
@@ -112,12 +112,12 @@ test.describe("section header", () => {
     await signInAs(page, TEST_USERS.owner, "/community/team");
     await page.getByRole("button", { name: "History" }).click();
     const sheet = page.getByRole("dialog", { name: "Team history" });
-    await expect(sheet.getByText("Imported from /teams")).toBeVisible();
+    await expect(sheet.getByText("Migrated from the seed")).toBeVisible();
     await expect(sheet.getByText("Live")).toBeVisible();
   });
 
   test("publishing an unchanged section is not offered", async ({ page }) => {
-    await signInAs(page, TEST_USERS.owner, "/devfest/faq");
+    await signInAs(page, TEST_USERS.owner, "/devfest/2026/faq");
     await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Discard", exact: true, includeHidden: true })).toBeDisabled();
   });

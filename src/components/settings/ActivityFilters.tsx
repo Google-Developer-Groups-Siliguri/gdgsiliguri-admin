@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 
 import { Select } from "@/components/m3/Select";
-import { SECTION_KEYS, SECTIONS } from "@/lib/content/sections";
+import { useRegistry } from "@/components/registry/RegistryProvider";
+import { buildRegistry } from "@/lib/sections/registry";
 
 const ALL = "all";
 
@@ -16,6 +17,7 @@ type ActivityFiltersProps = {
 export function ActivityFilters({ section, actor, actors }: ActivityFiltersProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const sections = buildRegistry(useRegistry());
 
   function update(next: { section?: string | null; actor?: string | null }) {
     const params = new URLSearchParams();
@@ -33,7 +35,7 @@ export function ActivityFilters({ section, actor, actors }: ActivityFiltersProps
         label="Section"
         variant="pill"
         value={section ?? ALL}
-        options={[{ value: ALL, label: "All sections" }, ...SECTION_KEYS.map((key) => ({ value: key, label: SECTIONS[key].label }))]}
+        options={[{ value: ALL, label: "All sections" }, ...sections.map((def) => ({ value: def.id, label: def.label }))]}
         onValueChange={(value) => update({ section: value === ALL ? null : value })}
       />
       <Select

@@ -5,25 +5,17 @@ import { useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/m3/Dialog";
 import { useSnackbar } from "@/components/m3/Snackbar";
 import { Switch } from "@/components/m3/Switch";
-import { toggleAction } from "@/lib/content/actions";
-import { SECTIONS, type SectionKey } from "@/lib/content/sections";
+import { toggleAction } from "@/lib/cms/actions";
 
 type SectionToggleProps = {
-  sectionKey: SectionKey;
+  sectionId: string;
+  label: string;
   enabled: boolean;
-  version: number;
   onToggled?: () => void;
   labelled?: boolean;
 };
 
-export function SectionToggle({
-  sectionKey,
-  enabled,
-  version,
-  onToggled,
-  labelled = false,
-}: SectionToggleProps) {
-  const { label } = SECTIONS[sectionKey];
+export function SectionToggle({ sectionId, label, enabled, onToggled, labelled = false }: SectionToggleProps) {
   const showSnackbar = useSnackbar();
   const [pending, startTransition] = useTransition();
   const [requested, setRequested] = useState<boolean | null>(null);
@@ -36,7 +28,7 @@ export function SectionToggle({
     setRequested(null);
     setOptimistic(next);
     startTransition(async () => {
-      const result = await toggleAction(sectionKey, next, version);
+      const result = await toggleAction(sectionId, next);
       setOptimistic(null);
       if (result.ok) {
         showSnackbar({ message: `${label} turned ${next ? "on" : "off"}. gdgsiliguri.com ${next ? "shows" : "hides"} it now.` });
@@ -78,8 +70,8 @@ export function SectionToggle({
         title={`Turn ${label} ${requested ? "on" : "off"}?`}
         description={
           requested
-            ? `This publishes immediately: ${label} shows on gdgsiliguri.com straight away. Unpublished draft changes stay in the draft.`
-            : `This publishes immediately: ${label} is hidden on gdgsiliguri.com straight away. Unpublished draft changes stay in the draft.`
+            ? `This publishes immediately: ${label} shows on gdgsiliguri.com and in the app straight away. Unpublished draft changes stay in the draft.`
+            : `This publishes immediately: ${label} is hidden on gdgsiliguri.com and in the app straight away. Unpublished draft changes stay in the draft.`
         }
         confirmLabel={requested ? "Turn on" : "Turn off"}
         destructive={!requested}

@@ -45,6 +45,7 @@ export type CardItem = z.output<Strict["cardItem"]>;
 export type GalleryItem = z.output<Strict["galleryItem"]>;
 export type LinkItem = z.output<Strict["linkItem"]>;
 export type ModuleItem = CardItem | GalleryItem | LinkItem;
+export type Media = NonNullable<Edition["badges"]>[number];
 
 export type { EditionBundle, EditionsBundle, HomeBundle } from "./bundles";
 export * from "./common";

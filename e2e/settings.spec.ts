@@ -97,7 +97,7 @@ test("the activity log filters by section and person", async ({ page }) => {
   await signInAs(page, TEST_USERS.owner, "/settings/activity");
   await page.getByRole("combobox", { name: "Section" }).click();
   await page.getByRole("option", { name: "Reviews" }).click();
-  await expect(page).toHaveURL(/section=feedbacks/);
+  await expect(page).toHaveURL(/section=testimonials/);
   await expect(page.getByText(/Published Reviews/).first()).toBeVisible();
   await expect(page.getByText("Added new.volunteer@example.com as editor")).toHaveCount(0);
 

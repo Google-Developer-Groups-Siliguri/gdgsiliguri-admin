@@ -321,3 +321,15 @@ describe("revert", () => {
     expect(reverted.published.title).toBe("Renamed");
   });
 });
+
+describe("empty sections", () => {
+  it("refuses to publish an empty list while it is shown, and allows it once turned off", async () => {
+    await saveDraft("faqs", { items: [] }, 1, editor);
+    const error = await expectContentError(publish("faqs", 1, editor), "invalid");
+    expect(error.issues[0].message).toBe("Community FAQ is shown on the website. Turn it off before removing the last item.");
+
+    await toggleSection("faqs", false, editor);
+    await publish("faqs", 1, editor);
+    expect(await rtdbValue("home/gdgFAQs")).toEqual({ enabled: false });
+  });
+});

@@ -6,6 +6,7 @@ import { AuthorizationError, requireAdmin } from "@/lib/auth/session";
 import type { Role } from "@/lib/auth/roles";
 import { isSectionId, parseSectionId } from "@/lib/sections/registry";
 
+import { createEdition, type NewEdition } from "./editions";
 import { ContentError, type ContentErrorCode, type ContentIssue, type PublishWarning } from "./errors";
 import { publish, toggleSection } from "./publish";
 import {
@@ -110,6 +111,26 @@ export async function getRevisionAction(
 export async function revertAction(sectionId: string, revisionId: string): Promise<ActionResult<SectionState>> {
   if (typeof revisionId !== "string") return badRequest("Unknown revision.");
   return run(sectionId, (actor) => revertToRevision(sectionId, revisionId, actor));
+}
+
+export async function createEditionAction(input: NewEdition): Promise<ActionResult<{ year: number }>> {
+  if (!input || typeof input !== "object") return badRequest("Invalid request.");
+  try {
+    const actor = await requireAdmin("editor");
+    await createEdition(
+      {
+        year: Number(input.year),
+        from: Number(input.from),
+        date: String(input.date),
+        copyPartners: Boolean(input.copyPartners),
+      },
+      actor,
+    );
+    refresh();
+    return { ok: true, data: { year: Number(input.year) } };
+  } catch (error) {
+    return failure(error);
+  }
 }
 
 export async function retryLegacySyncAction(): Promise<ActionResult<SyncResult>> {

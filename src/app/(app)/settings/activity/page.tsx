@@ -7,8 +7,8 @@ import { ActivityList } from "@/components/dashboard/ActivityList";
 import { Button } from "@/components/m3/Button";
 import { EditorFallback } from "@/components/section/EditorFallback";
 import { ActivityFilters } from "@/components/settings/ActivityFilters";
-import { loadActors, loadAudit } from "@/lib/content/queries";
-import { isSectionKey } from "@/lib/content/sections";
+import { loadActors, loadAudit } from "@/lib/cms/queries";
+import { isSectionId } from "@/lib/sections/registry";
 
 export const metadata: Metadata = { title: "Activity log" };
 
@@ -32,11 +32,11 @@ function href(params: { section: string | null; actor: string | null; after?: st
 async function Log({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const params = await searchParams;
   const rawSection = single(params.section);
-  const section = isSectionKey(rawSection) ? rawSection : null;
+  const section = isSectionId(rawSection) ? rawSection : null;
   const actor = single(params.actor);
   const after = single(params.after);
   const [{ entries, next }, actors] = await Promise.all([
-    loadAudit({ limit: PAGE_SIZE, sectionKey: section ?? undefined, actorEmail: actor ?? undefined, after: after ?? undefined }),
+    loadAudit({ limit: PAGE_SIZE, sectionId: section ?? undefined, actorEmail: actor ?? undefined, after: after ?? undefined }),
     loadActors(),
   ]);
 

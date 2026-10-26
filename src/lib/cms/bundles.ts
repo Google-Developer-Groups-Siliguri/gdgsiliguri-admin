@@ -180,7 +180,7 @@ export async function buildHomeBundle(read: BundleReader, { generatedAt }: Bundl
     modules: await bundleModules(read, homeModules),
     pastEditions: shown.pastEditions
       ? editions
-          .filter((item) => item.year !== active)
+          .filter((item) => item.year < active)
           .sort((a, b) => b.year - a.year)
           .map(({ year, title, highlight, banner, startAt }) =>
             highlight === undefined ? { year, title, banner, startAt } : { year, title, highlight, banner, startAt },

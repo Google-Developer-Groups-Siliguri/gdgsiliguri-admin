@@ -1,5 +1,5 @@
 import { ALLOWED_IMAGE_TYPES, MAX_UPLOAD_BYTES, safeFileName } from "./folders";
-import { convertToWebp, UnreadableImageError } from "./webp";
+import { prepareImage, UnreadableImageError } from "./webp";
 
 export type ImageKitConfig = { privateKey: string; urlEndpoint: string };
 
@@ -51,14 +51,16 @@ export function checkImage(file: { type: string; size: number }): void {
   if (file.size > MAX_UPLOAD_BYTES) throw new UploadError("Images must be 5 MB or smaller.", 413);
 }
 
+export type UploadedImage = { url: string; width?: number; height?: number };
+
 export async function uploadToImageKit(
   original: File,
   folder: string,
   config: ImageKitConfig,
   fetcher: Fetcher = fetch,
-): Promise<string> {
+): Promise<UploadedImage> {
   checkImage(original);
-  const file = await convertToWebp(original).catch((error: unknown) => {
+  const { file, width, height } = await prepareImage(original).catch((error: unknown) => {
     if (error instanceof UnreadableImageError) throw new UploadError(error.message, 415);
     throw error;
   });
@@ -83,5 +85,5 @@ export async function uploadToImageKit(
     throw new UploadError(`ImageKit rejected the upload${reason}`, 502);
   }
   if (!result.url.startsWith("https://")) throw new UploadError("ImageKit returned an unexpected URL.", 502);
-  return result.url;
+  return { url: result.url, width, height };
 }

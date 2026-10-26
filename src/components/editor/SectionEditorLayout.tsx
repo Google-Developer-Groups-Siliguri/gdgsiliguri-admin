@@ -6,8 +6,7 @@ import { Button } from "@/components/m3/Button";
 import { Card } from "@/components/m3/Card";
 import { Icon } from "@/components/m3/Icon";
 import { SectionHeader } from "@/components/section/SectionHeader";
-import type { ContentIssue } from "@/lib/content/errors";
-import type { SectionKey } from "@/lib/content/sections";
+import type { ContentIssue } from "@/lib/cms/errors";
 
 import type { SectionEditor } from "./useSectionEditor";
 import { UnsavedChangesBar } from "./UnsavedChangesBar";
@@ -72,28 +71,17 @@ function IssueList({ issues, describe, tone, onSelect }: IssueListProps) {
   );
 }
 
-type SectionEditorLayoutProps<K extends SectionKey> = {
-  editor: SectionEditor<K>;
+type SectionEditorLayoutProps = {
+  editor: SectionEditor;
   describePath: (path: (string | number)[]) => string;
   onSelectIssue?: (path: (string | number)[]) => void;
   children: ReactNode;
 };
 
-export function SectionEditorLayout<K extends SectionKey>({
-  editor,
-  describePath,
-  onSelectIssue,
-  children,
-}: SectionEditorLayoutProps<K>) {
+export function SectionEditorLayout({ editor, describePath, onSelectIssue, children }: SectionEditorLayoutProps) {
   return (
     <div className="flex flex-col gap-4">
       <SectionHeader {...editor.headerProps} />
-      {editor.emptyMessage && (
-        <Card variant="tinted" role="alert" className="flex items-start gap-3 bg-error-container p-4 text-on-error-container">
-          <Icon name="playlist_remove" size={20} />
-          <span className="text-body-medium">{editor.emptyMessage}</span>
-        </Card>
-      )}
       {editor.errors.length > 0 && (
         <IssueList issues={editor.errors} describe={describePath} tone="error" onSelect={onSelectIssue} />
       )}

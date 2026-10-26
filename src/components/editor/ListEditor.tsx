@@ -13,7 +13,7 @@ import { Menu, type MenuItem } from "@/components/m3/Menu";
 import { TextField } from "@/components/m3/TextField";
 import { Tooltip } from "@/components/m3/Tooltip";
 import { ItemThumbnail } from "@/components/section/ItemThumbnail";
-import type { ItemSummary } from "@/lib/content/summary";
+import type { ItemSummary } from "./summary";
 import { cn } from "@/lib/cn";
 
 import type { ItemIssues } from "./issues";
@@ -47,6 +47,8 @@ export type ListEditorProps<T extends object> = {
   headerSlot?: ReactNode;
   addLabel?: string;
   openRequest?: { index: number; at: number } | null;
+  copyItem?: (item: T) => T;
+  canDelete?: (item: T) => string | null;
 };
 
 const NO_ISSUES: ItemIssues = { errors: [], warnings: [] };
@@ -71,6 +73,8 @@ export function ListEditor<T extends object>({
   headerSlot,
   addLabel,
   openRequest,
+  copyItem = (item) => structuredClone(item),
+  canDelete = () => null,
 }: ListEditorProps<T>) {
   const formId = useId();
   const [query, setQuery] = useState("");
@@ -109,7 +113,7 @@ export function ListEditor<T extends object>({
   }
 
   function duplicate(index: number) {
-    const copy = structuredClone(items[index]);
+    const copy = copyItem(items[index]);
     onChange([...items.slice(0, index + 1), copy, ...items.slice(index + 1)]);
   }
 
@@ -225,7 +229,13 @@ export function ListEditor<T extends object>({
                 { label: "Move down", icon: "arrow_downward", onSelect: () => move(index, index + 1), disabled: index === items.length - 1 || narrowed },
                 ...(extraActions?.(items[index], index) ?? []),
                 { type: "divider" },
-                { label: "Delete", icon: "delete", destructive: true, onSelect: () => setDeleting(index) },
+                {
+                  label: canDelete(items[index]) ?? "Delete",
+                  icon: "delete",
+                  destructive: true,
+                  disabled: canDelete(items[index]) !== null,
+                  onSelect: () => setDeleting(index),
+                },
               ];
               return (
                 <div

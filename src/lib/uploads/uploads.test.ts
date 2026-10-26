@@ -70,7 +70,11 @@ describe("uploadToImageKit", () => {
     const url = "https://ik.imagekit.io/gdgsiliguri1/speakers/2026/Speaker-Photo-1_abc.png";
     const { calls, fetcher } = recordingFetcher(Response.json({ url }));
 
-    expect(await uploadToImageKit(await png(), "/speakers/2026", config, fetcher)).toBe(url);
+    expect(await uploadToImageKit(await png(), "/speakers/2026", config, fetcher)).toEqual({
+      url,
+      width: 40,
+      height: 30,
+    });
 
     expect(calls).toHaveLength(1);
     expect(calls[0].url).toBe("https://upload.imagekit.io/api/v1/files/upload");
@@ -96,13 +100,46 @@ describe("uploadToImageKit", () => {
     }
   });
 
-  it("uploads other formats such as SVG unchanged", async () => {
-    const svg = new File(["<svg xmlns='http://www.w3.org/2000/svg'/>"], "logo.svg", { type: "image/svg+xml" });
-    const { calls, fetcher } = recordingFetcher(Response.json({ url: "https://ik.imagekit.io/logo.svg" }));
-    await uploadToImageKit(svg, "/Sponsors", config, fetcher);
-    const body = calls[0].init.body as FormData;
-    expect(body.get("fileName")).toBe("logo.svg");
-    expect(body.get("file")).toBe(svg);
+  it("rasterises SVG logos to WebP at 1024 px on the long edge", async () => {
+    const svg = new File(
+      [
+        "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='100'><rect width='200' height='100' fill='red'/></svg>",
+      ],
+      "logo.svg",
+      { type: "image/svg+xml" },
+    );
+    const { calls, fetcher } = recordingFetcher(Response.json({ url: "https://ik.imagekit.io/logo.webp" }));
+    expect(await uploadToImageKit(svg, "/Sponsors", config, fetcher)).toMatchObject({ width: 1024, height: 512 });
+    const { body, file, metadata } = await sentFile(calls);
+    expect(body.get("fileName")).toBe("logo.webp");
+    expect(file.type).toBe("image/webp");
+    expect(metadata).toMatchObject({ format: "webp", width: 1024, height: 512 });
+  });
+
+  it("uploads WebP and GIF as they are, with their size", async () => {
+    const webp = new File(
+      [
+        new Uint8Array(
+          await sharp({ create: { width: 8, height: 6, channels: 3, background: "#fff" } })
+            .webp()
+            .toBuffer(),
+        ),
+      ],
+      "a.webp",
+      { type: "image/webp" },
+    );
+    const { calls, fetcher } = recordingFetcher(Response.json({ url: "https://ik.imagekit.io/a.webp" }));
+    expect(await uploadToImageKit(webp, "/teams", config, fetcher)).toMatchObject({ width: 8, height: 6 });
+    expect((calls[0].init.body as FormData).get("file")).toBe(webp);
+  });
+
+  it("checks the file contents, not just the declared type", async () => {
+    const { calls, fetcher } = recordingFetcher(Response.json({}));
+    const jpegAsPng = new File([new Uint8Array(await (await image("jpeg", "x.jpg")).arrayBuffer())], "x.png", {
+      type: "image/png",
+    });
+    await expect(uploadToImageKit(jpegAsPng, "/teams", config, fetcher)).rejects.toMatchObject({ status: 415 });
+    expect(calls).toHaveLength(0);
   });
 
   it("refuses files that only claim to be PNG or JPEG", async () => {

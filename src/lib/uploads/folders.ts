@@ -5,6 +5,9 @@ export const UPLOAD_KINDS = [
   "partner",
   "branding",
   "event",
+  "showcase",
+  "module",
+  "testimonial",
 ] as const;
 
 export type UploadKind = (typeof UPLOAD_KINDS)[number];
@@ -27,6 +30,12 @@ export function uploadFolder(kind: UploadKind, year: number): string {
       return "/logos-and-banners";
     case "event":
       return `/events/${year}`;
+    case "showcase":
+      return `/showcase/${year}`;
+    case "module":
+      return "/modules";
+    case "testimonial":
+      return "/testimonials";
   }
 }
 
@@ -42,6 +51,12 @@ export function safeFileName(rawName: string): string {
     .replace(/-+/g, "-")
     .replace(/^[.-]+|[.-]+$/g, "")
     .slice(0, 60);
-  const extension = dot >= 0 ? name.slice(dot + 1).toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const extension =
+    dot >= 0
+      ? name
+          .slice(dot + 1)
+          .toLowerCase()
+          .replace(/[^a-z0-9]/g, "")
+      : "";
   return `${base || "image"}${extension ? `.${extension}` : ""}`;
 }

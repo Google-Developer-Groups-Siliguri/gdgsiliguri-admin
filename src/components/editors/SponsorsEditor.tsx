@@ -1,117 +1,147 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { z } from "zod";
 
-import { ImageInput, TextInput, UrlInput } from "@/components/editor/fields";
+import { MediaInput } from "@/components/editor/content-fields";
+import { TextInput, UrlInput } from "@/components/editor/fields";
 import { itemIssues } from "@/components/editor/issues";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import { ListEditor, type ItemFormProps } from "@/components/editor/ListEditor";
-import { SectionEditorLayout } from "@/components/editor/SectionEditorLayout";
-import { useSectionEditor } from "@/components/editor/useSectionEditor";
+import { IdNote, ListSectionEditor, withOrder } from "@/components/editor/ListSectionEditor";
 import { Tab, TabList, TabPanel, Tabs } from "@/components/m3/Tabs";
-import type { SectionState } from "@/lib/content/repository";
-import { SPONSOR_TIERS, strictSchemas, type Sponsor, type SponsorTier } from "@/lib/legacy/schemas";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
+import { sectionWarnings } from "@/lib/cms/warnings";
+import { LEGACY_SPONSOR_TIERS } from "@/lib/legacy/format";
+import { SPONSOR_TIERS, type Sponsor, type SponsorTier } from "@/lib/schema/v2";
 
-const TIER_LABELS: Record<SponsorTier, string> = { platinum: "Platinum", gold: "Gold", silver: "Silver" };
-const FIELD_LABELS: Record<string, string> = { sponsorName: "Name", icon: "Logo", socialMediaLink: "Link" };
+import { useItemSchema } from "./forms";
+
+const TIER_LABELS: Record<SponsorTier, string> = {
+  platinum: "Platinum",
+  gold: "Gold",
+  silver: "Silver",
+  bronze: "Bronze",
+  community: "Community",
+  venue: "Venue",
+  media: "Media",
+};
+
+const NEW_CLIENTS_ONLY = (tier: SponsorTier) => !(LEGACY_SPONSOR_TIERS as readonly string[]).includes(tier);
 
 function SponsorForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Sponsor>) {
-  const form = useItemForm<Sponsor>(strictSchemas.items.sponsor as unknown as z.ZodType<Sponsor, Sponsor>, item, isNew);
+  const form = useItemForm<Sponsor>(useItemSchema<Sponsor>({ logo: "name" }), item, isNew);
   const warnings = warningsByField(issues);
   const { control } = form;
   return (
     <ItemFormShell form={form} formId={formId} item={item} onSubmit={onSubmit}>
-      <TextInput control={control} name="sponsorName" label="Sponsor name" required autoFocus={isNew} />
-      <ImageInput control={control} name="icon" label="Logo URL" required shape="wide" warning={warnings.icon} />
-      <UrlInput control={control} name="socialMediaLink" label="Website" warning={warnings.socialMediaLink} />
+      <TextInput control={control} name="name" label="Sponsor name" required autoFocus={isNew} />
+      <IdNote id={item.id} />
+      <MediaInput
+        control={control}
+        name="logo"
+        label="Logo URL"
+        required
+        shape="wide"
+        altLabel="Logo description"
+        warning={warnings["logo.url"]}
+      />
+      <UrlInput control={control} name="url" label="Website" warning={warnings.url} />
     </ItemFormShell>
   );
 }
 
-export function SponsorsEditor({ state }: { state: SectionState<"sponsors"> }) {
-  const editor = useSectionEditor(state);
-  const { setDraft } = editor;
+type TierListsProps = {
+  items: Sponsor[];
+  onChange: (items: Sponsor[]) => void;
+  issues: (index: number) => ReturnType<typeof itemIssues>;
+};
+
+function TierLists({ items, onChange, issues }: TierListsProps) {
   const [tier, setTier] = useState<SponsorTier>("platinum");
-  const [openRequest, setOpenRequest] = useState<{ index: number; at: number } | null>(null);
-
-  const setTierItems = useCallback(
-    (target: SponsorTier, items: Sponsor[]) => setDraft((current) => ({ ...current, [target]: items })),
-    [setDraft],
+  const inTier = (key: SponsorTier) => items.filter((sponsor) => sponsor.tier === key);
+  const replaceTier = useCallback(
+    (key: SponsorTier, next: Sponsor[]) => {
+      const ordered = withOrder(next.map((sponsor) => ({ ...sponsor, tier: key })));
+      onChange(
+        SPONSOR_TIERS.flatMap((other) => (other === key ? ordered : items.filter((sponsor) => sponsor.tier === other))),
+      );
+    },
+    [items, onChange],
   );
-
-  function moveToTier(from: SponsorTier, index: number, to: SponsorTier) {
-    setDraft((current) => {
-      const sponsor = current[from][index];
-      return {
-        ...current,
-        [from]: current[from].filter((_, position) => position !== index),
-        [to]: [...current[to], sponsor],
-      };
-    });
-  }
-
-  function describePath(path: (string | number)[]) {
-    const [tierKey, index, field] = path;
-    if (!SPONSOR_TIERS.includes(tierKey as SponsorTier) || typeof index !== "number") return "Sponsors";
-    const sponsor = editor.draft[tierKey as SponsorTier][index];
-    return [TIER_LABELS[tierKey as SponsorTier], sponsor?.sponsorName || `Sponsor ${index + 1}`, typeof field === "string" ? FIELD_LABELS[field] : ""]
-      .filter(Boolean)
-      .join(" · ");
-  }
+  const moveToTier = (sponsor: Sponsor, to: SponsorTier) => {
+    const rest = items.filter((item) => item !== sponsor);
+    const target = withOrder([...rest.filter((item) => item.tier === to), { ...sponsor, tier: to }]);
+    onChange(SPONSOR_TIERS.flatMap((tier) => (tier === to ? target : rest.filter((item) => item.tier === tier))));
+  };
 
   return (
-    <SectionEditorLayout
-      editor={editor}
-      describePath={describePath}
-      onSelectIssue={(path) => {
-        const [tierKey, index] = path;
-        if (SPONSOR_TIERS.includes(tierKey as SponsorTier) && typeof index === "number") {
-          setTier(tierKey as SponsorTier);
-          setOpenRequest({ index, at: Date.now() });
-        }
-      }}
-    >
-      <Tabs value={tier} onValueChange={(value) => setTier(value as SponsorTier)}>
-        <TabList aria-label="Sponsor tiers">
-          {SPONSOR_TIERS.map((key) => (
-            <Tab key={key} value={key}>
-              {TIER_LABELS[key]} ({editor.draft[key].length})
-            </Tab>
-          ))}
-        </TabList>
+    <Tabs value={tier} onValueChange={(value) => setTier(value as SponsorTier)}>
+      <TabList aria-label="Sponsor tiers">
         {SPONSOR_TIERS.map((key) => (
-          <TabPanel key={key} value={key} className="pt-4">
-            {editor.draft[key].length === 0 && (
-              <p className="pb-3 text-body-medium text-on-surface-variant">
-                An empty tier is left off the website.
-              </p>
-            )}
-            <ListEditor
-              items={editor.draft[key]}
-              onChange={(items) => setTierItems(key, items)}
-              noun={`${TIER_LABELS[key].toLowerCase()} sponsor`}
-              addLabel={`Add ${TIER_LABELS[key].toLowerCase()} sponsor`}
-              summarize={(sponsor) => ({
-                primary: sponsor.sponsorName,
-                secondary: sponsor.socialMediaLink,
-                image: sponsor.icon,
-              })}
-              createItem={() => ({ sponsorName: "", icon: "", socialMediaLink: "" })}
-              Form={SponsorForm}
-              openRequest={tier === key ? openRequest : null}
-              issuesFor={(index) => itemIssues(editor.errors, editor.warnings, [key, index])}
-              extraActions={(_, index) =>
-                SPONSOR_TIERS.filter((other) => other !== key).map((other) => ({
-                  label: `Move to ${TIER_LABELS[other]}`,
-                  icon: "swap_vert",
-                  onSelect: () => moveToTier(key, index, other),
-                }))
-              }
-            />
-          </TabPanel>
+          <Tab key={key} value={key}>
+            {TIER_LABELS[key]} ({inTier(key).length})
+          </Tab>
         ))}
-      </Tabs>
-    </SectionEditorLayout>
+      </TabList>
+      {SPONSOR_TIERS.map((key) => (
+        <TabPanel key={key} value={key} className="flex flex-col gap-3 pt-4">
+          {NEW_CLIENTS_ONLY(key) && (
+            <p className="inline-flex w-fit items-center rounded-full bg-tertiary-container px-3 py-1 text-label-medium text-on-tertiary-container">
+              New app and website only. Older app versions don&apos;t show this tier.
+            </p>
+          )}
+          <ListEditor<Sponsor>
+            items={inTier(key)}
+            onChange={(next) => replaceTier(key, next)}
+            noun={`${TIER_LABELS[key].toLowerCase()} sponsor`}
+            addLabel={`Add ${TIER_LABELS[key].toLowerCase()} sponsor`}
+            summarize={(sponsor) => ({ primary: sponsor.name, secondary: sponsor.url, image: sponsor.logo?.url })}
+            createItem={() => ({ id: "", name: "", tier: key, logo: { url: "", alt: "" }, order: 0 })}
+            Form={SponsorForm}
+            copyItem={(sponsor) => ({ ...structuredClone(sponsor), id: "" })}
+            showFab={tier === key}
+            issuesFor={(index) => issues(items.indexOf(inTier(key)[index]))}
+            extraActions={(sponsor) =>
+              SPONSOR_TIERS.filter((other) => other !== key).map((other) => ({
+                label: `Move to ${TIER_LABELS[other]}`,
+                icon: "swap_vert",
+                onSelect: () => moveToTier(sponsor, other),
+              }))
+            }
+          />
+        </TabPanel>
+      ))}
+    </Tabs>
+  );
+}
+
+export function SponsorsEditor({
+  state,
+  visibility,
+}: {
+  state: SectionState<{ items: Sponsor[] }>;
+  visibility: Visibility;
+}) {
+  return (
+    <ListSectionEditor<Sponsor>
+      state={state}
+      visibility={visibility}
+      noun="sponsor"
+      fieldLabels={{ name: "Name", logo: "Logo", url: "Website", tier: "Tier" }}
+      keepOrder
+      warnings={(draft) => sectionWarnings(state.id, draft)}
+      summarize={(sponsor) => ({ primary: sponsor.name, secondary: TIER_LABELS[sponsor.tier] })}
+      createItem={() => ({ id: "", name: "", tier: "platinum", logo: { url: "", alt: "" }, order: 0 })}
+      Form={SponsorForm}
+      aside={(editor) => (
+        <TierLists
+          items={editor.draft.items}
+          onChange={(items) => editor.setDraft((current) => ({ ...current, items }))}
+          issues={(index) => itemIssues(editor.errors, editor.warnings, ["items", index])}
+        />
+      )}
+      wrapList={() => null}
+    />
   );
 }

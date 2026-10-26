@@ -44,11 +44,31 @@ export async function readRtdb(path: string): Promise<unknown> {
   return response.json();
 }
 
+type FsValue = Record<string, unknown>;
+
+function decode(value: FsValue): unknown {
+  if ("mapValue" in value) {
+    const fields = ((value.mapValue as { fields?: Record<string, FsValue> }).fields ?? {}) as Record<string, FsValue>;
+    return Object.fromEntries(Object.entries(fields).map(([key, entry]) => [key, decode(entry)]));
+  }
+  if ("arrayValue" in value) return ((value.arrayValue as { values?: FsValue[] }).values ?? []).map(decode);
+  if ("integerValue" in value) return Number(value.integerValue);
+  if ("nullValue" in value) return null;
+  return Object.values(value)[0];
+}
+
 export async function readFirestoreDoc(path: string): Promise<Record<string, unknown> | null> {
   const response = await fetch(`${databaseUrl}/documents/${path}`, { headers: ownerHeaders });
   if (response.status === 404) return null;
-  const body = (await response.json()) as { fields?: Record<string, Record<string, unknown>> };
-  return Object.fromEntries(
-    Object.entries(body.fields ?? {}).map(([key, value]) => [key, Object.values(value)[0]]),
-  );
+  const body = (await response.json()) as { fields?: Record<string, FsValue> };
+  return decode({ mapValue: { fields: body.fields ?? {} } }) as Record<string, unknown>;
+}
+
+export async function readFirestoreCollection(path: string): Promise<Record<string, unknown>[]> {
+  const response = await fetch(`${databaseUrl}/documents/${path}?pageSize=300`, { headers: ownerHeaders });
+  const body = (await response.json()) as { documents?: { name: string; fields?: Record<string, FsValue> }[] };
+  return (body.documents ?? []).map((doc) => ({
+    id: doc.name.split("/").pop(),
+    ...(decode({ mapValue: { fields: doc.fields ?? {} } }) as Record<string, unknown>),
+  }));
 }

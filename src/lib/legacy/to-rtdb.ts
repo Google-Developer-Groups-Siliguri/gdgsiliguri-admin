@@ -181,7 +181,7 @@ export function gdgFaqsNode(site: SiteConfig, faqs: Faq[]): Json {
 
 export function pastDevfestsNode(site: SiteConfig, editions: Edition[]): Json {
   const data = editions
-    .filter((edition) => edition.year !== site.activeEdition)
+    .filter((edition) => edition.year < site.activeEdition)
     .sort((a, b) => b.year - a.year)
     .map((edition) => ({ year: String(edition.year), highlight: edition.highlight ?? "" }));
   return listNode(site.sections.pastEditions, data);

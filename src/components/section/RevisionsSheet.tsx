@@ -8,13 +8,13 @@ import { ConfirmDialog } from "@/components/m3/Dialog";
 import { LinearProgress } from "@/components/m3/Progress";
 import { SideSheet } from "@/components/m3/SideSheet";
 import { useSnackbar } from "@/components/m3/Snackbar";
-import { listRevisionsAction, revertAction } from "@/lib/content/actions";
-import type { RevisionSummary } from "@/lib/content/repository";
-import { SECTIONS, type SectionKey } from "@/lib/content/sections";
+import { listRevisionsAction, revertAction } from "@/lib/cms/actions";
+import type { RevisionSummary } from "@/lib/cms/repository";
 import { formatDateTime } from "@/lib/time";
 
 type RevisionsSheetProps = {
-  sectionKey: SectionKey;
+  sectionId: string;
+  label: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentVersion: number;
@@ -25,7 +25,8 @@ type RevisionsSheetProps = {
 type Load = { status: "loading" } | { status: "error"; message: string } | { status: "ready"; revisions: RevisionSummary[] };
 
 export function RevisionsSheet({
-  sectionKey,
+  sectionId,
+  label,
   open,
   onOpenChange,
   currentVersion,
@@ -40,7 +41,7 @@ export function RevisionsSheet({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    listRevisionsAction(sectionKey).then((result) => {
+    listRevisionsAction(sectionId).then((result) => {
       if (cancelled) return;
       setLoad(result.ok ? { status: "ready", revisions: result.data } : { status: "error", message: result.message });
     });
@@ -48,13 +49,13 @@ export function RevisionsSheet({
       cancelled = true;
       setLoad({ status: "loading" });
     };
-  }, [open, sectionKey, currentVersion]);
+  }, [open, sectionId, currentVersion]);
 
   function revert() {
     if (!target) return;
     const revision = target;
     startTransition(async () => {
-      const result = await revertAction(sectionKey, revision.id);
+      const result = await revertAction(sectionId, revision.id);
       setTarget(null);
       if (result.ok) {
         onOpenChange(false);
@@ -68,7 +69,7 @@ export function RevisionsSheet({
 
   return (
     <>
-      <SideSheet open={open} onOpenChange={onOpenChange} title={`${SECTIONS[sectionKey].label} history`}>
+      <SideSheet open={open} onOpenChange={onOpenChange} title={`${label} history`}>
         {load.status === "loading" && <LinearProgress label="Loading history" />}
         {load.status === "error" && <p className="text-body-medium text-error">{load.message}</p>}
         {load.status === "ready" && (

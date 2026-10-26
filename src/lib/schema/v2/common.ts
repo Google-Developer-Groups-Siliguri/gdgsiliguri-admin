@@ -61,7 +61,11 @@ export function fields(mode: Mode) {
 
   const requiredText = (label = "This", max = 500) =>
     strict
-      ? z.string().trim().min(1, `${label} is required`).max(max, `${label} must be ${max} characters or fewer`)
+      ? z
+          .string({ error: `${label} is required` })
+          .trim()
+          .min(1, `${label} is required`)
+          .max(max, `${label} must be ${max} characters or fewer`)
       : z.string().default("");
 
   const optionalText = (label = "This", max = 500) =>
@@ -72,7 +76,7 @@ export function fields(mode: Mode) {
   const markdown = (label = "This") =>
     strict
       ? z
-          .string()
+          .string({ error: `${label} is required` })
           .max(MAX_MARKDOWN, `${label} must be ${MAX_MARKDOWN} characters or fewer`)
           .refine((value) => !hasUnsafeMarkup(value), `${label} can't contain <script> or <iframe>`)
       : z.string();
@@ -81,7 +85,9 @@ export function fields(mode: Mode) {
     strict ? markdown(label).refine((value) => value.trim() !== "", `${label} is required`) : z.string().default("");
 
   const url = (label = "This link") =>
-    strict ? z.string().refine(isHttpsUrl, `${label} must be a full https:// link`) : z.string().default("");
+    strict
+      ? z.string({ error: `${label} is required` }).refine(isHttpsUrl, `${label} must be a full https:// link`)
+      : z.string().default("");
 
   const optionalUrl = (label = "This link") =>
     strict ? z.string().refine(isHttpsUrl, `${label} must be a full https:// link`).optional() : z.string().optional();

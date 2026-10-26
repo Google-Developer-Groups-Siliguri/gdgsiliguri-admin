@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { signInAsViaPopup as signInAs, signInWithGoogle } from "./support/auth";
+import { openAccountMenu, signInAsViaPopup as signInAs, signInWithGoogle } from "./support/auth";
 import { TEST_USERS } from "./support/emulator";
 
 test.describe("authentication", () => {
@@ -19,7 +19,7 @@ test.describe("authentication", () => {
   test("an owner can sign in and out", async ({ page, context }) => {
     await signInAs(page, TEST_USERS.owner);
     await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
-    await page.getByRole("button", { name: `Account: ${TEST_USERS.owner.email}` }).click();
+    await openAccountMenu(page, TEST_USERS.owner.email);
     await expect(page.getByRole("menu").getByText("owner", { exact: true })).toBeVisible();
     await page.keyboard.press("Escape");
 
@@ -27,7 +27,7 @@ test.describe("authentication", () => {
     expect(session?.httpOnly).toBe(true);
     expect(session?.sameSite).toBe("Lax");
 
-    await page.getByRole("button", { name: `Account: ${TEST_USERS.owner.email}` }).click();
+    await openAccountMenu(page, TEST_USERS.owner.email);
     await page.getByRole("menuitem", { name: "Sign out" }).click();
     await expect(page).toHaveURL("/login");
     await page.goto("/");
@@ -36,14 +36,14 @@ test.describe("authentication", () => {
 
   test("an editor signs in with the editor role", async ({ page }) => {
     await signInAs(page, TEST_USERS.editor);
-    await page.getByRole("button", { name: `Account: ${TEST_USERS.editor.email}` }).click();
+    await openAccountMenu(page, TEST_USERS.editor.email);
     await expect(page.getByRole("menu").getByText("editor", { exact: true })).toBeVisible();
   });
 
   test("sign-in returns to the page that was requested", async ({ page }) => {
-    await page.goto("/devfest/schedule");
+    await page.goto("/devfest/2026/schedule");
     await signInWithGoogle(page, TEST_USERS.owner);
-    await expect(page).toHaveURL("/devfest/schedule");
+    await expect(page).toHaveURL("/devfest/2026/schedule");
     await expect(page.getByRole("heading", { level: 1, name: "Schedule" })).toBeVisible();
   });
 

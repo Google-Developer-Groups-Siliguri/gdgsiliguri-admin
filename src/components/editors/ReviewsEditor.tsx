@@ -1,53 +1,71 @@
 "use client";
 
-import type { z } from "zod";
-
-import { TextInput } from "@/components/editor/fields";
+import { EditionSelectInput, MarkdownInput, MediaInput } from "@/components/editor/content-fields";
+import { SwitchInput, TextInput } from "@/components/editor/fields";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
-import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type Feedback } from "@/lib/legacy/schemas";
+import { useRegistry } from "@/components/registry/RegistryProvider";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
+import { sectionWarnings } from "@/lib/cms/warnings";
+import type { Testimonial } from "@/lib/schema/v2";
 
-function ReviewForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Feedback>) {
-  const form = useItemForm<Feedback>(strictSchemas.items.feedback as unknown as z.ZodType<Feedback, Feedback>, item, isNew);
+import { useItemSchema } from "./forms";
+
+function ReviewForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Testimonial>) {
+  const form = useItemForm<Testimonial>(useItemSchema<Testimonial>(), item, isNew);
   const warnings = warningsByField(issues);
+  const { editionYears } = useRegistry();
   const { control } = form;
   return (
     <ItemFormShell form={form} formId={formId} item={item} onSubmit={onSubmit}>
       <TextInput control={control} name="name" label="Name" required autoFocus={isNew} warning={warnings.name} />
+      <TextInput control={control} name="title" label="Title" required warning={warnings.title} />
+      <MarkdownInput control={control} name="body" label="Review" required warning={warnings.body} />
       <TextInput
         control={control}
-        name="eventAttended"
-        label="Event attended"
-        supportingText="Shown as written, for example @Devfest'24"
+        name="eventLabel"
+        label="Event"
+        supportingText="Shown as written, for example @Devfest'22"
       />
-      <TextInput control={control} name="feedbackTitle" label="Title" required warning={warnings.feedbackTitle} />
-      <TextInput
+      <EditionSelectInput control={control} name="edition" label="DevFest" years={editionYears} />
+      <MediaInput control={control} name="photo" label="Photo URL" shape="circle" optional />
+      <SwitchInput
         control={control}
-        name="feedbackDescription"
-        label="Review"
-        required
-        multiline
-        rows={6}
-        warning={warnings.feedbackDescription}
+        name="featured"
+        label="Featured"
+        supportingText="Featured reviews are shown on the website and in the app"
       />
     </ItemFormShell>
   );
 }
 
-export function ReviewsEditor({ state }: { state: SectionState<"feedbacks"> }) {
+export function ReviewsEditor({
+  state,
+  visibility,
+}: {
+  state: SectionState<{ items: Testimonial[] }>;
+  visibility: Visibility;
+}) {
   return (
-    <ListSectionEditor
+    <ListSectionEditor<Testimonial>
       state={state}
+      visibility={visibility}
       noun="review"
-      fieldLabels={{ name: "Name", eventAttended: "Event", feedbackTitle: "Title", feedbackDescription: "Review" }}
+      fieldLabels={{ name: "Name", title: "Title", body: "Review", eventLabel: "Event" }}
       showThumbnails={false}
+      warnings={(draft) => sectionWarnings(state.id, draft)}
       summarize={(review) => ({
-        primary: review.feedbackTitle,
-        secondary: `${review.name} ${review.eventAttended}`.trim(),
+        primary: review.title,
+        secondary: [review.name, review.eventLabel].filter(Boolean).join(" "),
+        meta: review.featured ? "Featured" : "Hidden",
       })}
-      createItem={() => ({ name: "", eventAttended: "", feedbackTitle: "", feedbackDescription: "" })}
+      filters={[
+        { label: "Featured", test: (review) => review.featured },
+        { label: "Not featured", test: (review) => !review.featured },
+      ]}
+      createItem={() => ({ id: "", name: "", title: "", body: "", featured: true, order: 0 })}
       Form={ReviewForm}
     />
   );

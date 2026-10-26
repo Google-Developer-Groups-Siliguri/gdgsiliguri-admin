@@ -1,179 +1,133 @@
 "use client";
 
-import { createContext, use, useState } from "react";
-import { useFieldArray } from "react-hook-form";
-import type { z } from "zod";
+import { useState } from "react";
+import { useFieldArray, type Control } from "react-hook-form";
 
-import { DateInput, ImageInput, TextInput, UrlInput } from "@/components/editor/fields";
+import { InstantInput, MarkdownInput, MediaInput, TagsInput } from "@/components/editor/content-fields";
+import { SwitchInput, TextInput, UrlInput } from "@/components/editor/fields";
+import { FormSection } from "@/components/editor/FormSection";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
-import { ListSectionEditor } from "@/components/editor/ListSectionEditor";
-import { SortableList } from "@/components/editor/SortableList";
+import { IdNote, ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import { Button } from "@/components/m3/Button";
 import { IconButton } from "@/components/m3/IconButton";
-import type { SectionState } from "@/lib/content/repository";
-import { strictSchemas, type CommunityEvent } from "@/lib/legacy/schemas";
+import type { Visibility } from "@/lib/cms/queries";
+import type { SectionState } from "@/lib/cms/repository";
+import { sectionWarnings } from "@/lib/cms/warnings";
+import type { CommunityEvent } from "@/lib/schema/v2";
+import { DEFAULT_TIME_ZONE, formatLegacyDate, toMillis } from "@/lib/time/tz";
 
-const OtherIdsContext = createContext<(event: CommunityEvent) => string[]>(() => []);
+import { useItemSchema } from "./forms";
 
-const FIELD_LABELS: Record<string, string> = {
-  id: "Id",
-  name: "Name",
-  tagline: "Tagline",
-  description: "Description",
-  thumbnail: "Thumbnail",
-  coverImg: "Cover image",
-  registrationDate: "Registration date",
-  eventDate: "Event date",
-  registrationLink: "Registration link",
-  speakers: "Speakers",
-};
-
-export function slugify(value: string): string {
-  return value
-    .toLowerCase()
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-}
-
-function uniqueSlug(base: string, taken: string[]): string {
-  if (!taken.includes(base)) return base;
-  let suffix = 2;
-  while (taken.includes(`${base}-${suffix}`)) suffix += 1;
-  return `${base}-${suffix}`;
-}
-
-function SpeakersField({ form }: { form: ReturnType<typeof useItemForm<CommunityEvent>> }) {
-  const { control } = form;
-  const { fields, append, remove, move } = useFieldArray({ control, name: "speakers" as never });
+function EventSpeakers({ control }: { control: Control<CommunityEvent> }) {
+  const { fields, append, remove } = useFieldArray({ control, name: "speakers" as never });
   return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="pb-2 text-title-medium text-on-surface">Speakers</legend>
-      {fields.length === 0 && (
-        <p className="text-body-medium text-on-surface-variant">No speakers yet.</p>
-      )}
-      <SortableList
-        ariaLabel="Event speakers"
-        items={fields}
-        ids={fields.map((field) => field.id)}
-        labelFor={(field, index) => form.getValues(`speakers.${index}.name`) || `Speaker ${index + 1}`}
-        onReorder={move}
-        className="gap-3"
-        render={({ index, handle }) => (
-          <div className="flex gap-2 rounded-md bg-surface-container p-3">
-            <div>{handle}</div>
-            <div className="flex min-w-0 flex-1 flex-col gap-3">
-              <TextInput control={control} name={`speakers.${index}.name`} label="Name" required />
-              <ImageInput control={control} name={`speakers.${index}.imageUrl`} label="Photo URL" shape="circle" />
-              <TextInput control={control} name={`speakers.${index}.description`} label="About" multiline rows={2} />
+    <div className="flex flex-col gap-4">
+      {fields.map((field, index) => (
+        <div key={field.id} className="flex flex-col gap-3 rounded-md bg-surface-container-high p-3">
+          <div className="flex items-start gap-2">
+            <div className="flex-1">
+              <TextInput control={control} name={`speakers.${index}.name` as never} label="Name" required />
             </div>
-            <div>
-              <IconButton icon="delete" label={`Remove speaker ${index + 1}`} onClick={() => remove(index)} />
-            </div>
+            <IconButton icon="delete" label={`Remove speaker ${index + 1}`} onClick={() => remove(index)} />
           </div>
-        )}
-      />
+          <TextInput control={control} name={`speakers.${index}.headline` as never} label="Headline" />
+          <MediaInput
+            control={control}
+            name={`speakers.${index}.photo` as never}
+            label="Photo URL"
+            shape="circle"
+            optional
+          />
+        </div>
+      ))}
       <div>
-        <Button variant="tonal" icon="person_add" onClick={() => append({ name: "", imageUrl: "", description: "" })}>
+        <Button variant="tonal" icon="add" onClick={() => append({ name: "" } as never)}>
           Add speaker
         </Button>
       </div>
-    </fieldset>
+    </div>
   );
 }
 
 function EventForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<CommunityEvent>) {
-  const otherIds = use(OtherIdsContext)(item);
-  const form = useItemForm<CommunityEvent>(
-    strictSchemas.items.communityEvent as unknown as z.ZodType<CommunityEvent, CommunityEvent>,
-    item,
-    isNew,
-  );
+  const form = useItemForm<CommunityEvent>(useItemSchema<CommunityEvent>({ cover: "title" }), item, isNew);
   const warnings = warningsByField(issues);
-  const { control, setValue, getValues, setError } = form;
-  const [idEdited, setIdEdited] = useState(!isNew);
-
+  const { control } = form;
+  const zone = item.timeZone || DEFAULT_TIME_ZONE;
   return (
-    <ItemFormShell
-      form={form}
-      formId={formId}
-      item={item}
-      onSubmit={(event) => {
-        if (otherIds.includes(event.id)) {
-          setError("id", { message: "Another event already uses this id" });
-          return;
-        }
-        onSubmit(event);
-      }}
-    >
-      <div
-        onChange={(event) => {
-          const target = event.target as HTMLInputElement;
-          if (target.name === "name" && !idEdited) {
-            setValue("id", uniqueSlug(slugify(target.value), otherIds), { shouldValidate: true });
-          }
-          if (target.name === "id") setIdEdited(true);
-        }}
-        className="flex flex-col gap-4"
-      >
-        <TextInput control={control} name="name" label="Name" required autoFocus={isNew} warning={warnings.name} />
-        <TextInput
-          control={control}
-          name="id"
-          label="Id"
-          required
-          supportingText={`Used in links. Lowercase letters, numbers and hyphens.${getValues("id") ? "" : " Filled from the name."}`}
-        />
-      </div>
+    <ItemFormShell form={form} formId={formId} item={item} onSubmit={onSubmit}>
+      <TextInput control={control} name="title" label="Title" required autoFocus={isNew} warning={warnings.title} />
+      <IdNote id={item.id} />
       <TextInput control={control} name="tagline" label="Tagline" />
-      <TextInput control={control} name="description" label="Description" multiline rows={5} />
-      <div className="grid grid-cols-1 gap-4 compact:grid-cols-2">
-        <DateInput control={control} name="eventDate" label="Event date" />
-        <DateInput control={control} name="registrationDate" label="Registration date" />
-      </div>
-      <UrlInput control={control} name="registrationLink" label="Registration link" warning={warnings.registrationLink} />
-      <ImageInput control={control} name="thumbnail" label="Thumbnail URL" warning={warnings.thumbnail} />
-      <ImageInput control={control} name="coverImg" label="Cover image URL" shape="wide" warning={warnings.coverImg} />
-      <SpeakersField form={form} />
+      <MarkdownInput control={control} name="description" label="Description" rows={4} />
+      <InstantInput control={control} name="startAt" label="Starts" required timeZone={zone} defaultTime="10:00 AM" />
+      <InstantInput control={control} name="endAt" label="Ends" timeZone={zone} defaultTime="02:00 PM" optional />
+      <FormSection title="Where" stacked>
+        <SwitchInput control={control} name="online" label="Online event" />
+        <TextInput control={control} name={"venue.name" as never} label="Venue name" />
+        <UrlInput control={control} name={"venue.mapsUrl" as never} label="Google Maps link" leadingIcon="pin_drop" />
+      </FormSection>
+      <FormSection title="Registration" stacked>
+        <UrlInput
+          control={control}
+          name={"registration.url" as never}
+          label="Registration link"
+          leadingIcon="how_to_reg"
+        />
+        <InstantInput
+          control={control}
+          name={"registration.closesAt" as never}
+          label="Registration closes"
+          timeZone={zone}
+          defaultTime="11:59 PM"
+          optional
+        />
+      </FormSection>
+      <MediaInput control={control} name="cover" label="Cover image URL" shape="wide" optional />
+      <MediaInput control={control} name="thumbnail" label="Thumbnail URL" optional />
+      <FormSection title="Speakers" stacked>
+        <EventSpeakers control={control} />
+      </FormSection>
+      <TagsInput control={control} name="tags" label="Tags" />
     </ItemFormShell>
   );
 }
 
-export function EventsEditor({ state }: { state: SectionState<"events"> }) {
+export function EventsEditor({
+  state,
+  visibility,
+}: {
+  state: SectionState<{ items: CommunityEvent[] }>;
+  visibility: Visibility;
+}) {
+  const [now] = useState(() => Date.now());
+  const isUpcoming = (event: CommunityEvent) => Boolean(event.startAt) && toMillis(event.endAt || event.startAt) >= now;
   return (
-    <ListSectionEditor
-        state={state}
-        noun="event"
-        fieldLabels={FIELD_LABELS}
-        wideDialog
-        summarize={(event) => ({
-          primary: event.name,
-          secondary: [event.eventDate, event.tagline].filter(Boolean).join(" · "),
-          image: event.thumbnail,
-        })}
-        createItem={() => ({
-          id: "",
-          name: "",
-          tagline: "",
-          description: "",
-          thumbnail: "",
-          coverImg: "",
-          registrationDate: "",
-          eventDate: "",
-          registrationLink: "",
-          speakers: [],
-        })}
+    <ListSectionEditor<CommunityEvent>
+      state={state}
+      visibility={visibility}
+      noun="event"
+      fieldLabels={{ title: "Title", startAt: "Start", endAt: "End", registration: "Registration" }}
+      wideDialog
+      warnings={(draft) => sectionWarnings(state.id, draft)}
+      summarize={(event) => ({
+        primary: event.title,
+        secondary: [
+          event.startAt ? formatLegacyDate(event.startAt, event.timeZone || DEFAULT_TIME_ZONE) : "",
+          event.tagline,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        image: event.thumbnail?.url ?? event.cover?.url,
+      })}
+      createItem={() => ({ id: "", title: "", startAt: "", timeZone: DEFAULT_TIME_ZONE })}
       Form={EventForm}
-      wrapList={(items, list) => (
-        <OtherIdsContext
-          value={(event) => items.filter((other) => other !== event).map((other) => other.id)}
-        >
-          {list}
-        </OtherIdsContext>
-      )}
+      keepOrder
+      filters={[
+        { label: "Upcoming", test: isUpcoming },
+        { label: "Past", test: (event) => !isUpcoming(event) },
+      ]}
     />
   );
 }

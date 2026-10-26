@@ -1,10 +1,11 @@
 import { RelativeTime } from "@/components/RelativeTime";
 import { Icon } from "@/components/m3/Icon";
-import type { AuditAction, AuditEntry } from "@/lib/content/repository";
+import type { AuditAction, AuditEntry } from "@/lib/cms/repository";
 import { formatDateTime } from "@/lib/time";
 
 const ACTION_ICONS: Record<AuditAction, string> = {
   save_draft: "edit_note",
+  discard: "undo",
   publish: "publish",
   toggle: "toggle_on",
   revert: "restore",
@@ -12,6 +13,11 @@ const ACTION_ICONS: Record<AuditAction, string> = {
   admin_add: "person_add",
   admin_remove: "person_remove",
   admin_role: "manage_accounts",
+  blog_sync: "sync",
+  showcase_review: "rate_review",
+  legacy_sync: "sync_problem",
+  migration: "move_up",
+  edition_create: "event_repeat",
 };
 
 export function ActivityList({ entries }: { entries: AuditEntry[] }) {
