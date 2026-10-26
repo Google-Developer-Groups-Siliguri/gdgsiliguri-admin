@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" version="2.0">
+  <channel>
+    <title><![CDATA[GDG Siliguri]]></title>
+    <link>https://gdgsiliguri.hashnode.dev</link>
+    <item>
+      <title><![CDATA[Getting started with Gemini in Flutter]]></title>
+      <description><![CDATA[A step-by-step guide to calling the Gemini API from a Flutter app &amp; shipping it.]]></description>
+      <link>https://gdgsiliguri.hashnode.dev/getting-started-with-gemini-in-flutter</link>
+      <guid isPermaLink="true">https://gdgsiliguri.hashnode.dev/getting-started-with-gemini-in-flutter</guid>
+      <dc:creator><![CDATA[Amarjit Mallick]]></dc:creator>
+      <pubDate>Wed, 30 Sep 2026 12:30:00 GMT</pubDate>
+      <category><![CDATA[flutter]]></category>
+      <category><![CDATA[gemini]]></category>
+      <content:encoded><![CDATA[<p>Gemini makes it easy.</p><p>One two three four five.</p>]]></content:encoded>
+      <enclosure url="https://cdn.hashnode.com/res/hashnode/image/upload/v1/gemini.png" length="0" type="image/png"/>
+    </item>
+    <item>
+      <title><![CDATA[DevFest Siliguri 2025 recap]]></title>
+      <description><![CDATA[]]></description>
+      <link>https://gdgsiliguri.hashnode.dev/devfest-siliguri-2025-recap</link>
+      <dc:creator><![CDATA[GDG Siliguri]]></dc:creator>
+      <pubDate>Mon, 17 Nov 2025 09:00:00 GMT</pubDate>
+      <content:encoded><![CDATA[<p>Twelve sessions, seven speakers and a lot of chai.</p>]]></content:encoded>
+    </item>
+    <item>
+      <title><![CDATA[Broken entry]]></title>
+      <link>not a url</link>
+      <pubDate>yesterday</pubDate>
+    </item>
+  </channel>
+</rss>

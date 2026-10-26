@@ -28,7 +28,8 @@
     "migrate:v2": "tsx --conditions=react-server scripts/migrate-v2.ts",
     "verify:parity": "tsx --conditions=react-server scripts/verify-parity.ts",
     "sync:legacy": "tsx --conditions=react-server scripts/sync-legacy.ts",
-    "move:cms": "tsx scripts/move-cms.ts"
+    "move:cms": "tsx scripts/move-cms.ts",
+    "retention": "tsx --conditions=react-server scripts/retention.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

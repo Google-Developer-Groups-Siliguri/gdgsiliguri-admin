@@ -32,6 +32,7 @@ export default defineConfig({
       NEXT_PUBLIC_USE_EMULATORS: "true",
       EMULATOR_NAMESPACE: E2E_NAMESPACE,
       NEXT_DIST_DIR: ".next-e2e",
+      BLOG_AUTO_SYNC: "false",
     },
   },
 });

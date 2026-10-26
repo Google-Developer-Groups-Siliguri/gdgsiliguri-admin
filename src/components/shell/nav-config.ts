@@ -1,4 +1,5 @@
 import type { NavGroup } from "@/components/m3/navigation";
+import { isItemModule } from "@/lib/schema/v2/modules";
 import type { RegistryInput } from "@/lib/sections/registry";
 
 export const EDITION_PAGES = [
@@ -43,6 +44,22 @@ export function navGroups(registry: RegistryInput, pathname: string): NavGroup[]
         { href: "/community/events", label: "Events", icon: "calendar_month" },
         { href: "/community/reviews", label: "Reviews", icon: "reviews" },
         { href: "/community/faq", label: "FAQ", icon: "help" },
+        { href: "/community/blogs", label: "Blogs", icon: "article" },
+        { href: "/community/showcase", label: "Showcase", icon: "rocket_launch" },
+      ],
+    },
+    {
+      label: "Modules",
+      icon: "widgets",
+      items: [
+        ...registry.modules
+          .filter((module) => isItemModule(module.type))
+          .map((module) => ({
+            href: `/modules/${module.id}`,
+            label: module.title || module.id,
+            icon: module.icon || "widgets",
+          })),
+        { href: "/modules", label: "Manage modules", shortLabel: "Modules", icon: "tune" },
       ],
     },
     {
@@ -50,6 +67,8 @@ export function navGroups(registry: RegistryInput, pathname: string): NavGroup[]
       icon: "settings",
       items: [
         { href: "/settings/site", label: "Site", icon: "tune" },
+        { href: "/settings/app", label: "App", icon: "smartphone", ownerOnly: true },
+        { href: "/settings/showcase", label: "Showcase form", shortLabel: "Form", icon: "assignment", ownerOnly: true },
         { href: "/settings/admins", label: "Admins", icon: "admin_panel_settings", ownerOnly: true },
         { href: "/settings/activity", label: "Activity log", shortLabel: "Activity", icon: "history" },
       ],

@@ -1,10 +1,13 @@
 import "server-only";
 
+import { after } from "next/server";
+
 import { listAdmins } from "@/lib/admins/repository";
 import { requireAdminPage } from "@/lib/auth/session";
 import { parseSectionId, visibilitySectionId, type RegistryInput } from "@/lib/sections/registry";
 import { getSectionDef, loadRegistryInput } from "@/lib/sections/server";
 
+import { syncBlogsIfStale } from "./blogs";
 import { flushRebuild, getRebuildState } from "./rebuild";
 import { db, getSection, getSections, listAudit, type AuditQuery, type SectionState } from "./repository";
 import { readLegacySyncState } from "./sync";
@@ -66,6 +69,7 @@ export async function loadActors() {
 export async function loadLiveStatus() {
   const user = await requireAdminPage();
   await flushRebuild(user).catch(() => false);
+  if (process.env.BLOG_AUTO_SYNC !== "false") after(() => syncBlogsIfStale(user).catch(() => null));
   const [sync, rebuild, lastPublish] = await Promise.all([
     readLegacySyncState(),
     getRebuildState(),

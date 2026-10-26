@@ -143,6 +143,22 @@ Owner checks before the migration:
 - The deployed RTDB rules match `database.rules.json`.
 - The Netlify build hook is set in the production environment.
 
+## App settings, modules, blogs and showcase
+
+- **Settings → App** (owners): the mobile app's force-update builds, store links, hidden modules and
+  maintenance banner, published to `site/app`. Raising the minimum build blocks older installs.
+- **Modules**: extra sections without code changes. Cards, gallery and links modules get their own
+  item editor under Modules; text modules keep their Markdown on the module. Publishing the list
+  rebuilds the bundles; deleting a module also deletes its items.
+- **Community → Blogs**: posts come from the Hashnode RSS feed. **Sync now** fetches them, the
+  dashboard syncs again when the last sync is more than 6 hours old (`BLOG_AUTO_SYNC=false` turns
+  that off), and a scheduler can `POST /api/cron/blogs` with the `X-Cron-Secret` header set to
+  `CRON_SECRET`. Pins survive syncs; hidden posts are not re-added.
+- **Community → Showcase**: attendee projects from the Google Form (`integrations/google-form`)
+  wait here for review. Approving publishes them without any contact details; owners manage the
+  form secret at **Settings → Showcase form**. `npm run retention` removes contact details 60 days
+  after the edition and prunes old revisions.
+
 ## Firestore v2 migration (production runbook)
 
 Run by an owner, after the Phase 0 clean-up, with production credentials in `.env.local` and

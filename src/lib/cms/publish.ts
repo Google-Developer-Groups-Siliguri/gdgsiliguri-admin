@@ -6,6 +6,7 @@ import type { Database } from "firebase-admin/database";
 import { FieldValue, Timestamp, type Transaction } from "firebase-admin/firestore";
 
 import type { ModuleDoc } from "@/lib/schema/v2";
+import { isItemModule } from "@/lib/schema/v2/modules";
 import { fromFirestore, toFirestore } from "@/lib/schema/v2/convert";
 import {
   ALL_LEGACY_EDITION_NODES,
@@ -230,8 +231,9 @@ export async function publish(
   const lockId = randomUUID();
   const doc = await acquireLock(def, expectedVersion, actor, lockId);
   let impact: Impact;
+  let value: Doc;
   try {
-    const value = validate(def, parseValue(def, doc.draft));
+    value = validate(def, parseValue(def, doc.draft));
     const previous = parseValue(def, doc.published);
     const issues = await crossSectionIssues(def, value, createReader(db()));
     if (issues.length) throw new ContentError("Fix the highlighted problems before publishing.", "invalid", issues);
@@ -242,6 +244,7 @@ export async function publish(
     throw error;
   }
 
+  if (def.id === "modules") await ensureModuleSections(value);
   const warnings: PublishWarning[] = [];
   if (impact.legacyNodes.length) {
     const sync = await syncLegacy(impact.legacyNodes, actor, options.legacyDatabase).catch(() => null);
@@ -253,6 +256,26 @@ export async function publish(
   }
   await pruneRevisions(def.id).catch(() => undefined);
   return { state: await getSection(def.id), warnings, ...impact };
+}
+
+async function ensureModuleSections(value: Doc): Promise<void> {
+  const firestore = db();
+  const modules = ((value.items ?? []) as Partial<ModuleDoc>[]).filter(
+    (entry): entry is ModuleDoc => typeof entry.id === "string" && isItemModule(String(entry.type)),
+  );
+  for (const entry of modules) {
+    const ref = sectionRef(firestore, `module-${entry.id}`);
+    await ref
+      .create({
+        kind: "list",
+        scope: { type: "module", moduleId: entry.id },
+        draft: { items: [] },
+        published: { items: [] },
+        version: 1,
+        draftVersion: 1,
+      } as unknown as CmsSectionDoc)
+      .catch(() => undefined);
+  }
 }
 
 export async function toggleSection(id: string, enabled: boolean, actor: Actor): Promise<PublishResult> {
@@ -274,4 +297,14 @@ export async function toggleSection(id: string, enabled: boolean, actor: Actor):
     action: "toggle",
     summary: `Turned ${def.label} ${enabled ? "on" : "off"}`,
   });
+}
+
+export async function rebuildBundles(ids: BundleId[], actor: Actor): Promise<void> {
+  const firestore = db();
+  const read = createReader(firestore);
+  const generatedAt = new Date().toISOString();
+  const batch = firestore.batch();
+  for (const id of ids) batch.set(firestore.doc(bundlePath(id)), toFirestore(await buildBundle(id, read, { generatedAt })));
+  await batch.commit();
+  await scheduleRebuild(actor).catch(() => undefined);
 }
