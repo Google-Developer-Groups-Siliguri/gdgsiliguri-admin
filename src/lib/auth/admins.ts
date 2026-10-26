@@ -19,10 +19,19 @@ export type AdminRecord = {
 
 export const adminsCollection = () => adminsRef(adminFirestore());
 
+const legacyAdminsCollection = () => adminFirestore().collection("admins");
+
+async function findAdminSnapshot(email: string) {
+  const id = normalizeEmail(email);
+  const moved = await adminsCollection().doc(id).get();
+  if (moved.exists) return moved;
+  const legacy = await legacyAdminsCollection().doc(id).get();
+  return legacy.exists ? legacy : null;
+}
+
 export async function findAdmin(email: string): Promise<AdminRecord | null> {
-  const snapshot = await adminsCollection().doc(normalizeEmail(email)).get();
-  const data = snapshot.data();
-  if (!snapshot.exists || !data || !isRole(data.role)) return null;
+  const data = (await findAdminSnapshot(email))?.data();
+  if (!data || !isRole(data.role)) return null;
   return data as AdminRecord;
 }
 
@@ -30,11 +39,11 @@ export async function recordLogin(
   email: string,
   profile: { displayName: string | null; photoURL: string | null },
 ): Promise<void> {
-  await adminsCollection()
-    .doc(normalizeEmail(email))
-    .update({
-      lastLoginAt: FieldValue.serverTimestamp(),
-      ...(profile.displayName ? { displayName: profile.displayName } : {}),
-      ...(profile.photoURL ? { photoURL: profile.photoURL } : {}),
-    });
+  const snapshot = await findAdminSnapshot(email);
+  if (!snapshot) return;
+  await snapshot.ref.update({
+    lastLoginAt: FieldValue.serverTimestamp(),
+    ...(profile.displayName ? { displayName: profile.displayName } : {}),
+    ...(profile.photoURL ? { photoURL: profile.photoURL } : {}),
+  });
 }
