@@ -3,7 +3,8 @@ import "server-only";
 import { FieldValue, type Timestamp } from "firebase-admin/firestore";
 
 import { isRole, normalizeEmail, type Role } from "@/lib/auth/roles";
-import { writeAudit, type Actor } from "@/lib/content/repository";
+import { adminsRef } from "@/lib/cms/paths";
+import { writeAudit, type Actor } from "@/lib/cms/repository";
 import { adminAuthFor, adminFirestoreFor } from "@/lib/firebase/admin-app";
 
 export type AdminSummary = {
@@ -27,7 +28,7 @@ export class AdminError extends Error {
 }
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const admins = () => adminFirestoreFor().collection("admins");
+const admins = () => adminsRef(adminFirestoreFor());
 
 function iso(value: Timestamp | undefined): string | null {
   return value ? value.toDate().toISOString() : null;

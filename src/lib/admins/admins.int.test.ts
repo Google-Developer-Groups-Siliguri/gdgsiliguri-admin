@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { listAudit } from "@/lib/content/repository";
+import { adminsRef } from "@/lib/cms/paths";
+import { listAudit } from "@/lib/cms/repository";
 import { adminAuthFor, adminFirestoreFor } from "@/lib/firebase/admin-app";
 import { resetEmulatorData } from "@/test/emulator-reset";
 
@@ -9,7 +10,7 @@ import { AdminError, addAdmin, changeRole, listAdmins, removeAdmin } from "./rep
 const owner = { email: "owner@example.com" };
 
 async function seedOwner() {
-  await adminFirestoreFor().collection("admins").doc(owner.email).set({
+  await adminsRef(adminFirestoreFor()).doc(owner.email).set({
     email: owner.email,
     role: "owner",
     addedBy: "test",
@@ -27,7 +28,6 @@ async function expectAdminError(promise: Promise<unknown>, code: AdminError["cod
 
 beforeEach(async () => {
   await resetEmulatorData();
-  await adminFirestoreFor().collection("settings").doc("site").delete();
   await seedOwner();
 });
 

@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "emulators": "scripts/emulators.sh --import ./.emulator-data --export-on-exit ./.emulator-data",
-    "seed:emulator": "tsx scripts/seed-emulator.ts",
+    "seed:emulator": "tsx --conditions=react-server scripts/seed-emulator.ts",
     "import:rtdb": "tsx scripts/import-rtdb.ts",
     "admins:add": "tsx scripts/admins-add.ts",
     "theme:generate": "tsx scripts/generate-theme.ts",
@@ -24,7 +24,11 @@
     "cleanup:e2e": "tsx --conditions=react-server scripts/cleanup-e2e.ts",
     "fix:content": "tsx --conditions=react-server scripts/fix-content.ts",
     "schema:export": "tsx scripts/schema-export.ts",
-    "schema:check": "tsx scripts/schema-export.ts --check"
+    "schema:check": "tsx scripts/schema-export.ts --check",
+    "migrate:v2": "tsx --conditions=react-server scripts/migrate-v2.ts",
+    "verify:parity": "tsx --conditions=react-server scripts/verify-parity.ts",
+    "sync:legacy": "tsx --conditions=react-server scripts/sync-legacy.ts",
+    "move:cms": "tsx scripts/move-cms.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

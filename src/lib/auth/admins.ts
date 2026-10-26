@@ -2,6 +2,7 @@ import "server-only";
 
 import { FieldValue, type Timestamp } from "firebase-admin/firestore";
 
+import { adminsRef } from "@/lib/cms/paths";
 import { adminFirestore } from "@/lib/firebase/admin";
 
 import { isRole, normalizeEmail, type Role } from "./roles";
@@ -16,7 +17,7 @@ export type AdminRecord = {
   lastLoginAt?: Timestamp;
 };
 
-export const adminsCollection = () => adminFirestore().collection("admins");
+export const adminsCollection = () => adminsRef(adminFirestore());
 
 export async function findAdmin(email: string): Promise<AdminRecord | null> {
   const snapshot = await adminsCollection().doc(normalizeEmail(email)).get();

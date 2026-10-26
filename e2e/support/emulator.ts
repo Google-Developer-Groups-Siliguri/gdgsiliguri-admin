@@ -21,7 +21,7 @@ export async function clearFirestore(): Promise<void> {
 }
 
 export async function putAdmin(email: string, role: "owner" | "editor"): Promise<void> {
-  const response = await fetch(`${databaseUrl}/documents/admins/${encodeURIComponent(email)}`, {
+  const response = await fetch(`${databaseUrl}/documents/cms/root/admins/${encodeURIComponent(email)}`, {
     method: "PATCH",
     headers: ownerHeaders,
     body: JSON.stringify({

@@ -17,6 +17,7 @@ import type {
   TeamMember,
   Testimonial,
 } from "@/lib/schema/v2";
+import { lenient } from "@/lib/schema/v2";
 import { fromFirestore } from "@/lib/schema/v2/convert";
 
 import type { BundleReader } from "./bundles";
@@ -24,6 +25,29 @@ import { ContentError } from "./errors";
 import { sectionsRef } from "./paths";
 
 type Doc = Record<string, unknown>;
+
+const DOC_SCHEMAS: [RegExp, { parse(value: unknown): unknown }][] = [
+  [/^site\/config$/, lenient.siteConfig],
+  [/^site\/app$/, lenient.siteApp],
+  [/^editions\/\d{4}$/, lenient.edition],
+  [/^editions\/\d{4}\/sessions$/, lenient.session],
+  [/^editions\/\d{4}\/speakers$/, lenient.speaker],
+  [/^editions\/\d{4}\/sponsors$/, lenient.sponsor],
+  [/^editions\/\d{4}\/partners$/, lenient.partner],
+  [/^editions\/\d{4}\/faqs$/, lenient.faq],
+  [/^team$/, lenient.teamMember],
+  [/^events$/, lenient.communityEvent],
+  [/^testimonials$/, lenient.testimonial],
+  [/^faqs$/, lenient.faq],
+  [/^blogs$/, lenient.blog],
+  [/^showcase$/, lenient.showcaseItem],
+  [/^modules$/, lenient.moduleDoc],
+];
+
+function parsePublic(path: string, value: Doc): Doc {
+  const schema = DOC_SCHEMAS.find(([pattern]) => pattern.test(path))?.[1];
+  return schema ? (schema.parse(value) as Doc) : value;
+}
 
 export type Overrides = Map<string, Doc | Doc[]>;
 
@@ -48,14 +72,16 @@ export function createReader(db: Firestore, { tx, overrides = new Map(), version
     memo(`doc:${path}`, async () => {
       if (overrides.has(path)) return overrides.get(path) as Doc;
       const snapshot = await getDoc(db.doc(path));
-      return snapshot.exists ? fromFirestore<Doc>(snapshot.data()) : null;
+      return snapshot.exists ? parsePublic(path, fromFirestore<Doc>(snapshot.data())) : null;
     });
 
   const collection = (path: string) =>
     memo(`collection:${path}`, async () => {
       if (overrides.has(path)) return overrides.get(path) as (Doc & { id: string })[];
       const snapshot = await getQuery(db.collection(path));
-      return snapshot.docs.map((entry) => ({ ...fromFirestore<Doc>(entry.data()), id: entry.id }));
+      return snapshot.docs.map(
+        (entry) => parsePublic(path, { ...fromFirestore<Doc>(entry.data()), id: entry.id }) as Doc & { id: string },
+      );
     });
 
   const required = async <T>(path: string, message: string) => {

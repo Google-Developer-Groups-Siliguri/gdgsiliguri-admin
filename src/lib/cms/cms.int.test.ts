@@ -253,7 +253,8 @@ describe("legacy sync drift", () => {
   });
 
   it("brings RTDB to the new shape for 2026 on a full sync", async () => {
-    await syncLegacy("all", migrationActor);
+    const result = await syncLegacy("all", migrationActor);
+    expect(result.failed).toEqual([]);
     expect(await rtdbValue("schedule")).toEqual({ enabled: false });
     expect(await rtdbValue("speakers")).toEqual({ enabled: false });
     expect(await rtdbValue("sponsors")).toEqual({ enabled: false });

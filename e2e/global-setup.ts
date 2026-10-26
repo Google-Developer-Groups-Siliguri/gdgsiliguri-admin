@@ -13,7 +13,7 @@ export default async function globalSetup() {
     throw new Error("Firebase emulators are not running. Start them with `npm run emulators`.");
   }
   await clearFirestore();
-  execFileSync("npx", ["tsx", "scripts/seed-emulator.ts"], {
+  execFileSync("npx", ["tsx", "--conditions=react-server", "scripts/seed-emulator.ts"], {
     stdio: "ignore",
     env: { ...process.env, NEXT_PUBLIC_USE_EMULATORS: "true", EMULATOR_NAMESPACE: E2E_NAMESPACE },
   });
