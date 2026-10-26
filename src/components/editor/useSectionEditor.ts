@@ -88,13 +88,15 @@ export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, op
   }
 
   async function saveNow(): Promise<SectionState<T> | null> {
-    const result = await saveDraftAction(def.id, draft, state.draftVersion);
+    const sent = draft;
+    const result = await saveDraftAction(def.id, sent, state.draftVersion);
     if (!result.ok) {
       fail(result);
       return null;
     }
     const saved = result.data as SectionState<T>;
     setLatest(saved);
+    setDraftState((current) => (current === sent ? saved.draft : current));
     return saved;
   }
 
