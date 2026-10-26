@@ -6,6 +6,8 @@
       "fields": [ { "fieldPath": "actorEmail", "order": "ASCENDING" }, { "fieldPath": "at", "order": "DESCENDING" } ] },
     { "collectionGroup": "auditLog", "queryScope": "COLLECTION",
       "fields": [ { "fieldPath": "sectionId", "order": "ASCENDING" }, { "fieldPath": "actorEmail", "order": "ASCENDING" }, { "fieldPath": "at", "order": "DESCENDING" } ] },
+    { "collectionGroup": "auditLog", "queryScope": "COLLECTION",
+      "fields": [ { "fieldPath": "action", "order": "ASCENDING" }, { "fieldPath": "at", "order": "DESCENDING" } ] },
     { "collectionGroup": "showcaseSubmissions", "queryScope": "COLLECTION",
       "fields": [ { "fieldPath": "status", "order": "ASCENDING" }, { "fieldPath": "submittedAt", "order": "DESCENDING" } ] },
     { "collectionGroup": "showcase", "queryScope": "COLLECTION",
