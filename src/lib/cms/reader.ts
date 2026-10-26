@@ -17,7 +17,7 @@ import type {
   TeamMember,
   Testimonial,
 } from "@/lib/schema/v2";
-import { lenient } from "@/lib/schema/v2";
+import { lenient, strict } from "@/lib/schema/v2";
 import { fromFirestore } from "@/lib/schema/v2/convert";
 
 import type { BundleReader } from "./bundles";
@@ -26,27 +26,41 @@ import { sectionsRef } from "./paths";
 
 type Doc = Record<string, unknown>;
 
-const DOC_SCHEMAS: [RegExp, { parse(value: unknown): unknown }][] = [
-  [/^site\/config$/, lenient.siteConfig],
-  [/^site\/app$/, lenient.siteApp],
-  [/^editions\/\d{4}$/, lenient.edition],
-  [/^editions\/\d{4}\/sessions$/, lenient.session],
-  [/^editions\/\d{4}\/speakers$/, lenient.speaker],
-  [/^editions\/\d{4}\/sponsors$/, lenient.sponsor],
-  [/^editions\/\d{4}\/partners$/, lenient.partner],
-  [/^editions\/\d{4}\/faqs$/, lenient.faq],
-  [/^team$/, lenient.teamMember],
-  [/^events$/, lenient.communityEvent],
-  [/^testimonials$/, lenient.testimonial],
-  [/^faqs$/, lenient.faq],
-  [/^blogs$/, lenient.blog],
-  [/^showcase$/, lenient.showcaseItem],
-  [/^modules$/, lenient.moduleDoc],
+type Parser = { parse(value: unknown): unknown; safeParse(value: unknown): { success: boolean } };
+type SchemaKey = { [K in keyof typeof lenient]: (typeof lenient)[K] extends Parser ? K : never }[keyof typeof lenient];
+
+const DOC_SCHEMAS: [RegExp, SchemaKey][] = [
+  [/^site\/config$/, "siteConfig"],
+  [/^site\/app$/, "siteApp"],
+  [/^editions\/\d{4}$/, "edition"],
+  [/^editions\/\d{4}\/sessions$/, "session"],
+  [/^editions\/\d{4}\/speakers$/, "speaker"],
+  [/^editions\/\d{4}\/sponsors$/, "sponsor"],
+  [/^editions\/\d{4}\/partners$/, "partner"],
+  [/^editions\/\d{4}\/faqs$/, "faq"],
+  [/^team$/, "teamMember"],
+  [/^events$/, "communityEvent"],
+  [/^testimonials$/, "testimonial"],
+  [/^faqs$/, "faq"],
+  [/^blogs$/, "blog"],
+  [/^showcase$/, "showcaseItem"],
+  [/^modules$/, "moduleDoc"],
 ];
 
+const schemaKeyFor = (path: string) => DOC_SCHEMAS.find(([pattern]) => pattern.test(path))?.[1];
+
 function parsePublic(path: string, value: Doc): Doc {
-  const schema = DOC_SCHEMAS.find(([pattern]) => pattern.test(path))?.[1];
-  return schema ? (schema.parse(value) as Doc) : value;
+  const key = schemaKeyFor(path);
+  return key ? (lenient[key].parse(value) as Doc) : value;
+}
+
+// Collections such as events predate v2 and still hold documents the old app reads. Publishing and the
+// migration only write documents that pass the strict schema, so anything else is not v2 content.
+function isV2Doc(path: string, value: Doc): boolean {
+  const key = schemaKeyFor(path);
+  if (!key || strict[key].safeParse(value).success) return true;
+  console.warn(`Skipping ${path}/${String(value.id)}: not a v2 document`);
+  return false;
 }
 
 export type Overrides = Map<string, Doc | Doc[]>;
@@ -79,9 +93,10 @@ export function createReader(db: Firestore, { tx, overrides = new Map(), version
     memo(`collection:${path}`, async () => {
       if (overrides.has(path)) return overrides.get(path) as (Doc & { id: string })[];
       const snapshot = await getQuery(db.collection(path));
-      return snapshot.docs.map(
-        (entry) => parsePublic(path, { ...fromFirestore<Doc>(entry.data()), id: entry.id }) as Doc & { id: string },
-      );
+      return snapshot.docs
+        .map((entry) => ({ ...fromFirestore<Doc>(entry.data()), id: entry.id }))
+        .filter((value) => isV2Doc(path, value))
+        .map((value) => parsePublic(path, value) as Doc & { id: string });
     });
 
   const required = async <T>(path: string, message: string) => {
