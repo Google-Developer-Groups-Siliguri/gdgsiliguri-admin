@@ -358,7 +358,7 @@ export function ListEditor<T extends object>({
         onOpenChange={(open) => !open && setDeleting(null)}
         icon="delete"
         destructive
-        title={`Delete ${deleting !== null ? label(deleting) : noun}?`}
+        title={`Delete ${(deleting !== null ? label(deleting) : noun).replace(/\?+$/, "")}?`}
         description="It is removed from the draft. The live site changes only after you publish."
         confirmLabel="Delete"
         onConfirm={() => {
