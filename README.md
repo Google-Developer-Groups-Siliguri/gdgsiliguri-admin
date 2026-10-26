@@ -191,6 +191,14 @@ needs `--from-file backups/rtdb-<timestamp>.json` from before the migration.
 Rolling back: RTDB was never stopped, so redeploy the previous admin build. The v2 data stays
 unused.
 
+## CI
+
+`.github/workflows/ci.yml` runs lint, typecheck, unit tests, the schema check, the integration
+tests and Playwright against the emulators on every pull request. A nightly job runs
+`verify:parity -- --production` with the read-only service account in the `GCP_SA_READONLY`
+secret (roles: Firebase Realtime Database Viewer and Cloud Datastore Viewer) and opens an issue if
+RTDB and Firestore drift apart. Deploy commands always name the project: `-P prod`.
+
 ## Project layout
 
 ```

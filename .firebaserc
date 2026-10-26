@@ -1,5 +1,6 @@
 {
   "projects": {
-    "default": "demo-gdg-siliguri"
+    "default": "demo-gdg-siliguri",
+    "prod": "devfest-siliguri"
   }
 }
