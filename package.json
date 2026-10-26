@@ -22,7 +22,9 @@
     "backup": "tsx scripts/backup.ts",
     "backup:prod": "tsx scripts/backup.ts --production",
     "cleanup:e2e": "tsx --conditions=react-server scripts/cleanup-e2e.ts",
-    "fix:content": "tsx --conditions=react-server scripts/fix-content.ts"
+    "fix:content": "tsx --conditions=react-server scripts/fix-content.ts",
+    "schema:export": "tsx scripts/schema-export.ts",
+    "schema:check": "tsx scripts/schema-export.ts --check"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

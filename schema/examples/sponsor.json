@@ -1,0 +1,8 @@
+{
+  "name": "Google for Developers",
+  "tier": "platinum",
+  "logo": { "url": "https://ik.imagekit.io/gdgsiliguri1/Sponsors/Google%20For%20Developers.png", "alt": "Google for Developers" },
+  "url": "https://developers.google.com/",
+  "order": 10,
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

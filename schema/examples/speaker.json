@@ -1,0 +1,9 @@
+{
+  "name": "Satish VJ",
+  "headline": "Tech Architect, Investor",
+  "photo": { "url": "https://ik.imagekit.io/gdgsiliguri1/speakers/2025/Satish%20VJ.jpeg", "alt": "Satish VJ", "width": 800, "height": 800 },
+  "trackId": "cloud",
+  "links": { "linkedin": "https://www.linkedin.com/in/sathishvj/", "x": "https://x.com/sathishvj" },
+  "order": 10,
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

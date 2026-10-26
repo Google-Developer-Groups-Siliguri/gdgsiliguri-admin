@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 2,
+  "minSupportedBuild": 4100,
+  "latestBuild": 4100,
+  "updateMessage": "A new version of the GDG Siliguri app is available with the DevFest 2026 schedule.",
+  "storeUrls": {
+    "android": "https://play.google.com/store/apps/details?id=com.amarjitmallick.gdg_siliguri",
+    "ios": "https://apps.apple.com/app/idXXXXXXXXXX"
+  },
+  "disabledModules": [],
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

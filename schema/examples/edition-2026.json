@@ -1,0 +1,114 @@
+{
+  "year": 2026,
+  "title": "DevFest Siliguri 2026",
+  "summary": "Whether you're passionate about finding new opportunities, elevating your knowledge on the latest Google developer tools, or exploring how to use Google technologies to generate social and economic impact, DevFest offers an amazing platform for developers to connect locally, learn, and build on Google's tools.",
+  "timeZone": "Asia/Kolkata",
+  "startAt": {
+    "$timestamp": "2026-11-14T08:00:00+05:30"
+  },
+  "endAt": {
+    "$timestamp": "2026-11-14T17:30:00+05:30"
+  },
+  "registration": {},
+  "venue": {
+    "name": "ITC Fortune Select Siliguri",
+    "address": "Siliguri, West Bengal",
+    "geo": {
+      "$geopoint": [
+        26.7402775,
+        88.4556026
+      ]
+    },
+    "mapsUrl": "https://maps.app.goo.gl/pGy6NBJGr9e4P1cE7",
+    "embedUrl": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3563.128427322844!2d88.45560259999999!3d26.7402775!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39e4410045eee279%3A0xffa1d24bc94b527e!2sFortune%20Select%20Siliguri%20-%20Member%20ITC%20Hotels%E2%80%99%20Group!5e0!3m2!1sen!2sin!4v1792922706677!5m2!1sen!2sin",
+    "image": {
+      "url": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/venue.webp",
+      "alt": "ITC Fortune Select Siliguri"
+    }
+  },
+  "banner": {
+    "url": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/devfest2025_banner.png",
+    "alt": "DevFest Siliguri",
+    "variants": {
+      "long": {
+        "url": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/devfest2025_long_banner.png",
+        "alt": "DevFest Siliguri 2026"
+      }
+    }
+  },
+  "badges": [
+    {
+      "url": "https://ik.imagekit.io/gdgsiliguri1/Logos%20and%20Banners/India-AI-Impact-Summit-2026-Logo.png",
+      "alt": "India AI Impact Summit 2026"
+    }
+  ],
+  "perks": [
+    "Hands-on workshops",
+    "Interaction with the community",
+    "Network with like-minded people",
+    "Participate in our giveaways",
+    "Grow your knowledge on different technologies",
+    "Learn to optimise your resources",
+    "Interact with industry experts",
+    "Get a chance to win exciting goodies"
+  ],
+  "notes": [
+    "Each ticket is valid for ONE admission only. If you are bringing a guest, they'll need their own ticket.",
+    "Tickets are non-refundable.",
+    "You have to show your ticket to the volunteers and make sure your entry.",
+    "You can't copy ticket from others because each ticket have their specific QR code.",
+    "Those who will get their tickets only they will attend.",
+    "It's important for us that everyone who attends DevFest 2026 Siliguri is treated equally, respected, and protected. By attending, you agree to abide by our terms."
+  ],
+  "tracks": [
+    {
+      "id": "ai",
+      "label": "AI",
+      "color": "#4285F4",
+      "order": 10,
+      "frame": {
+        "url": "https://ik.imagekit.io/gdgsiliguri1/speakers/ai_frame.png",
+        "alt": ""
+      }
+    },
+    {
+      "id": "app",
+      "label": "App",
+      "color": "#34A853",
+      "order": 20,
+      "frame": {
+        "url": "https://ik.imagekit.io/gdgsiliguri1/speakers/mobile_frame.png",
+        "alt": ""
+      }
+    },
+    {
+      "id": "cloud",
+      "label": "Cloud",
+      "color": "#FBBC04",
+      "order": 30,
+      "frame": {
+        "url": "https://ik.imagekit.io/gdgsiliguri1/speakers/cloud_frame.png",
+        "alt": ""
+      }
+    },
+    {
+      "id": "web",
+      "label": "Web",
+      "color": "#EA4335",
+      "order": 40
+    }
+  ],
+  "sections": {
+    "schedule": false,
+    "speakers": false,
+    "sponsors": false,
+    "partners": true,
+    "faqs": true,
+    "perks": true,
+    "notes": true,
+    "registration": false
+  },
+  "updatedAt": {
+    "$timestamp": "2026-10-26T10:00:00+05:30"
+  }
+}

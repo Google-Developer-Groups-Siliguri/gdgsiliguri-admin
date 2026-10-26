@@ -1,0 +1,15 @@
+{
+  "type": "showcase",
+  "title": "Community Projects",
+  "subtitle": "Built by DevFest attendees",
+  "icon": "rocket_launch",
+  "edition": 2026,
+  "source": { "kind": "showcase", "edition": 2026, "limit": 50 },
+  "placement": {
+    "app": { "slot": "homeCard", "order": 40 },
+    "web": { "slot": "page", "order": 40, "path": "/showcase" }
+  },
+  "minAppBuild": 4200,
+  "enabled": true,
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

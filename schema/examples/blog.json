@@ -1,0 +1,13 @@
+{
+  "title": "Getting started with Gemini in Flutter",
+  "brief": "A step-by-step guide to calling the Gemini API from a Flutter app using Firebase AI Logic.",
+  "url": "https://gdgsiliguri.hashnode.dev/getting-started-with-gemini-in-flutter",
+  "cover": { "url": "https://cdn.hashnode.com/res/hashnode/image/upload/…", "alt": "" },
+  "author": { "name": "Amarjit Mallick", "photoUrl": "https://cdn.hashnode.com/…" },
+  "publishedAt": { "$timestamp": "2026-09-30T18:00:00+05:30" },
+  "readMinutes": 6,
+  "tags": ["flutter", "gemini"],
+  "pinned": false,
+  "source": "hashnode",
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

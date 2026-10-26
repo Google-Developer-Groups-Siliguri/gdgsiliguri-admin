@@ -1,0 +1,11 @@
+{
+  "title": "Supercharge App Dev with Gen AI - Utilery",
+  "type": "talk",
+  "startAt": { "$timestamp": "2026-11-14T10:00:00+05:30" },
+  "endAt": { "$timestamp": "2026-11-14T10:45:00+05:30" },
+  "trackId": "cloud",
+  "speakerIds": ["satish-vj"],
+  "room": "Main Hall",
+  "order": 20,
+  "updatedAt": { "$timestamp": "2026-10-26T10:00:00+05:30" }
+}

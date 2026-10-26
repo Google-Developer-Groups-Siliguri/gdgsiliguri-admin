@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 2,
+  "name": "GDG Siliguri",
+  "tagline": "Google Developer Group for North Bengal and Sikkim",
+  "description": "GDG Siliguri is based out of Siliguri and handles the geographic region of North Bengal and Sikkim. We are a group consisting of both student and professional developers and we conduct a lot of events to empower the local tech community. These includes tech talks, hackathons, codelabs, workshops and more.",
+  "email": "gdgsiliguri@gmail.com",
+  "joinUrl": "https://gdg.community.dev/gdg-siliguri/",
+  "region": "North Bengal and Sikkim",
+  "appLinks": {
+    "android": "https://play.google.com/store/apps/details?id=com.amarjitmallick.gdg_siliguri",
+    "ios": "https://apps.apple.com/app/idXXXXXXXXXX"
+  },
+  "links": {
+    "x": "https://twitter.com/GDGSiliguri",
+    "linkedin": "https://www.linkedin.com/company/gdg-siliguri/",
+    "instagram": "https://www.instagram.com/gdgsiliguri/",
+    "facebook": "https://www.facebook.com/GDGSiliguri",
+    "github": "https://github.com/Google-Developer-Groups-Siliguri"
+  },
+  "activeEdition": 2026,
+  "eventMode": "auto",
+  "sections": {
+    "team": true,
+    "events": true,
+    "testimonials": true,
+    "faqs": true,
+    "blogs": true,
+    "showcase": false,
+    "pastEditions": true
+  },
+  "updatedAt": {
+    "$timestamp": "2026-10-26T10:00:00+05:30"
+  }
+}
