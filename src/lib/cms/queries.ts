@@ -4,23 +4,12 @@ import { after } from "next/server";
 
 import { listAdmins } from "@/lib/admins/repository";
 import { requireAdminPage } from "@/lib/auth/session";
-import {
-  parseSectionId,
-  visibilitySectionId,
-  type RegistryInput,
-} from "@/lib/sections/registry";
+import { parseSectionId, visibilitySectionId, type RegistryInput } from "@/lib/sections/registry";
 import { getSectionDef, loadRegistryInput } from "@/lib/sections/server";
 
 import { syncBlogsIfStale } from "./blogs";
 import { flushRebuild, getRebuildState } from "./rebuild";
-import {
-  db,
-  getSection,
-  getSections,
-  listAudit,
-  type AuditQuery,
-  type SectionState,
-} from "./repository";
+import { db, getSection, getSections, listAudit, type AuditQuery, type SectionState } from "./repository";
 import { readLegacySyncState } from "./sync";
 
 export type Visibility = { ownerId: string; enabled: boolean } | null;
@@ -37,19 +26,12 @@ async function visibilityOf(id: string): Promise<Visibility> {
 }
 
 export async function loadSection(id: string): Promise<LoadedSection> {
-  await requireAdminPage(
-    parseSectionId(id).type === "site-app" ? "owner" : "editor",
-  );
-  const [state, visibility] = await Promise.all([
-    getSection(id),
-    visibilityOf(id),
-  ]);
+  await requireAdminPage(parseSectionId(id).type === "site-app" ? "owner" : "editor");
+  const [state, visibility] = await Promise.all([getSection(id), visibilityOf(id)]);
   return { state, visibility };
 }
 
-export async function loadSectionStates(
-  ids: string[],
-): Promise<Record<string, SectionState>> {
+export async function loadSectionStates(ids: string[]): Promise<Record<string, SectionState>> {
   await requireAdminPage();
   return getSections(ids);
 }
@@ -87,8 +69,7 @@ export async function loadActors() {
 export async function loadLiveStatus() {
   const user = await requireAdminPage();
   await flushRebuild(user).catch(() => false);
-  if (process.env.BLOG_AUTO_SYNC !== "false")
-    after(() => syncBlogsIfStale(user).catch(() => null));
+  if (process.env.BLOG_AUTO_SYNC !== "false") after(() => syncBlogsIfStale(user).catch(() => null));
   const [sync, rebuild, lastPublish] = await Promise.all([
     readLegacySyncState(),
     getRebuildState(),
