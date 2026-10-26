@@ -1,7 +1,40 @@
 rules_version = '2';
 
+// GDG Siliguri — Firestore v2.
+// Public collections contain published content only (written by the admin's Admin SDK).
+// No client may write anything. cms/** is private.
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} { allow read, write: if false; }
+
+    match /site/{doc} {
+      allow get: if doc in ['config', 'app'];
+      allow list: if false;
+    }
+
+    match /bundles/{doc}            { allow read: if true; }
+
+    match /editions/{year}          { allow read: if true; }
+    match /editions/{year}/{col}/{id} {
+      allow read: if col in ['sessions', 'speakers', 'sponsors', 'partners', 'faqs'];
+    }
+
+    match /team/{id}                { allow read: if true; }
+    match /events/{id}              { allow read: if true; }
+    match /testimonials/{id}        { allow read: if true; }
+    match /faqs/{id}                { allow read: if true; }
+    match /blogs/{id}               { allow read: if true; }
+    match /showcase/{id}            { allow read: if true; }
+    match /modules/{id}             { allow read: if true; }
+    match /moduleItems/{moduleId}/items/{id} { allow read: if true; }
+
+    // Admin-only (Admin SDK bypasses rules). Legacy admin collections stay locked too.
+    match /cms/{document=**}        { allow read, write: if false; }
+    match /content/{document=**}    { allow read, write: if false; }
+    match /auditLog/{document=**}   { allow read, write: if false; }
+    match /admins/{document=**}     { allow read, write: if false; }
+    match /settings/{document=**}   { allow read, write: if false; }
+
+    // Writes are never allowed from clients.
+    match /{document=**}            { allow write: if false; }
   }
 }
