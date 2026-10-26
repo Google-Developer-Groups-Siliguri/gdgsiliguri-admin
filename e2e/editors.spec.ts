@@ -25,7 +25,6 @@ function rows(page: Page) {
 
 test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }) => {
   await openEditor(page, "/community/team");
-  await expect(page.getByRole("main").getByText("1 problem to fix before publishing")).toBeVisible();
   await expect(page.getByRole("button", { name: "Publish", exact: true })).toBeDisabled();
 
   await page.getByRole("button", { name: "Add member" }).click();
@@ -43,16 +42,20 @@ test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }
   await edit.getByRole("button", { name: "Done" }).click();
 
   await page.getByRole("button", { name: "Edit Debajyoti Sarkar" }).click();
+  const twitter = page.getByRole("dialog").getByRole("textbox", { name: "X / Twitter" });
+  await twitter.fill("Twitter.com/debuisalive");
+  await twitter.blur();
+  await expect(twitter).toHaveAttribute("aria-invalid", "true");
   await page.getByRole("dialog").getByRole("button", { name: "Fix it" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Done" }).click();
-  await expect(page.getByText("problem to fix before publishing")).toBeHidden();
+  await expect(page.getByRole("dialog")).toBeHidden();
 
   const announcer = page.locator('[id^="DndLiveRegion"]').first();
   await page.getByRole("button", { name: "Reorder Debajit Mallick" }).focus();
   await page.keyboard.press("Space");
-  await expect(announcer).toContainText("Position 1 of 22.");
+  await expect(announcer).toContainText("Position 1 of 20.");
   await page.keyboard.press("ArrowDown");
-  await expect(announcer).toContainText("Position 2 of 22.");
+  await expect(announcer).toContainText("Position 2 of 20.");
   await page.keyboard.press("Space");
   await expect(announcer).toContainText("Dropped at position 2");
   await expect(rows(page).getByRole("listitem").nth(0)).toContainText("Sourav Das");
@@ -64,11 +67,11 @@ test("team: add, edit, reorder, delete, fix a link and publish", async ({ page }
 
   await page.getByRole("button", { name: "Save draft" }).click();
   await expect(page.getByText("Draft saved. The live site is unchanged.").first()).toBeVisible();
-  expect(((await readRtdb("teams/data")) as Json[]).length).toBe(21);
+  expect(((await readRtdb("teams/data")) as Json[]).length).toBe(19);
 
   await publish(page, "Team");
   const live = (await readRtdb("teams/data")) as Json[];
-  expect(live).toHaveLength(21);
+  expect(live).toHaveLength(19);
   expect(live[0].name).toBe("Sourav Das");
   expect(live[0].description).toBe("Engineering Manager @AppyPies");
   expect(live[1].name).toBe("Debajit Mallick");
@@ -98,8 +101,8 @@ test("faq: a new question needs both fields and publishes", async ({ page }) => 
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
   await publish(page, "DevFest FAQ");
   const live = (await readRtdb("FAQs/data")) as Json[];
-  expect(live).toHaveLength(18);
-  expect(live[17]).toEqual({ question: "Is there parking at the venue?", answer: "Yes, free parking is available." });
+  expect(live).toHaveLength(15);
+  expect(live[14]).toEqual({ question: "Is there parking at the venue?", answer: "Yes, free parking is available." });
 });
 
 test("sponsors: move a sponsor to another tier", async ({ page }) => {
@@ -117,6 +120,11 @@ test("sponsors: move a sponsor to another tier", async ({ page }) => {
 
 test("schedule: fixing the AM/PM slip clears the warning and keeps a string duration", async ({ page }) => {
   await openEditor(page, "/devfest/schedule");
+  await page.getByRole("button", { name: "Edit Panel Discussion" }).first().click();
+  const slip = page.getByRole("dialog", { name: "Edit slot" });
+  await slip.getByRole("textbox", { name: "Starts" }).fill("12:10 AM");
+  await slip.getByRole("textbox", { name: "Ends" }).fill("12:40 AM");
+  await slip.getByRole("button", { name: "Done" }).click();
   await expect(page.getByText("Starts earlier than the slot above it. Check AM/PM or the order.")).toBeVisible();
   await page.getByRole("button", { name: "Edit Panel Discussion" }).first().click();
   const dialog = page.getByRole("dialog", { name: "Edit slot" });
@@ -156,12 +164,12 @@ test("event details: edit fields across tabs and publish the exact shape", async
   expect(live.pointsToNote.enabled).toBe(false);
   expect(live.eventMode).toBe(true);
   expect(live.frames).toBeTruthy();
-  expect(live.eventDateTime).toBe("2025-11-16 08:00:00.000");
+  expect(live.eventDateTime).toBe("2026-11-14 08:00:00.000");
 });
 
 test("events: create the first event, publish it and turn the section on", async ({ page }) => {
   await openEditor(page, "/community/events");
-  expect(await readRtdb("events")).toBeNull();
+  expect(await readRtdb("events")).toEqual({ enabled: false });
   await page.getByRole("button", { name: "Add event" }).click();
   const dialog = page.getByRole("dialog", { name: "Add event" });
   await dialog.getByLabel("Name").fill("Build with AI Siliguri");

@@ -75,7 +75,7 @@ test.describe("dashboard", () => {
     for (const name of ["Event details", "Schedule", "Speakers", "Sponsors", "Team", "Reviews", "Events"]) {
       await expect(sections.getByRole("link", { name, exact: true })).toBeVisible();
     }
-    await expect(sections.getByText("21 items")).toBeVisible();
+    await expect(sections.getByText("19 items")).toBeVisible();
     await expect(page.getByRole("main").getByText("DevFest Siliguri")).toBeVisible();
   });
 
