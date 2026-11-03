@@ -54,6 +54,7 @@ export const homeEdition = editionDoc.pick({
   startAt: true,
   endAt: true,
   registration: true,
+  calls: true,
   venue: true,
   banner: true,
   badges: true,

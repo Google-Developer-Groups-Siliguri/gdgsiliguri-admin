@@ -23,6 +23,9 @@ export const EDITION_SECTION_KEYS = [
 ] as const;
 export type EditionSectionKey = (typeof EDITION_SECTION_KEYS)[number];
 
+export const EDITION_CALL_KEYS = ["speakers", "sponsors", "partners"] as const;
+export type EditionCallKey = (typeof EDITION_CALL_KEYS)[number];
+
 function after(a: string | undefined, b: string | undefined): boolean {
   return Boolean(a && b) && Date.parse(a!) > Date.parse(b!);
 }
@@ -50,6 +53,16 @@ export function buildEdition(mode: Mode) {
       .optional(),
   });
 
+  const call = f.object({ url: f.optionalUrl("The form link"), open: z.boolean().default(false) });
+
+  const calls = f.object(
+    Object.fromEntries(
+      EDITION_CALL_KEYS.map((key) => [key, f.strict ? call.optional() : call.default({ open: false })]),
+    ) as {
+      [K in EditionCallKey]: z.ZodOptional<typeof call>;
+    },
+  );
+
   const editionBase = f.object({
     year: f.strict ? z.number().int().min(2000).max(2100) : z.number().default(new Date().getFullYear()),
     title: f.requiredText("Title", 120),
@@ -67,6 +80,7 @@ export function buildEdition(mode: Mode) {
         closesAt: f.optionalInstant("Closes"),
       })
       .default({}),
+    calls: calls.default({}),
     venue: f.required(f.venue()),
     banner: f.required(banner),
     badges: z.array(f.media("Badge")).optional(),
@@ -104,6 +118,16 @@ export function buildEdition(mode: Mode) {
         path: ["registration", "opensAt"],
         message: "Registration must open before it closes",
       });
+    }
+    for (const key of EDITION_CALL_KEYS) {
+      const entry = value.calls[key];
+      if (entry?.open && !entry.url) {
+        context.addIssue({
+          code: "custom",
+          path: ["calls", key, "url"],
+          message: "Add the form link before opening it",
+        });
+      }
     }
     uniqueIds(value.tracks, context, ["tracks"]);
   });

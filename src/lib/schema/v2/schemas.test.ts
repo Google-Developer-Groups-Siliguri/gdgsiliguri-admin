@@ -86,6 +86,21 @@ describe("cross-field rules", () => {
     ]);
   });
 
+  it("requires a form link before a call opens", () => {
+    const calls = {
+      speakers: { open: true },
+      sponsors: { url: "https://forms.gle/sponsor", open: true },
+      partners: { url: "https://forms.gle/partner" },
+    };
+    expect(issues(strict.edition, { ...edition, calls })).toEqual([
+      "calls.speakers.url: Add the form link before opening it",
+    ]);
+    expect(strict.edition.parse({ ...edition, calls: { partners: calls.partners } }).calls.partners).toEqual({
+      url: "https://forms.gle/partner",
+      open: false,
+    });
+  });
+
   it("rejects duplicate track ids and a pasted iframe", () => {
     const tracks = edition.tracks as { id: string }[];
     const venue = {
