@@ -16,7 +16,14 @@ import { Tab, TabList, TabPanel, Tabs } from "@/components/m3/Tabs";
 import { TextField } from "@/components/m3/TextField";
 import type { SectionState } from "@/lib/cms/repository";
 import { sectionWarnings } from "@/lib/cms/warnings";
-import { EDITION_SECTION_KEYS, type Edition, type EditionSectionKey, type Media } from "@/lib/schema/v2";
+import {
+  EDITION_CALL_KEYS,
+  EDITION_SECTION_KEYS,
+  type Edition,
+  type EditionCallKey,
+  type EditionSectionKey,
+  type Media,
+} from "@/lib/schema/v2";
 import { formatEventMoment } from "@/lib/time";
 import { toMillis } from "@/lib/time/tz";
 
@@ -35,6 +42,26 @@ const SECTION_LABELS: Record<EditionSectionKey, { label: string; hint: string }>
   registration: { label: "Registration", hint: "The ticket button and dates" },
 };
 
+const CALL_LABELS: Record<EditionCallKey, { title: string; description: string; icon: string }> = {
+  speakers: {
+    title: "Call for speakers",
+    description: "The form people use to propose a talk or workshop.",
+    icon: "record_voice_over",
+  },
+  sponsors: {
+    title: "Call for sponsors",
+    description: "The form companies use to sponsor this DevFest.",
+    icon: "handshake",
+  },
+  partners: {
+    title: "Call for community partners",
+    description: "The form communities use to partner with this DevFest.",
+    icon: "diversity_3",
+  },
+};
+
+const VISIBILITY_KEYS = EDITION_SECTION_KEYS.filter((key) => key !== "registration");
+
 const TAB_FOR_FIELD: Record<string, string> = {
   title: "basics",
   theme: "basics",
@@ -45,6 +72,7 @@ const TAB_FOR_FIELD: Record<string, string> = {
   endAt: "when",
   timeZone: "when",
   registration: "when",
+  calls: "calls",
   venue: "venue",
   banner: "branding",
   badges: "branding",
@@ -62,6 +90,7 @@ const PATH_LABELS: Record<string, string> = {
   startAt: "Start",
   endAt: "End",
   registration: "Registration",
+  calls: "Calls",
   venue: "Venue",
   banner: "Banner",
   tracks: "Tracks",
@@ -75,11 +104,13 @@ function Toggle({
   hint,
   checked,
   onChange,
+  ariaLabel = `Show ${label.toLowerCase()}`,
 }: {
   label: string;
   hint: string;
   checked: boolean;
   onChange: (value: boolean) => void;
+  ariaLabel?: string;
 }) {
   return (
     <label className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-full bg-surface-container-high ps-5 pe-2.5">
@@ -87,8 +118,20 @@ function Toggle({
         <span className="text-label-large text-on-surface">{label}</span>
         <span className="text-label-medium text-on-surface-variant">{hint}</span>
       </span>
-      <Switch checked={checked} onCheckedChange={onChange} aria-label={`Show ${label.toLowerCase()}`} />
+      <Switch checked={checked} onCheckedChange={onChange} aria-label={ariaLabel} />
     </label>
+  );
+}
+
+function CallToggle({ title, open, onChange }: { title: string; open: boolean; onChange: (value: boolean) => void }) {
+  return (
+    <Toggle
+      label={open ? "Open" : "Closed"}
+      hint={open ? "Visitors can open the form" : "The card shows as closed"}
+      checked={open}
+      onChange={onChange}
+      ariaLabel={`${title} open`}
+    />
   );
 }
 
@@ -152,6 +195,13 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
     [state.published.tracks],
   );
 
+  function setCallOpen(key: EditionCallKey, open: boolean) {
+    setDraft((current) => ({
+      ...current,
+      calls: { ...current.calls, [key]: { ...current.calls?.[key], open } },
+    }));
+  }
+
   function setList<K extends "perks" | "notes" | "techStack">(key: K, values: string[]) {
     setDraft((current) => ({ ...current, [key]: values.length ? values : undefined }));
   }
@@ -159,6 +209,7 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
   function describePath(path: (string | number)[]) {
     const [first, second] = path;
     const base = PATH_LABELS[String(first)] ?? String(first);
+    if (first === "calls" && typeof second === "string") return CALL_LABELS[second as EditionCallKey]?.title ?? base;
     if (first === "tracks" && typeof second === "number")
       return `${base} · ${draft.tracks[second]?.label || `Track ${second + 1}`}`;
     return [base, typeof second === "string" ? second : typeof second === "number" ? `item ${second + 1}` : ""]
@@ -173,7 +224,9 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
     <SectionEditorLayout
       editor={editor as unknown as SectionEditor}
       describePath={describePath}
-      onSelectIssue={(path) => setTab(TAB_FOR_FIELD[String(path[0])] ?? "basics")}
+      onSelectIssue={(path) =>
+        setTab(path[0] === "registration" && path[1] === "url" ? "calls" : (TAB_FOR_FIELD[String(path[0])] ?? "basics"))
+      }
     >
       <Tabs value={tab} onValueChange={setTab}>
         <TabList aria-label="Event">
@@ -182,6 +235,9 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
           </Tab>
           <Tab value="when" icon="event">
             When
+          </Tab>
+          <Tab value="calls" icon="campaign">
+            Calls
           </Tab>
           <Tab value="venue" icon="location_on">
             Venue
@@ -248,14 +304,10 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
                 supportingText="An IANA zone, for example Asia/Kolkata"
               />
             </FormSection>
-            <FormSection title="Registration" description="Leave these empty while registration is pending.">
-              <UrlInput
-                control={control}
-                name={"registration.url" as never}
-                label="Registration link"
-                leadingIcon="confirmation_number"
-                warning={warnings["registration.url"]}
-              />
+            <FormSection
+              title="Registration"
+              description="Optional window for the ticket button. The link and the switch are under Calls."
+            >
               <InstantInput
                 control={control}
                 name={"registration.opensAt" as never}
@@ -272,6 +324,44 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
                 optional
               />
             </FormSection>
+          </TabPanel>
+
+          <TabPanel value="calls" forceMount hidden={tab !== "calls"} className="flex flex-col gap-4">
+            <FormSection
+              title="Register for tickets"
+              description="The ticket form. It also needs the registration window under When to be open, if one is set."
+            >
+              <CallToggle
+                title="Tickets"
+                open={Boolean(draft.sections.registration)}
+                onChange={(value) =>
+                  setDraft((current) => ({ ...current, sections: { ...current.sections, registration: value } }))
+                }
+              />
+              <UrlInput
+                control={control}
+                name={"registration.url" as never}
+                label="Registration link"
+                leadingIcon="confirmation_number"
+                warning={warnings["registration.url"]}
+              />
+            </FormSection>
+            {EDITION_CALL_KEYS.map((key) => (
+              <FormSection key={key} title={CALL_LABELS[key].title} description={CALL_LABELS[key].description}>
+                <CallToggle
+                  title={CALL_LABELS[key].title}
+                  open={Boolean(draft.calls?.[key]?.open)}
+                  onChange={(value) => setCallOpen(key, value)}
+                />
+                <UrlInput
+                  control={control}
+                  name={`calls.${key}.url` as never}
+                  label="Form link"
+                  leadingIcon={CALL_LABELS[key].icon}
+                  supportingText="A Google Form or any https:// link"
+                />
+              </FormSection>
+            ))}
           </TabPanel>
 
           <TabPanel value="venue" forceMount hidden={tab !== "venue"} className="flex flex-col gap-4 expanded:flex-row">
@@ -393,7 +483,7 @@ export function EditionEditor({ state, usedTrackIds }: EditionEditorProps) {
               title="Sections"
               description="What the website and the app show for this DevFest. These change with the next publish."
             >
-              {EDITION_SECTION_KEYS.map((key) => (
+              {VISIBILITY_KEYS.map((key) => (
                 <Toggle
                   key={key}
                   label={SECTION_LABELS[key].label}

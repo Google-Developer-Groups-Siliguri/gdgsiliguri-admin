@@ -70,6 +70,61 @@
       },
       "additionalProperties": false
     },
+    "calls": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "speakers": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "open": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "open"
+          ],
+          "additionalProperties": false
+        },
+        "sponsors": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "open": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "open"
+          ],
+          "additionalProperties": false
+        },
+        "partners": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "open": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "open"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
     "venue": {
       "type": "object",
       "properties": {
@@ -450,6 +505,7 @@
     "startAt",
     "endAt",
     "registration",
+    "calls",
     "venue",
     "banner",
     "tracks",
