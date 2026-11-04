@@ -49,11 +49,12 @@ export type ListEditorProps<T extends object> = {
   openRequest?: { index: number; at: number } | null;
   copyItem?: (item: T) => T;
   canDelete?: (item: T) => string | null;
+  initialEditing?: Editing<T>;
 };
 
 const NO_ISSUES: ItemIssues = { errors: [], warnings: [] };
 
-type Editing<T> = { index: number | null; item: T } | null;
+export type Editing<T> = { index: number | null; item: T } | null;
 
 export function ListEditor<T extends object>({
   items,
@@ -75,11 +76,12 @@ export function ListEditor<T extends object>({
   openRequest,
   copyItem = (item) => structuredClone(item),
   canDelete = () => null,
+  initialEditing = null,
 }: ListEditorProps<T>) {
   const formId = useId();
   const [query, setQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [editing, setEditing] = useState<Editing<T>>(null);
+  const [editing, setEditing] = useState<Editing<T>>(initialEditing);
   const [deleting, setDeleting] = useState<number | null>(null);
   const [handledRequest, setHandledRequest] = useState(openRequest?.at ?? 0);
   if (openRequest && openRequest.at !== handledRequest) {

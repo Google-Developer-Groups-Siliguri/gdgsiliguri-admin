@@ -97,16 +97,6 @@ export function sessionWarnings(sessions: Session[], { edition, speakers = [] }:
   return warnings;
 }
 
-export function speakerWarnings(speakers: Speaker[], { sessions }: WarningContext): ContentIssue[] {
-  if (!sessions) return [];
-  const speaking = new Set(sessions.flatMap((session) => session.speakerIds));
-  return speakers.flatMap((speaker, index) =>
-    speaker.id && !speaking.has(speaker.id)
-      ? [{ path: ["items", index], message: `${speaker.name || "This speaker"} has no session yet.` }]
-      : [],
-  );
-}
-
 export function editionWarnings(edition: Edition): ContentIssue[] {
   const url = edition.registration?.url ?? "";
   const years: string[] = url.match(/(?<!\d)20\d{2}(?!\d)/g) ?? [];
@@ -126,9 +116,6 @@ export function sectionWarnings(sectionId: string, value: Doc, context: WarningC
   if (parsed.type === "edition" && !parsed.collection) warnings.push(...editionWarnings(value as Edition));
   if (parsed.type === "edition" && parsed.collection === "sessions") {
     warnings.push(...sessionWarnings(items as Session[], context));
-  }
-  if (parsed.type === "edition" && parsed.collection === "speakers") {
-    warnings.push(...speakerWarnings(items as Speaker[], context));
   }
   if (parsed.type === "edition" && (parsed.collection === "partners" || parsed.collection === "sponsors")) {
     warnings.push(...duplicateUrlWarnings(items as (Partner | Sponsor)[]));

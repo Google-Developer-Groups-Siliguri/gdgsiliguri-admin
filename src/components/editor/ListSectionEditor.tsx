@@ -12,7 +12,7 @@ import type { SectionState } from "@/lib/cms/repository";
 
 import { itemIssues } from "./issues";
 import type { ItemSummary } from "./summary";
-import { ListEditor, type ItemFormProps, type ListFilter } from "./ListEditor";
+import { ListEditor, type Editing, type ItemFormProps, type ListFilter } from "./ListEditor";
 import { SectionEditorLayout } from "./SectionEditorLayout";
 import { useSectionEditor, type SectionEditor } from "./useSectionEditor";
 
@@ -72,6 +72,7 @@ export type ListSectionEditorProps<T extends ListItem> = {
   keepOrder?: boolean;
   prepareItems?: (items: T[]) => T[];
   extraActions?: (item: T, index: number) => MenuItem[];
+  initialEditing?: Editing<T>;
 };
 
 export function ListSectionEditor<T extends ListItem>({
@@ -93,6 +94,7 @@ export function ListSectionEditor<T extends ListItem>({
   keepOrder = false,
   prepareItems = (next) => next,
   extraActions,
+  initialEditing,
 }: ListSectionEditorProps<T>) {
   const editor = useSectionEditor(state, { warnings, visibility });
   const [openRequest, setOpenRequest] = useState<{ index: number; at: number } | null>(null);
@@ -133,6 +135,7 @@ export function ListSectionEditor<T extends ListItem>({
       copyItem={(item) => ({ ...structuredClone(item), id: "" })}
       canDelete={canDelete}
       extraActions={extraActions}
+      initialEditing={initialEditing}
       issuesFor={(index) => itemIssues(editor.errors, editor.warnings, ["items", index])}
     />
   );
