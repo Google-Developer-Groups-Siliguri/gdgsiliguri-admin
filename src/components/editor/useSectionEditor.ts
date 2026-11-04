@@ -15,6 +15,8 @@ import type { SectionDef } from "@/lib/sections/registry";
 type Doc = Record<string, unknown>;
 type Busy = "save" | "publish" | "discard" | null;
 
+const sameContent = (a: unknown, b: unknown) => deepEqual(stripEmpty(a), stripEmpty(b));
+
 function syncKey(state: SectionState): string {
   return `${state.version}|${state.draftVersion}`;
 }
@@ -62,12 +64,12 @@ export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, op
   }
 
   if (synced.key !== syncKey(state)) {
-    const hadLocalChanges = !deepEqual(draft, synced.draft);
+    const hadLocalChanges = !sameContent(draft, synced.draft);
     setSynced({ key: syncKey(state), draft: state.draft });
-    if (!hadLocalChanges || deepEqual(draft, state.draft)) setDraftState(state.draft);
+    if (!hadLocalChanges || sameContent(draft, state.draft)) setDraftState(state.draft);
   }
 
-  const dirty = !deepEqual(draft, state.draft);
+  const dirty = !sameContent(draft, state.draft);
   const errors = useMemo(() => strictIssues(def, draft), [def, draft]);
   const { warnings: warn } = options;
   const warnings = useMemo(() => warn?.(draft) ?? [], [warn, draft]);
