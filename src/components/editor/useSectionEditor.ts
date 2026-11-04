@@ -100,6 +100,10 @@ export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, op
     return saved;
   }
 
+  async function saveIfDirty(): Promise<boolean> {
+    return !dirty || Boolean(await saveNow());
+  }
+
   function save() {
     setBusy("save");
     startTransition(async () => {
@@ -181,6 +185,7 @@ export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, op
       busy,
       canPublish,
       onSave: save,
+      onSaveIfDirty: saveIfDirty,
       onPublish: () => publish(),
       onDiscard: () => {
         if (state.hasDraftChanges) discard();

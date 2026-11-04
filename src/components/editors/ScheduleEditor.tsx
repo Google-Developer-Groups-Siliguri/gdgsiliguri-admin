@@ -15,7 +15,8 @@ import { SelectInput, TextInput, UrlInput } from "@/components/editor/fields";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { Editing, ItemFormProps } from "@/components/editor/ListEditor";
 import { IdNote, ListSectionEditor } from "@/components/editor/ListSectionEditor";
-import { FilterChip, InputChip } from "@/components/m3/Chip";
+import { Checkbox } from "@/components/m3/Checkbox";
+import { InputChip } from "@/components/m3/Chip";
 import { Dialog } from "@/components/m3/Dialog";
 import { Icon } from "@/components/m3/Icon";
 import { Select } from "@/components/m3/Select";
@@ -42,10 +43,16 @@ const TYPE_LABELS: Record<string, string> = {
   break: "Break",
   registration: "Registration",
   networking: "Networking",
-  other: "Other",
+  other: "Other (lunch, closing…)",
 };
 
 const MINUTE = 60_000;
+
+const SESSION_KINDS = new Set<string>(["keynote", "talk", "workshop", "panel", "lightning"]);
+
+export function isSessionType(type: string | undefined): boolean {
+  return SESSION_KINDS.has(type ?? "");
+}
 
 function editionDays(edition: Edition): string[] {
   const zone = edition.timeZone;
@@ -69,18 +76,17 @@ function SpeakersInput({ control, speakers }: { control: Control<Session>; speak
       render={({ field, fieldState }) => {
         const selected = (field.value as string[] | undefined) ?? [];
         const byId = new Map(speakers.map((speaker) => [speaker.id, speaker]));
-        const toggle = (id: string) =>
-          field.onChange(selected.includes(id) ? selected.filter((entry) => entry !== id) : [...selected, id]);
+        const available = speakers.filter((speaker) => speaker.id && !selected.includes(speaker.id));
+        const remove = (id: string) => field.onChange(selected.filter((entry) => entry !== id));
         return (
-          <fieldset className="flex flex-col gap-2">
-            <legend className="px-1 pb-1 text-label-large text-on-surface">Speakers</legend>
+          <div className="flex flex-col gap-2">
             {selected.length > 0 && (
               <div className="flex flex-wrap gap-2" aria-label="Selected speakers">
                 {selected.map((id) => (
                   <InputChip
                     key={id}
                     avatar={byId.get(id)?.photo?.url}
-                    onRemove={() => toggle(id)}
+                    onRemove={() => remove(id)}
                     removeLabel={`Remove ${byId.get(id)?.name ?? id}`}
                   >
                     {byId.get(id)?.name ?? id}
@@ -88,32 +94,26 @@ function SpeakersInput({ control, speakers }: { control: Control<Session>; speak
                 ))}
               </div>
             )}
-            <div className="flex flex-wrap gap-2" role="group" aria-label="Choose speakers">
-              {speakers
-                .filter((speaker) => speaker.id)
-                .map((speaker) => (
-                  <FilterChip
-                    key={speaker.id}
-                    selected={selected.includes(speaker.id)}
-                    onSelectedChange={() => toggle(speaker.id)}
-                  >
-                    {speaker.name}
-                  </FilterChip>
-                ))}
-              {speakers.length === 0 && (
-                <span className="px-1 text-body-small text-on-surface-variant">
-                  Add speakers first, then pick them here.
-                </span>
-              )}
-            </div>
-            <p
-              className={
-                fieldState.error ? "px-1 text-body-small text-error" : "px-1 text-body-small text-on-surface-variant"
+            <Select
+              key={selected.join("|")}
+              label="Speakers"
+              placeholder={
+                speakers.length === 0
+                  ? "Add speakers first"
+                  : available.length
+                    ? selected.length
+                      ? "Add another speaker"
+                      : "Choose a speaker"
+                    : "Every speaker is added"
               }
-            >
-              {fieldState.error?.message ?? "Leave empty for breaks. The order you pick is the order shown."}
-            </p>
-          </fieldset>
+              value=""
+              disabled={available.length === 0}
+              options={available.map((speaker) => ({ value: speaker.id, label: speaker.name }))}
+              onValueChange={(id) => id && field.onChange([...selected, id])}
+              error={fieldState.error?.message}
+              supportingText="Optional. Leave empty until the speaker is confirmed, then pick them here."
+            />
+          </div>
         );
       }}
     />
@@ -126,7 +126,12 @@ function SessionForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Se
   const form = useItemForm<Session>(useItemSchema<Session>(), item, isNew);
   const warnings = warningsByField(issues);
   const { control, setValue, getValues } = form;
-  const [startAt, endAt] = useWatch({ control, name: ["startAt", "endAt"] }) as [string, string];
+  const [startAt, endAt, type] = useWatch({ control, name: ["startAt", "endAt", "type"] }) as [string, string, string];
+  const isSession = isSessionType(type);
+  const setSession = (next: boolean) => {
+    setValue("type", next ? "talk" : "other", { shouldDirty: true, shouldValidate: true });
+    if (!next) setValue("speakerIds", [], { shouldDirty: true });
+  };
   const days = editionDays(edition);
   const day = startAt ? formatLegacyDate(startAt, zone) : days[0];
   const minutes = startAt && endAt ? Math.round((toMillis(endAt) - toMillis(startAt)) / MINUTE) : null;
@@ -135,12 +140,25 @@ function SessionForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Se
     <ItemFormShell form={form} formId={formId} item={item} onSubmit={onSubmit}>
       <TextInput control={control} name="title" label="Title" required autoFocus={isNew} warning={warnings.title} />
       <IdNote id={item.id} />
+      <div className="flex flex-col">
+        <Checkbox
+          label="This is a session with speakers"
+          checked={isSession}
+          onCheckedChange={(checked) => setSession(checked === true)}
+        />
+        <p className="px-1 text-body-small text-on-surface-variant">
+          Tick it for talks, workshops and panels. Leave it off for registration, breaks, lunch and similar items.
+        </p>
+      </div>
       <SelectInput
         control={control}
         name="type"
         label="Type"
         required
-        options={SESSION_TYPES.map((value) => ({ value, label: TYPE_LABELS[value] }))}
+        options={SESSION_TYPES.filter((value) => isSessionType(value) === isSession).map((value) => ({
+          value,
+          label: TYPE_LABELS[value],
+        }))}
       />
       {days.length > 1 && (
         <Select
@@ -172,25 +190,29 @@ function SessionForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Se
         <Icon name="timer" size={18} />
         {minutes && minutes > 0 ? `${minutes} minutes` : "Pick a start and an end time"}
       </p>
-      <SpeakersInput control={control} speakers={speakers} />
-      <OptionalSelectInput
-        control={control}
-        name="trackId"
-        label="Track"
-        noneLabel="No track"
-        options={edition.tracks.map((track) => ({ value: track.id, label: track.label }))}
-      />
+      {isSession && <SpeakersInput control={control} speakers={speakers} />}
+      {isSession && (
+        <OptionalSelectInput
+          control={control}
+          name="trackId"
+          label="Track"
+          noneLabel="No track"
+          options={edition.tracks.map((track) => ({ value: track.id, label: track.label }))}
+        />
+      )}
       <TextInput control={control} name="room" label="Room" supportingText="Leave empty for the main hall" />
-      <OptionalSelectInput
-        control={control}
-        name="level"
-        label="Level"
-        noneLabel="Any level"
-        options={SESSION_LEVELS.map((value) => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1) }))}
-      />
+      {isSession && (
+        <OptionalSelectInput
+          control={control}
+          name="level"
+          label="Level"
+          noneLabel="Any level"
+          options={SESSION_LEVELS.map((value) => ({ value, label: value.charAt(0).toUpperCase() + value.slice(1) }))}
+        />
+      )}
       <MarkdownInput control={control} name="description" label="Description" rows={4} />
-      <UrlInput control={control} name="slidesUrl" label="Slides" leadingIcon="slideshow" />
-      <UrlInput control={control} name="videoUrl" label="Recording" leadingIcon="smart_display" />
+      {isSession && <UrlInput control={control} name="slidesUrl" label="Slides" leadingIcon="slideshow" />}
+      {isSession && <UrlInput control={control} name="videoUrl" label="Recording" leadingIcon="smart_display" />}
     </ItemFormShell>
   );
 }
@@ -262,7 +284,7 @@ export function ScheduleEditor({ state, visibility, edition, speakers }: Schedul
       <ListSectionEditor<Session>
         state={state}
         visibility={visibility}
-        noun="session"
+        noun="agenda item"
         fieldLabels={{ title: "Title", startAt: "Time", endAt: "End", speakerIds: "Speakers", trackId: "Track" }}
         roundThumbnails
         wideDialog
@@ -274,7 +296,12 @@ export function ScheduleEditor({ state, visibility, edition, speakers }: Schedul
           const track = session.trackId ? tracks.get(session.trackId) : undefined;
           return {
             primary: session.title,
-            secondary: [timeRange(session, zone), names.join(", ") || TYPE_LABELS[session.type], session.room]
+            secondary: [
+              timeRange(session, zone),
+              names.join(", ") ||
+                `${TYPE_LABELS[session.type]}${isSessionType(session.type) ? " · Speaker not set" : ""}`,
+              session.room,
+            ]
               .filter(Boolean)
               .join(" · "),
             image: people.get(session.speakerIds[0] ?? "")?.photo?.url,
@@ -321,8 +348,8 @@ export function ScheduleEditor({ state, visibility, edition, speakers }: Schedul
             : []
         }
         filters={[
-          { label: "Talks", test: (session) => !["break", "registration", "networking"].includes(session.type) },
-          { label: "Breaks", test: (session) => ["break", "registration", "networking"].includes(session.type) },
+          { label: "Sessions", test: (session) => isSessionType(session.type) },
+          { label: "Other items", test: (session) => !isSessionType(session.type) },
         ]}
       />
     </Context>

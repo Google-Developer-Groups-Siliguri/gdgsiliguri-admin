@@ -294,6 +294,33 @@ describe("toggle", () => {
   it("refuses to turn on a section with nothing published", async () => {
     const error = await expectContentError(toggleSection("edition-2026-speakers", true, editor), "invalid");
     expect(error.issues[0]).toMatchObject({ path: ["sections", "speakers"] });
+    expect(error.message).toBe("Publish at least one item before turning speakers on");
+    expect((await getSection("edition-2026")).hasDraftChanges).toBe(false);
+  });
+
+  it("can turn a section on after an earlier attempt failed", async () => {
+    await expectContentError(toggleSection("edition-2026-speakers", true, editor), "invalid");
+    const speaker = { name: "Vrijraj Singh", photo: { url: "https://ik.imagekit.io/x/v.png", alt: "Vrijraj" } };
+    await saveDraft("edition-2026-speakers", { items: [speaker] }, 1, editor);
+    await toggleSection("edition-2026-speakers", true, editor, { publishDraft: true });
+    expect(((await getSection("edition-2026")).published.sections as Record<string, boolean>).speakers).toBe(true);
+  });
+
+  it("publishes a pending speaker draft before turning speakers on", async () => {
+    const speaker = { name: "Vrijraj Singh", photo: { url: "https://ik.imagekit.io/x/v.png", alt: "Vrijraj" } };
+    await saveDraft("edition-2026-speakers", { items: [speaker] }, 1, editor);
+    await toggleSection("edition-2026-speakers", true, editor, { publishDraft: true });
+    expect((await getSection("edition-2026-speakers")).hasDraftChanges).toBe(false);
+    expect(await firestoreDoc("editions/2026/speakers/vrijraj-singh")).toMatchObject({ name: "Vrijraj Singh" });
+    expect((await bundle("edition-2026")).speakers).toMatchObject([{ name: "Vrijraj Singh" }]);
+  });
+
+  it("explains why it can't turn on a section with nothing to publish", async () => {
+    const error = await expectContentError(
+      toggleSection("edition-2026-speakers", true, editor, { publishDraft: true }),
+      "invalid",
+    );
+    expect(error.message).toBe("Add at least one item to speakers before showing it on the website.");
   });
 
   it("toggles community sections through site settings", async () => {

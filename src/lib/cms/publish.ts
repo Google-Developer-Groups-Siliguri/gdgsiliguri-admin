@@ -278,7 +278,41 @@ async function ensureModuleSections(value: Doc): Promise<void> {
   }
 }
 
-export async function toggleSection(id: string, enabled: boolean, actor: Actor): Promise<PublishResult> {
+export type ToggleOptions = { publishDraft?: boolean };
+
+function itemNoun(def: SectionDef): string {
+  return def.label.replace(/^\d{4} · /, "").toLowerCase();
+}
+
+async function publishPendingDraft(def: SectionDef, actor: Actor): Promise<void> {
+  const section = await getSection(def.id);
+  if (section.hasDraftChanges) await publish(def.id, section.version, actor);
+  const items = (await getSection(def.id)).published.items;
+  if (Array.isArray(items) && items.length === 0) {
+    throw new ContentError(`Add at least one item to ${itemNoun(def)} before showing it on the website.`, "invalid");
+  }
+}
+
+function explained(error: unknown): unknown {
+  if (!(error instanceof ContentError) || !error.issues?.length) return error;
+  return new ContentError(error.issues.map((issue) => issue.message).join(". "), error.code, error.issues);
+}
+
+async function restorePublishedDraft(sectionId: string, draftVersion: number): Promise<void> {
+  const ref = sectionRef(db(), sectionId);
+  await db().runTransaction(async (tx) => {
+    const doc = (await tx.get(ref)).data();
+    if (!doc || doc.draftVersion !== draftVersion) return;
+    tx.update(ref, { draft: doc.published, draftVersion: draftVersion + 1 });
+  });
+}
+
+export async function toggleSection(
+  id: string,
+  enabled: boolean,
+  actor: Actor,
+  options: ToggleOptions = {},
+): Promise<PublishResult> {
   const def = await getSectionDef(db(), id);
   const ownerId = visibilitySectionId(def);
   if (!ownerId || !def.visibilityKey) {
@@ -289,14 +323,26 @@ export async function toggleSection(id: string, enabled: boolean, actor: Actor):
     const ownerDef = await getSectionDef(db(), ownerId);
     throw new ContentError(`Publish or discard the pending ${ownerDef.label} changes first.`, "owner_has_draft");
   }
-  const sections = (owner.published.sections ?? {}) as Record<string, boolean>;
-  if (sections[def.visibilityKey.key] === enabled) return { state: owner, warnings: [], bundles: [], legacyNodes: [] };
-  const draft = { ...owner.published, sections: { ...sections, [def.visibilityKey.key]: enabled } };
-  const saved = await saveDraft(ownerId, draft, owner.draftVersion, actor);
-  return publish(ownerId, saved.version, actor, {
-    action: "toggle",
-    summary: `Turned ${def.label} ${enabled ? "on" : "off"}`,
-  });
+  try {
+    if (enabled && options.publishDraft && ownerId !== def.id) await publishPendingDraft(def, actor);
+    const sections = (owner.published.sections ?? {}) as Record<string, boolean>;
+    if (sections[def.visibilityKey.key] === enabled) {
+      return { state: owner, warnings: [], bundles: [], legacyNodes: [] };
+    }
+    const draft = { ...owner.published, sections: { ...sections, [def.visibilityKey.key]: enabled } };
+    const saved = await saveDraft(ownerId, draft, owner.draftVersion, actor);
+    try {
+      return await publish(ownerId, saved.version, actor, {
+        action: "toggle",
+        summary: `Turned ${def.label} ${enabled ? "on" : "off"}`,
+      });
+    } catch (error) {
+      await restorePublishedDraft(ownerId, saved.draftVersion);
+      throw error;
+    }
+  } catch (error) {
+    throw explained(error);
+  }
 }
 
 export async function rebuildBundles(ids: BundleId[], actor: Actor): Promise<void> {

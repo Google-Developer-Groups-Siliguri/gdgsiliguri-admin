@@ -17,6 +17,7 @@ export type SelectProps = {
   onValueChange?: (value: string) => void;
   variant?: "filled" | "pill";
   supportingText?: string;
+  placeholder?: string;
   error?: string | false;
   disabled?: boolean;
   required?: boolean;
@@ -32,6 +33,7 @@ export function Select({
   onValueChange,
   variant = "filled",
   supportingText,
+  placeholder = " ",
   error,
   disabled,
   required,
@@ -84,7 +86,7 @@ export function Select({
             </span>
           )}
           <span className="min-w-0 flex-1 truncate text-body-large font-semibold text-on-surface">
-            <RadixSelect.Value placeholder=" " />
+            <RadixSelect.Value placeholder={placeholder} />
           </span>
           <Icon
             name="arrow_drop_down"

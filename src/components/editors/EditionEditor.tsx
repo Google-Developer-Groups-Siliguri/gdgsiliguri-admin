@@ -32,7 +32,7 @@ import { TracksEditor } from "./edition/TracksEditor";
 import { docFormSchema } from "./forms";
 
 const SECTION_LABELS: Record<EditionSectionKey, { label: string; hint: string }> = {
-  schedule: { label: "Schedule", hint: "The session list" },
+  schedule: { label: "Agenda", hint: "Sessions, breaks and the rest of the day" },
   speakers: { label: "Speakers", hint: "Speaker cards" },
   sponsors: { label: "Sponsors", hint: "Sponsor logos by tier" },
   partners: { label: "Community partners", hint: "Partner logos" },

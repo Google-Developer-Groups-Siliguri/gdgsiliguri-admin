@@ -8,7 +8,7 @@ import { isSectionId, parseSectionId } from "@/lib/sections/registry";
 
 import { createEdition, type NewEdition } from "./editions";
 import { ContentError, type ContentErrorCode, type ContentIssue, type PublishWarning } from "./errors";
-import { publish, toggleSection } from "./publish";
+import { publish, toggleSection, type ToggleOptions } from "./publish";
 import {
   discardDraft,
   getRevision,
@@ -84,10 +84,14 @@ export async function publishAction(
   });
 }
 
-export async function toggleAction(sectionId: string, enabled: boolean): Promise<ActionResult<PublishActionData>> {
+export async function toggleAction(
+  sectionId: string,
+  enabled: boolean,
+  options: ToggleOptions = {},
+): Promise<ActionResult<PublishActionData>> {
   if (typeof enabled !== "boolean") return badRequest("Invalid toggle request.");
   return run(sectionId, async (actor) => {
-    const result = await toggleSection(sectionId, enabled, actor);
+    const result = await toggleSection(sectionId, enabled, actor, { publishDraft: options.publishDraft === true });
     return { state: result.state, warnings: result.warnings };
   });
 }

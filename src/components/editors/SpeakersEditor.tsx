@@ -89,8 +89,8 @@ function SpeakerSessions({ edition, speaker, talks }: { edition: Edition; speake
       ) : null}
       <p className="px-1 text-body-small text-on-surface-variant">
         {speaker.id
-          ? "Optional. You can announce a speaker now and add their session to the schedule later."
-          : "Optional. Save the draft first, then you can add this speaker's session from here or the schedule."}
+          ? "Optional. You can announce a speaker now and add their session to the agenda later."
+          : "Optional. Save the draft first, then you can add this speaker's session from here or the agenda."}
       </p>
     </fieldset>
   );

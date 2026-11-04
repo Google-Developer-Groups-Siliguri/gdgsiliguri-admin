@@ -4,7 +4,7 @@ import type { RegistryInput } from "@/lib/sections/registry";
 
 export const EDITION_PAGES = [
   { route: "event", label: "Event", icon: "event" },
-  { route: "schedule", label: "Schedule", icon: "schedule" },
+  { route: "schedule", label: "Agenda", icon: "schedule" },
   { route: "speakers", label: "Speakers", icon: "record_voice_over" },
   { route: "sponsors", label: "Sponsors", icon: "handshake" },
   { route: "partners", label: "Partners", icon: "diversity_3" },

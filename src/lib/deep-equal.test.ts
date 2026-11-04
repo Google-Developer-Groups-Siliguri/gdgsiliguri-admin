@@ -15,6 +15,12 @@ describe("deepEqual", () => {
     expect(deepEqual({ a: 1, b: undefined }, { a: 1 })).toBe(true);
   });
 
+  it("treats empty objects and objects whose fields are all undefined as missing", () => {
+    expect(deepEqual({ a: 1, recap: { attendees: undefined, photos: { url: undefined } } }, { a: 1 })).toBe(true);
+    expect(deepEqual({ a: 1, recap: {} }, { a: 1 })).toBe(true);
+    expect(deepEqual({ a: 1, recap: { attendees: 0 } }, { a: 1 })).toBe(false);
+  });
+
   it("tells empty strings from missing values", () => {
     expect(deepEqual({ a: "" }, {})).toBe(false);
     expect(deepEqual(null, {})).toBe(false);

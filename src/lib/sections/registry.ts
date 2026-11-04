@@ -150,8 +150,8 @@ type EditionListSpec = {
 const EDITION_LISTS: EditionListSpec[] = [
   {
     collection: "sessions",
-    label: "Schedule",
-    shortLabel: "Schedule",
+    label: "Agenda",
+    shortLabel: "Agenda",
     route: "schedule",
     icon: "schedule",
     noun: "session",
