@@ -128,7 +128,7 @@ test("sponsors: move a 2025 sponsor to another tier, then hide them", async ({ p
     .toEqual([]);
 });
 
-test("schedule: speakers and a session for 2026 reach the old app's schedule", async ({ page }) => {
+test("agenda: speakers and a session for 2026 reach the old app's schedule", async ({ page }) => {
   await openEditor(page, "/devfest/2026/speakers");
   for (const name of ["Ada Speaker", "Grace Speaker"]) {
     const first = name.split(" ")[0];
@@ -143,19 +143,22 @@ test("schedule: speakers and a session for 2026 reach the old app's schedule", a
   await publish(page, "2026 · Speakers");
 
   await page.goto("/devfest/2026/schedule");
-  await page.getByRole("button", { name: "Add session" }).click();
-  const dialog = page.getByRole("dialog", { name: "Add session" });
+  await page.getByRole("button", { name: "Add agenda item" }).click();
+  const dialog = page.getByRole("dialog", { name: "Add agenda item" });
   await dialog.getByLabel("Title").fill("Opening keynote");
   await dialog.getByRole("textbox", { name: "Starts" }).fill("10:00 AM");
   await dialog.getByRole("textbox", { name: "Ends" }).fill("10:45 AM");
   await expect(dialog.getByText("45 minutes")).toBeVisible();
-  await dialog.getByRole("button", { name: "Ada Speaker" }).click();
-  await dialog.getByRole("button", { name: "Grace Speaker" }).click();
+  await expect(dialog.getByRole("checkbox", { name: "This is a session with speakers" })).toBeChecked();
+  for (const name of ["Ada Speaker", "Grace Speaker"]) {
+    await dialog.getByRole("combobox", { name: "Speakers" }).click();
+    await page.getByRole("option", { name }).click();
+  }
   await dialog.getByRole("button", { name: "Add", exact: true }).click();
   await expect(dialog).toBeHidden();
-  await publish(page, "2026 · Schedule");
+  await publish(page, "2026 · Agenda");
 
-  await toggle(page, "2026 · Schedule", true);
+  await toggle(page, "2026 · Agenda", true);
   await expect.poll(() => readRtdb("schedule/enabled")).toBe(true);
   const [slot] = (await readRtdb("schedule/data")) as Json[];
   expect(slot).toEqual({

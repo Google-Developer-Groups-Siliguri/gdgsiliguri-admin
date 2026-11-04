@@ -28,6 +28,7 @@ export type SectionHeaderProps = {
   busy?: "save" | "publish" | "discard" | null;
   canPublish?: boolean;
   onSave?: () => void;
+  onSaveIfDirty?: () => Promise<boolean>;
   onPublish: () => void;
   onDiscard: () => void;
   onReverted?: () => void;
@@ -47,6 +48,7 @@ export function SectionHeader({
   busy = null,
   canPublish = true,
   onSave,
+  onSaveIfDirty,
   onPublish,
   onDiscard,
   onReverted,
@@ -116,7 +118,15 @@ export function SectionHeader({
         </PageTitle>
         {hasToggle ? (
           <div className="ms-auto">
-            <SectionToggle sectionId={sectionId} label={label} enabled={visibility.enabled} labelled />
+            <SectionToggle
+              sectionId={sectionId}
+              label={label}
+              enabled={visibility.enabled}
+              labelled
+              pendingChanges={hasChanges}
+              canPublish={canPublish}
+              onSaveIfDirty={onSaveIfDirty}
+            />
           </div>
         ) : (
           actions

@@ -19,7 +19,7 @@ type Params = { year: string; section: string };
 
 const PAGES: Record<string, { collection?: string; title: string }> = {
   event: { title: "Event" },
-  schedule: { collection: "sessions", title: "Schedule" },
+  schedule: { collection: "sessions", title: "Agenda" },
   speakers: { collection: "speakers", title: "Speakers" },
   sponsors: { collection: "sponsors", title: "Sponsors" },
   partners: { collection: "partners", title: "Partners" },

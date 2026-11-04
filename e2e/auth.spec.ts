@@ -44,7 +44,7 @@ test.describe("authentication", () => {
     await page.goto("/devfest/2026/schedule");
     await signInWithGoogle(page, TEST_USERS.owner);
     await expect(page).toHaveURL("/devfest/2026/schedule");
-    await expect(page.getByRole("heading", { level: 1, name: "Schedule" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Agenda" })).toBeVisible();
   });
 
   test("someone who is not an admin is turned away", async ({ page, context }) => {

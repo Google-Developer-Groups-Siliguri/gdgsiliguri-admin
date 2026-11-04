@@ -1,3 +1,9 @@
+function isBlank(value: unknown): boolean {
+  if (value === undefined) return true;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return false;
+  return Object.values(value).every(isBlank);
+}
+
 export function deepEqual(a: unknown, b: unknown): boolean {
   if (Object.is(a, b)) return true;
   if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;
@@ -7,8 +13,8 @@ export function deepEqual(a: unknown, b: unknown): boolean {
   }
   const left = a as Record<string, unknown>;
   const right = b as Record<string, unknown>;
-  const leftKeys = Object.keys(left).filter((key) => left[key] !== undefined);
-  const rightKeys = Object.keys(right).filter((key) => right[key] !== undefined);
+  const leftKeys = Object.keys(left).filter((key) => !isBlank(left[key]));
+  const rightKeys = Object.keys(right).filter((key) => !isBlank(right[key]));
   return (
     leftKeys.length === rightKeys.length &&
     leftKeys.every((key) => Object.hasOwn(right, key) && deepEqual(left[key], right[key]))

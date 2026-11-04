@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/m3/Dialog";
 import { useSnackbar } from "@/components/m3/Snackbar";
 import { Switch } from "@/components/m3/Switch";
-import { toggleAction } from "@/lib/cms/actions";
+import { toggleAction, type ActionFailure } from "@/lib/cms/actions";
 
 type SectionToggleProps = {
   sectionId: string;
@@ -13,28 +13,52 @@ type SectionToggleProps = {
   enabled: boolean;
   onToggled?: () => void;
   labelled?: boolean;
+  pendingChanges?: boolean;
+  canPublish?: boolean;
+  onSaveIfDirty?: () => Promise<boolean>;
 };
 
-export function SectionToggle({ sectionId, label, enabled, onToggled, labelled = false }: SectionToggleProps) {
+function failureMessage(result: ActionFailure): string {
+  return result.issues?.length ? result.issues.map((issue) => issue.message).join(". ") : result.message;
+}
+
+export function SectionToggle({
+  sectionId,
+  label,
+  enabled,
+  onToggled,
+  labelled = false,
+  pendingChanges = false,
+  canPublish = true,
+  onSaveIfDirty,
+}: SectionToggleProps) {
   const showSnackbar = useSnackbar();
   const [pending, startTransition] = useTransition();
   const [requested, setRequested] = useState<boolean | null>(null);
   const [optimistic, setOptimistic] = useState<boolean | null>(null);
   const checked = optimistic ?? enabled;
+  const publishesDraft = requested === true && pendingChanges;
 
   function confirm() {
     if (requested === null) return;
     const next = requested;
+    const publishDraft = publishesDraft;
     setRequested(null);
     setOptimistic(next);
     startTransition(async () => {
-      const result = await toggleAction(sectionId, next);
+      if (publishDraft && onSaveIfDirty && !(await onSaveIfDirty())) {
+        setOptimistic(null);
+        return;
+      }
+      const result = await toggleAction(sectionId, next, { publishDraft });
       setOptimistic(null);
       if (result.ok) {
-        showSnackbar({ message: `${label} turned ${next ? "on" : "off"}. gdgsiliguri.com ${next ? "shows" : "hides"} it now.` });
+        showSnackbar({
+          message: `${label} turned ${next ? "on" : "off"}. gdgsiliguri.com ${next ? "shows" : "hides"} it now.`,
+        });
         onToggled?.();
       } else {
-        showSnackbar({ message: result.message, tone: "error" });
+        showSnackbar({ message: failureMessage(result), tone: "error", duration: 10_000 });
       }
     });
   }
@@ -67,13 +91,18 @@ export function SectionToggle({ sectionId, label, enabled, onToggled, labelled =
         open={requested !== null}
         onOpenChange={(open) => !open && setRequested(null)}
         icon={requested ? "visibility" : "visibility_off"}
-        title={`Turn ${label} ${requested ? "on" : "off"}?`}
+        title={publishesDraft ? `Publish ${label} and turn it on?` : `Turn ${label} ${requested ? "on" : "off"}?`}
         description={
-          requested
-            ? `This publishes immediately: ${label} shows on gdgsiliguri.com and in the app straight away. Unpublished draft changes stay in the draft.`
-            : `This publishes immediately: ${label} is hidden on gdgsiliguri.com and in the app straight away. Unpublished draft changes stay in the draft.`
+          publishesDraft
+            ? canPublish
+              ? `Your ${label} changes aren't live yet. This publishes them, then shows ${label} on gdgsiliguri.com and in the app straight away.`
+              : `Your ${label} changes aren't live yet and have problems to fix. Fix them first, then turn ${label} on.`
+            : requested
+              ? `This publishes immediately: ${label} shows on gdgsiliguri.com and in the app straight away. Unpublished draft changes stay in the draft.`
+              : `This publishes immediately: ${label} is hidden on gdgsiliguri.com and in the app straight away. Unpublished draft changes stay in the draft.`
         }
-        confirmLabel={requested ? "Turn on" : "Turn off"}
+        confirmLabel={publishesDraft ? "Publish and turn on" : requested ? "Turn on" : "Turn off"}
+        confirmDisabled={publishesDraft && !canPublish}
         destructive={!requested}
         onConfirm={confirm}
       />

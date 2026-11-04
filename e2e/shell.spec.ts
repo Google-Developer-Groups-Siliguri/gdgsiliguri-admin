@@ -72,7 +72,7 @@ test.describe("dashboard", () => {
   test("shows every section with its state", async ({ page }) => {
     await signInAs(page, TEST_USERS.owner);
     const sections = page.getByRole("region", { name: "Sections" });
-    for (const name of ["2026 · Event", "2026 · Schedule", "2026 · Speakers", "2026 · Sponsors", "Team", "Reviews", "Events"]) {
+    for (const name of ["2026 · Event", "2026 · Agenda", "2026 · Speakers", "2026 · Sponsors", "Team", "Reviews", "Events"]) {
       await expect(sections.getByRole("link", { name, exact: true })).toBeVisible();
     }
     await expect(sections.getByText("19 items")).toBeVisible();

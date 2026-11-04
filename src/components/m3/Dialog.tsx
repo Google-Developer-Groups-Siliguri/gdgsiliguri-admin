@@ -133,6 +133,7 @@ type ConfirmDialogProps = {
   icon?: string;
   destructive?: boolean;
   busy?: boolean;
+  confirmDisabled?: boolean;
 };
 
 export function ConfirmDialog({
@@ -145,6 +146,7 @@ export function ConfirmDialog({
   icon,
   destructive = false,
   busy = false,
+  confirmDisabled = false,
 }: ConfirmDialogProps) {
   return (
     <AlertDialog.Root open={open} onOpenChange={onOpenChange}>
@@ -173,7 +175,7 @@ export function ConfirmDialog({
                 Cancel
               </Button>
             </AlertDialog.Cancel>
-            <Button variant={destructive ? "danger" : "filled"} onClick={onConfirm} disabled={busy}>
+            <Button variant={destructive ? "danger" : "filled"} onClick={onConfirm} disabled={busy || confirmDisabled}>
               {confirmLabel}
             </Button>
           </div>
