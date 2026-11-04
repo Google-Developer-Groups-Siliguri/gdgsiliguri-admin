@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { createContext, use, useState } from "react";
 import { Controller, useWatch, type Control } from "react-hook-form";
 
@@ -12,7 +13,7 @@ import {
 } from "@/components/editor/content-fields";
 import { SelectInput, TextInput, UrlInput } from "@/components/editor/fields";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
-import type { ItemFormProps } from "@/components/editor/ListEditor";
+import type { Editing, ItemFormProps } from "@/components/editor/ListEditor";
 import { IdNote, ListSectionEditor } from "@/components/editor/ListSectionEditor";
 import { FilterChip, InputChip } from "@/components/m3/Chip";
 import { Dialog } from "@/components/m3/Dialog";
@@ -232,6 +233,15 @@ function sortForSchedule(sessions: Session[]): Session[] {
   return [...sortSessions(timed.map((session, index) => ({ ...session, order: (index + 1) * 10 }))), ...untimed];
 }
 
+function requestedSession(params: URLSearchParams, sessions: Session[], edition: Edition): Editing<Session> {
+  const sessionId = params.get("session");
+  const index = sessionId ? sessions.findIndex((session) => session.id === sessionId) : -1;
+  if (index >= 0) return { index, item: sessions[index] };
+  const speakerId = params.get("speaker");
+  if (!speakerId) return null;
+  return { index: null, item: { ...nextSession(sessions, edition), speakerIds: [speakerId] } };
+}
+
 type ScheduleEditorProps = {
   state: SectionState<{ items: Session[] }>;
   visibility: Visibility;
@@ -244,6 +254,8 @@ export function ScheduleEditor({ state, visibility, edition, speakers }: Schedul
   const people = new Map(speakers.map((speaker) => [speaker.id, speaker]));
   const tracks = new Map(edition.tracks.map((track) => [track.id, track]));
   const [shift, setShift] = useState<{ session: Session; minutes: string } | null>(null);
+  const params = useSearchParams();
+  const [initialEditing] = useState(() => requestedSession(params, state.draft.items, edition));
 
   return (
     <Context value={{ edition, speakers }}>
@@ -255,6 +267,7 @@ export function ScheduleEditor({ state, visibility, edition, speakers }: Schedul
         roundThumbnails
         wideDialog
         prepareItems={sortForSchedule}
+        initialEditing={initialEditing}
         warnings={(draft) => sectionWarnings(state.id, draft, { edition, speakers })}
         summarize={(session) => {
           const names = session.speakerIds.map((id) => people.get(id)?.name ?? id);

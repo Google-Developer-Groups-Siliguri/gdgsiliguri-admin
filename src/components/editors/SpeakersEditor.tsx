@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { createContext, use } from "react";
 import { useWatch } from "react-hook-form";
 
@@ -8,6 +9,8 @@ import { TextInput } from "@/components/editor/fields";
 import { ItemFormShell, useItemForm, warningsByField } from "@/components/editor/ItemForm";
 import type { ItemFormProps } from "@/components/editor/ListEditor";
 import { IdNote, ListSectionEditor } from "@/components/editor/ListSectionEditor";
+import { Button } from "@/components/m3/Button";
+import { Icon } from "@/components/m3/Icon";
 import type { Visibility } from "@/lib/cms/queries";
 import type { SectionState } from "@/lib/cms/repository";
 import { sectionWarnings } from "@/lib/cms/warnings";
@@ -55,6 +58,44 @@ function FramePreview({ edition, speaker }: { edition: Edition; speaker: Speaker
   );
 }
 
+function SpeakerSessions({ edition, speaker, talks }: { edition: Edition; speaker: Speaker; talks: Session[] }) {
+  const schedule = `/devfest/${edition.year}/schedule`;
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="px-1 pb-1 text-label-large text-on-surface">Sessions</legend>
+      {talks.length > 0 && (
+        <ul className="flex flex-col gap-1">
+          {talks.map((session) => (
+            <li key={session.id}>
+              <Link
+                href={`${schedule}?session=${encodeURIComponent(session.id)}`}
+                className="focus-ring flex items-center gap-2 rounded-sm px-1 py-1 text-body-medium text-primary hover:underline"
+              >
+                <Icon name="event" size={18} />
+                {session.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+      {speaker.id ? (
+        <div>
+          <Button variant="tonal" icon="add" asChild>
+            <Link href={`${schedule}?speaker=${encodeURIComponent(speaker.id)}`}>
+              {talks.length ? "Add another session" : "Add a session"}
+            </Link>
+          </Button>
+        </div>
+      ) : null}
+      <p className="px-1 text-body-small text-on-surface-variant">
+        {speaker.id
+          ? "Optional. You can announce a speaker now and add their session to the schedule later."
+          : "Optional. Save the draft first, then you can add this speaker's session from here or the schedule."}
+      </p>
+    </fieldset>
+  );
+}
+
 function SpeakerForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Speaker>) {
   const context = use(Context)!;
   const form = useItemForm<Speaker>(useItemSchema<Speaker>({ photo: "name" }), item, isNew);
@@ -86,11 +127,7 @@ function SpeakerForm({ formId, item, isNew, issues, onSubmit }: ItemFormProps<Sp
       <MediaInput control={control} name="photo" label="Photo URL" required shape="circle" />
       <MarkdownInput control={control} name="bio" label="Bio" rows={4} />
       <LinksInput control={control} name="links" keys={[...PERSON_LINKS]} />
-      {talks.length > 0 && (
-        <p className="px-1 text-body-small text-on-surface-variant">
-          Speaks in: {talks.map((session) => session.title).join(", ")}
-        </p>
-      )}
+      <SpeakerSessions edition={context.edition} speaker={item} talks={talks} />
     </ItemFormShell>
   );
 }
@@ -114,7 +151,7 @@ export function SpeakersEditor({ state, visibility, edition, sessions }: Speaker
         noun="speaker"
         fieldLabels={{ name: "Name", headline: "Headline", photo: "Photo", trackId: "Track", links: "Links" }}
         roundThumbnails
-        warnings={(draft) => sectionWarnings(state.id, draft, { sessions })}
+        warnings={(draft) => sectionWarnings(state.id, draft)}
         canDelete={(speaker) => (talkCount(speaker) > 0 ? `In ${talkCount(speaker)} session(s)` : null)}
         summarize={(speaker) => {
           const track = speaker.trackId ? tracks.get(speaker.trackId) : undefined;
