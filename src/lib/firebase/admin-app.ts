@@ -2,6 +2,7 @@ import { cert, getApp, getApps, initializeApp, type App } from "firebase-admin/a
 import { getAuth, type Auth } from "firebase-admin/auth";
 import { getDatabase, type Database } from "firebase-admin/database";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
+import { getMessaging, type Messaging } from "firebase-admin/messaging";
 
 import {
   EMULATOR_HOST,
@@ -83,4 +84,8 @@ export function adminDatabaseFor(app: App = adminApp()): Database {
 
 export function adminAuthFor(app: App = adminApp()): Auth {
   return getAuth(app);
+}
+
+export function adminMessagingFor(app: App = adminApp()): Messaging {
+  return getMessaging(app);
 }

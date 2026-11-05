@@ -63,6 +63,11 @@ export function navGroups(registry: RegistryInput, pathname: string): NavGroup[]
       ],
     },
     {
+      label: "Notifications",
+      icon: "campaign",
+      items: [{ href: "/notifications", label: "Notifications", shortLabel: "Notify", icon: "campaign" }],
+    },
+    {
       label: "Settings",
       icon: "settings",
       items: [
