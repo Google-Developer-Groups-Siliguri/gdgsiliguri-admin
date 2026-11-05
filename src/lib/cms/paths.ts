@@ -20,12 +20,13 @@ export const sectionRef = (db: Firestore, id: string) => sectionsRef(db).doc(id)
 export const revisionsRef = (db: Firestore, id: string) => sectionRef(db, id).collection("revisions");
 export const auditRef = (db: Firestore) => cmsRoot(db).collection("auditLog");
 export const adminsRef = (db: Firestore) => cmsRoot(db).collection("admins");
-export const settingsRef = (db: Firestore, name: "site" | "blogs" | "showcase") =>
+export const settingsRef = (db: Firestore, name: "site" | "blogs" | "showcase" | "notifications") =>
   cmsRoot(db).collection("settings").doc(name);
 export const legacySyncRef = (db: Firestore) => cmsRoot(db).collection("sync").doc("legacyRtdb");
 export const driftRef = (db: Firestore) => legacySyncRef(db).collection("drift");
 export const previewsRef = (db: Firestore) => cmsRoot(db).collection("previews");
 export const submissionsRef = (db: Firestore) => cmsRoot(db).collection("showcaseSubmissions");
+export const notificationsRef = (db: Firestore) => cmsRoot(db).collection("notifications");
 
 export const PUBLIC_COLLECTIONS = [
   "site",

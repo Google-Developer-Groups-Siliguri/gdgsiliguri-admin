@@ -92,6 +92,11 @@ const CHECKS: Check[] = [
   },
   { name: "IMAGEKIT_PUBLIC_KEY", required: false, validate: pattern(/^public_/, "should start with public_") },
   { name: "IMAGEKIT_PRIVATE_KEY", required: false, validate: pattern(/^private_/, "should start with private_") },
+  {
+    name: "PUSH_SENDING_ENABLED",
+    required: false,
+    validate: pattern(/^(true|false)$/, "should be true or false"),
+  },
 ];
 
 let problems = 0;
@@ -137,9 +142,43 @@ async function verifyServiceAccount(): Promise<boolean> {
   }
 }
 
+async function verifyPushSending(): Promise<boolean> {
+  if (process.env.PUSH_SENDING_ENABLED !== "true") {
+    console.log("– skipped  push sending is off, so no validate-only send was made");
+    return true;
+  }
+  const { cert, initializeApp } = await import("firebase-admin/app");
+  const { getMessaging } = await import("firebase-admin/messaging");
+  const { buildPushMessage } = await import("../src/lib/integrations/fcm-message");
+  try {
+    const app = initializeApp(
+      {
+        projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+        credential: cert({
+          projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        }),
+      },
+      "check-env-push",
+    );
+    const message = buildPushMessage(
+      { id: "check-env", title: "check:env", body: "Validate-only send. Nobody receives this.", ttlSeconds: 3600 },
+      "test",
+    );
+    const id = await getMessaging(app).send(message, true);
+    console.log(`✓ live     FCM accepted a validate-only send to the debug topic (${id})`);
+    return true;
+  } catch (error) {
+    console.log(`✗ live     FCM refused a validate-only send: ${(error as Error).message}`);
+    return false;
+  }
+}
+
 async function finish() {
-  if (problems === 0 && process.argv.includes("--live") && !(await verifyServiceAccount())) {
-    problems += 1;
+  if (problems === 0 && process.argv.includes("--live")) {
+    if (!(await verifyServiceAccount())) problems += 1;
+    else if (!(await verifyPushSending())) problems += 1;
   }
   console.log(problems === 0 ? "\nAll required settings look valid." : `\n${problems} problem(s) found.`);
   process.exitCode = problems === 0 ? 0 : 1;

@@ -12,7 +12,10 @@ export type ContentErrorCode =
   | "too_many_writes"
   | "revision_missing"
   | "not_toggleable"
-  | "already_exists";
+  | "already_exists"
+  | "sending_disabled"
+  | "recent_send"
+  | "not_draft";
 
 export type PublishWarning = "legacy_sync_pending";
 

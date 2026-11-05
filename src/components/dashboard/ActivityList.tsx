@@ -18,6 +18,7 @@ const ACTION_ICONS: Record<AuditAction, string> = {
   legacy_sync: "sync_problem",
   migration: "move_up",
   edition_create: "event_repeat",
+  notification_send: "campaign",
 };
 
 export function ActivityList({ entries }: { entries: AuditEntry[] }) {

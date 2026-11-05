@@ -30,7 +30,8 @@ export type AuditAction =
   | "showcase_review"
   | "legacy_sync"
   | "migration"
-  | "edition_create";
+  | "edition_create"
+  | "notification_send";
 
 type Doc = Record<string, unknown>;
 

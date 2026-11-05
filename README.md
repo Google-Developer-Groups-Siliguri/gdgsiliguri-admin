@@ -35,8 +35,8 @@ Other things to know:
 
 | Role   | Can do |
 |--------|--------|
-| owner  | Everything, plus add, remove and change admins. The last owner can't be removed or demoted. |
-| editor | Edit, publish and turn sections on or off. |
+| owner  | Everything, plus add, remove and change admins, and send push announcements to everyone. The last owner can't be removed or demoted. |
+| editor | Edit, publish and turn sections on or off. Write announcement drafts and send tests. |
 
 Owners manage admins at **Settings → Admins**. To create the first owner, use the script below.
 
@@ -158,6 +158,65 @@ Owner checks before the migration:
   wait here for review. Approving publishes them without any contact details; owners manage the
   form secret at **Settings → Showcase form**. `npm run retention` removes contact details 60 days
   after the edition and prunes old revisions.
+
+## Notifications (push announcements)
+
+**Notifications** sends push announcements to the GDG Siliguri app through FCM topics. Release
+builds subscribe to `all` and debug builds to `debug`; the server maps "everyone" and "test" to
+those topics and never takes a topic from the browser. Announcements are private
+(`cms/root/notifications`), not published content.
+
+- Editors write drafts and **Send test** to debug builds. Only owners can **Send to everyone**.
+- Only saved drafts can be sent, and the content is read from Firestore, not from the browser.
+- A transaction moves a draft to `sending` exactly once, so a double click, a replayed request or
+  two owners at once can't send twice. Sends are never retried. A second production send within 5
+  minutes asks for confirmation first.
+- A draft still `sending` after 5 minutes shows **Unknown: check a device before resending**.
+- Sent and failed announcements can't be edited; **Use as new draft** copies them.
+- "Accepted by FCM" means FCM took the message, not that phones showed it. For delivery numbers,
+  open Firebase console → Messaging → Reports (each send is labelled `announce-<id>`).
+
+### The production guard and kill switch
+
+Each send picks its sender in this order:
+
+1. `NEXT_PUBLIC_USE_EMULATORS=true` → a fake sender. Nothing leaves the machine; the message id is
+   `emulator/<uuid>`. There is no FCM emulator.
+2. `PUSH_SENDING_ENABLED` isn't `true` → refused with "Sending is turned off in this environment".
+3. Otherwise → real FCM, through the existing `FIREBASE_ADMIN_*` service account.
+
+`PUSH_SENDING_ENABLED` is server-only. Set it **only in the production deploy context**, never on
+preview or branch deploys or in a local `.env` file, so a preview deploy or a laptop holding
+production credentials can't reach real users. Unsetting it and redeploying is the kill switch:
+sends stop, drafts and past sends stay, and the Firebase console keeps working. No app release or
+data migration is ever needed to roll back.
+
+`npm run check:env:live` makes a validate-only send to `debug` when the flag is on. It proves the
+credentials, API access and message shape without notifying anyone.
+
+### Rollout
+
+Do these in order with the project owner, and get their go-ahead before each production change.
+
+1. Check the APNs auth key is uploaded (Firebase → Project settings → Cloud Messaging). Without it,
+   FCM still accepts sends and iPhones silently get nothing.
+2. Check the FCM API (V1) is enabled on `devfest-siliguri`, and that `FIREBASE_ADMIN_CLIENT_EMAIL`
+   may send. The default `firebase-adminsdk` account can; a custom one needs "Firebase Cloud
+   Messaging API Admin".
+3. Check a store build with FCM (4001 or later) is live on both stores.
+4. Deploy with the flag **off**. No rules or index deploy is needed.
+5. On production with the flag off: the page loads, drafts save, an editor can't send, and send
+   attempts are refused.
+6. Set `PUSH_SENDING_ENABLED=true` in the production context only, redeploy, and run
+   `npm run check:env:live` against production.
+7. **Send test** to debug builds on one Android phone and one physical iPhone, with **About → Your
+   app → Announcements** on. Check with the app in the foreground, in the background and closed.
+8. First real send: a genuine, low-stakes announcement. Check it on store builds on both platforms,
+   then the Activity log and the Firebase Messaging report.
+
+If step 8 isn't done by **12 Nov 2026**, leave the module off and use the Firebase console for
+DevFest. If a wrong message goes out, FCM can't recall it: send a short correction and tell the
+project owner.
 
 ## Firestore v2 migration (production runbook)
 

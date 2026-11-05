@@ -68,6 +68,8 @@ beforeAll(async () => {
     "team/a",
     "cms/root/admins/a@b.c",
     "cms/root/showcaseSubmissions/x",
+    "cms/root/notifications/x",
+    "cms/root/settings/notifications",
     "content/teams",
   ];
   await Promise.all(docs.map((path) => db.doc(path).set({ ok: true })));
@@ -85,7 +87,13 @@ describe("firestore rules", () => {
     expect(await read("site")).toBe(403);
   });
 
-  it.each(["cms/root/admins/a@b.c", "cms/root/showcaseSubmissions/x", "content/teams"])(
+  it.each([
+    "cms/root/admins/a@b.c",
+    "cms/root/showcaseSubmissions/x",
+    "cms/root/notifications/x",
+    "cms/root/settings/notifications",
+    "content/teams",
+  ])(
     "hides %s even from signed-in users",
     async (path) => {
       expect(await read(path)).toBe(403);
