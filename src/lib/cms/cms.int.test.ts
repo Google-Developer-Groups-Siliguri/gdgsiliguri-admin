@@ -284,11 +284,44 @@ describe("toggle", () => {
     });
   });
 
-  it("refuses while the owning doc has unpublished edits", async () => {
+  it("toggles while the owning doc has unpublished edits, without publishing them", async () => {
     const edition = await getSection("edition-2026");
     await saveDraft("edition-2026", { ...edition.draft, title: "Changed" }, 1, editor);
-    const error = await expectContentError(toggleSection("edition-2026-faqs", false, editor), "owner_has_draft");
-    expect(error.message).toBe("Publish or discard the pending 2026 · Event changes first.");
+    const result = await toggleSection("edition-2026-faqs", false, editor);
+
+    expect((result.state.published.sections as Record<string, boolean>).faqs).toBe(false);
+    expect(result.state.published.title).toBe("DevFest Siliguri 2026");
+    expect(result.state.draft.title).toBe("Changed");
+    expect((result.state.draft.sections as Record<string, boolean>).faqs).toBe(false);
+    expect(result.state.hasDraftChanges).toBe(true);
+    expect((await bundle("edition-2026")).faqs).toEqual([]);
+    expect((await listAudit({ sectionId: "edition-2026", limit: 1 })).entries[0]).toMatchObject({
+      action: "toggle",
+      summary: "Turned 2026 · DevFest FAQ off",
+    });
+  });
+
+  it("keeps the toggled value when the pending draft is published later", async () => {
+    const edition = await getSection("edition-2026");
+    await saveDraft("edition-2026", { ...edition.draft, title: "Changed" }, 1, editor);
+    await toggleSection("edition-2026-faqs", false, editor);
+    const toggled = await getSection("edition-2026");
+    await publish("edition-2026", toggled.version, editor);
+
+    const published = await getSection("edition-2026");
+    expect(published.published.title).toBe("Changed");
+    expect((published.published.sections as Record<string, boolean>).faqs).toBe(false);
+    expect(published.hasDraftChanges).toBe(false);
+  });
+
+  it("makes an editor holding the old draft reload instead of overwriting the toggle", async () => {
+    const edition = await getSection("edition-2026");
+    const saved = await saveDraft("edition-2026", { ...edition.draft, title: "Changed" }, 1, editor);
+    await toggleSection("edition-2026-faqs", false, editor);
+    await expectContentError(
+      saveDraft("edition-2026", { ...saved.draft, title: "Changed again" }, saved.draftVersion, editor),
+      "stale_draft",
+    );
   });
 
   it("refuses to turn on a section with nothing published", async () => {

@@ -52,7 +52,13 @@ export type PublishResult = {
   legacyNodes: LegacyNode[];
 };
 
-type PublishOptions = { note?: string; action?: AuditAction; summary?: string; legacyDatabase?: Database };
+type PublishOptions = {
+  note?: string;
+  action?: AuditAction;
+  summary?: string;
+  legacyDatabase?: Database;
+  value?: Doc;
+};
 
 function normalized(data: Doc): Doc {
   return fromFirestore(toFirestore(data));
@@ -233,7 +239,7 @@ export async function publish(
   let impact: Impact;
   let value: Doc;
   try {
-    value = validate(def, parseValue(def, doc.draft));
+    value = validate(def, options.value ?? parseValue(def, doc.draft));
     const previous = parseValue(def, doc.published);
     const issues = await crossSectionIssues(def, value, createReader(db()));
     if (issues.length) throw new ContentError("Fix the highlighted problems before publishing.", "invalid", issues);
@@ -319,23 +325,19 @@ export async function toggleSection(
     throw new ContentError(`${def.label} cannot be turned off.`, "not_toggleable");
   }
   const owner = await getSection(ownerId);
-  if (owner.hasDraftChanges) {
-    const ownerDef = await getSectionDef(db(), ownerId);
-    throw new ContentError(`Publish or discard the pending ${ownerDef.label} changes first.`, "owner_has_draft");
-  }
+  const key = def.visibilityKey.key;
+  const summary = `Turned ${def.label} ${enabled ? "on" : "off"}`;
   try {
     if (enabled && options.publishDraft && ownerId !== def.id) await publishPendingDraft(def, actor);
     const sections = (owner.published.sections ?? {}) as Record<string, boolean>;
-    if (sections[def.visibilityKey.key] === enabled) {
+    if (sections[key] === enabled) {
       return { state: owner, warnings: [], bundles: [], legacyNodes: [] };
     }
-    const draft = { ...owner.published, sections: { ...sections, [def.visibilityKey.key]: enabled } };
-    const saved = await saveDraft(ownerId, draft, owner.draftVersion, actor);
+    const next = { ...owner.published, sections: { ...sections, [key]: enabled } };
+    if (owner.hasDraftChanges) return await toggleBesidePendingDraft(ownerId, key, enabled, next, owner, actor, summary);
+    const saved = await saveDraft(ownerId, next, owner.draftVersion, actor);
     try {
-      return await publish(ownerId, saved.version, actor, {
-        action: "toggle",
-        summary: `Turned ${def.label} ${enabled ? "on" : "off"}`,
-      });
+      return await publish(ownerId, saved.version, actor, { action: "toggle", summary });
     } catch (error) {
       await restorePublishedDraft(ownerId, saved.draftVersion);
       throw error;
@@ -343,6 +345,40 @@ export async function toggleSection(
   } catch (error) {
     throw explained(error);
   }
+}
+
+async function toggleBesidePendingDraft(
+  ownerId: string,
+  key: string,
+  enabled: boolean,
+  next: Doc,
+  owner: SectionState,
+  actor: Actor,
+  summary: string,
+): Promise<PublishResult> {
+  const result = await publish(ownerId, owner.version, actor, { action: "toggle", summary, value: next });
+  try {
+    await setDraftVisibility(ownerId, key, enabled);
+  } catch (error) {
+    console.error(`Turned ${key} ${enabled ? "on" : "off"}, but the pending ${ownerId} draft still has the old value.`, error);
+  }
+  return { ...result, state: await getSection(ownerId) };
+}
+
+async function setDraftVisibility(ownerId: string, key: string, enabled: boolean): Promise<void> {
+  const def = await getSectionDef(db(), ownerId);
+  const ref = sectionRef(db(), ownerId);
+  await db().runTransaction(async (tx) => {
+    const doc = (await tx.get(ref)).data();
+    if (!doc) return;
+    const draft = parseValue(def, doc.draft);
+    const sections = (draft.sections ?? {}) as Record<string, boolean>;
+    if (sections[key] === enabled) return;
+    tx.update(ref, {
+      draft: toFirestore({ ...draft, sections: { ...sections, [key]: enabled } }),
+      draftVersion: (doc.draftVersion ?? 1) + 1,
+    });
+  });
 }
 
 export async function rebuildBundles(ids: BundleId[], actor: Actor): Promise<void> {

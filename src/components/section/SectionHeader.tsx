@@ -5,12 +5,14 @@ import { useState, type ReactNode } from "react";
 import { PageTitle } from "@/components/PageTitle";
 import { RelativeTime } from "@/components/RelativeTime";
 import { Button } from "@/components/m3/Button";
-import { ConfirmDialog } from "@/components/m3/Dialog";
+import { ConfirmDialog, Dialog } from "@/components/m3/Dialog";
 import { IconButton } from "@/components/m3/IconButton";
 import { LoadingIndicator } from "@/components/m3/LoadingIndicator";
+import type { Change } from "@/lib/cms/changes";
 import type { Visibility } from "@/lib/cms/queries";
 import { formatDateTime } from "@/lib/time";
 
+import { ChangesList } from "./ChangesList";
 import { RevisionsSheet } from "./RevisionsSheet";
 import { SectionToggle } from "./SectionToggle";
 import { sectionStatus, StatusChip } from "./StatusChip";
@@ -33,6 +35,7 @@ export type SectionHeaderProps = {
   onDiscard: () => void;
   onReverted?: () => void;
   extra?: ReactNode;
+  changes?: Change[];
 };
 
 export function SectionHeader({
@@ -53,9 +56,11 @@ export function SectionHeader({
   onDiscard,
   onReverted,
   extra,
+  changes = [],
 }: SectionHeaderProps) {
   const [revisionsOpen, setRevisionsOpen] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const hasChanges = dirty || hasDraftChanges;
 
   const hasToggle = visibility !== null;
@@ -65,6 +70,11 @@ export function SectionHeader({
     <div className="ms-auto flex flex-wrap items-center justify-end gap-x-1.5 gap-y-3">
       {extra}
       <IconButton icon="history" label="History" onClick={() => setRevisionsOpen(true)} />
+      {hasChanges && (
+        <Button variant="text" icon="difference" className="text-on-surface" onClick={() => setReviewOpen(true)}>
+          Review changes
+        </Button>
+      )}
       <div className="hidden compact:block">
         <Button
           variant="text"
@@ -142,6 +152,23 @@ export function SectionHeader({
         hasUnsavedChanges={dirty}
         onReverted={onReverted}
       />
+      <Dialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        title="Changes not yet live"
+        description={
+          dirty
+            ? "Compared with what is published now, including edits you haven't saved yet."
+            : "Compared with what is published now."
+        }
+        actions={
+          <Button variant="text" onClick={() => setReviewOpen(false)}>
+            Close
+          </Button>
+        }
+      >
+        <ChangesList changes={changes} />
+      </Dialog>
       <ConfirmDialog
         open={confirmDiscard}
         onOpenChange={setConfirmDiscard}

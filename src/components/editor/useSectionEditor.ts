@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { useSnackbar } from "@/components/m3/Snackbar";
 import { useSectionDef } from "@/components/registry/RegistryProvider";
 import { discardDraftAction, publishAction, saveDraftAction, type ActionFailure } from "@/lib/cms/actions";
+import { describeChanges } from "@/lib/cms/changes";
 import type { ContentIssue } from "@/lib/cms/errors";
 import type { Visibility } from "@/lib/cms/queries";
 import type { SectionState } from "@/lib/cms/repository";
@@ -68,6 +69,7 @@ export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, op
   }
 
   const dirty = !deepEqual(draft, state.draft);
+  const changes = useMemo(() => describeChanges(state.published as Doc, draft as Doc), [state.published, draft]);
   const errors = useMemo(() => strictIssues(def, draft), [def, draft]);
   const { warnings: warn } = options;
   const warnings = useMemo(() => warn?.(draft) ?? [], [warn, draft]);
@@ -186,6 +188,7 @@ export function useSectionEditor<T extends Doc>(serverState: SectionState<T>, op
       canPublish,
       onSave: save,
       onSaveIfDirty: saveIfDirty,
+      changes,
       onPublish: () => publish(),
       onDiscard: () => {
         if (state.hasDraftChanges) discard();
