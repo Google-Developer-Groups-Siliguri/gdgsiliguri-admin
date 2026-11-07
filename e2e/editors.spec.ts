@@ -190,6 +190,32 @@ test("event: edit the venue and publish the event details", async ({ page }) => 
   expect(live.eventMode).toBe(true);
 });
 
+test("a pending event draft can be reviewed and doesn't block the website toggles", async ({ page }) => {
+  await openEditor(page, "/devfest/2026/event");
+  await page.getByRole("tab", { name: "Venue" }).click();
+  await page.getByRole("main").getByLabel("Venue name").fill("Draft venue");
+  await page.getByRole("button", { name: "Save draft" }).click();
+  await expect(page.getByText("Draft saved.", { exact: false }).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Review changes" }).click();
+  const review = page.getByRole("dialog", { name: "Changes not yet live" });
+  await expect(review.getByRole("list", { name: "Changes" })).toContainText("Venue → Name");
+  await review.getByRole("button", { name: "Close" }).click();
+
+  await page.goto("/devfest/2026/partners");
+  await toggle(page, "2026 · Community partners", false);
+  expect(((await readFirestoreDoc("editions/2026"))?.sections as Json).partners).toBe(false);
+  expect(((await readFirestoreDoc("editions/2026"))?.venue as Json).name).not.toBe("Draft venue");
+  await toggle(page, "2026 · Community partners", true);
+
+  await page.goto("/devfest/2026/event");
+  await page.getByRole("tab", { name: "Venue" }).click();
+  await expect(page.getByRole("main").getByLabel("Venue name")).toHaveValue("Draft venue");
+  await page.getByRole("button", { name: "Discard", exact: true }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Discard" }).click();
+  await expect(page.getByText("Draft discarded.").first()).toBeVisible();
+});
+
 test("events: create the first event, publish it and turn the section on", async ({ page }) => {
   await openEditor(page, "/community/events");
   expect(await readRtdb("events")).toEqual({ enabled: false });
