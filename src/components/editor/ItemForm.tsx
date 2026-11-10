@@ -5,6 +5,8 @@ import { useEffect, type ReactNode } from "react";
 import { useForm, type DefaultValues, type FieldValues, type UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 
+import { mergeSubmitted } from "@/lib/schema/v2/clean";
+
 import type { ItemIssues } from "./issues";
 import { fieldMessages } from "./issues";
 
@@ -51,7 +53,7 @@ export function ItemFormShell<T extends FieldValues>({
       className="flex flex-col gap-4 py-2"
       onSubmit={(event) => {
         event.stopPropagation();
-        void form.handleSubmit((values) => onSubmit({ ...item, ...values }))(event);
+        void form.handleSubmit((values) => onSubmit(mergeSubmitted(item, form.getValues(), values)))(event);
       }}
     >
       {children}

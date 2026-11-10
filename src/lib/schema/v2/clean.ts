@@ -33,3 +33,10 @@ export function defaultAlt<T>(value: T, fields: Record<string, string>): T {
   }
   return next as T;
 }
+
+export function mergeSubmitted<T extends object>(item: T, formValues: object, validated: T): T {
+  const before = stripEmpty(item) as Record<string, unknown>;
+  const after = stripEmpty(formValues) as Record<string, unknown>;
+  const kept = Object.entries(item).filter(([key]) => !(key in before) || key in after);
+  return { ...Object.fromEntries(kept), ...validated } as T;
+}
