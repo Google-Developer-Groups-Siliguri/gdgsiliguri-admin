@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 import { signInAs } from "./support/auth";
 import { readFirestoreDoc, readRtdb, TEST_USERS } from "./support/emulator";
@@ -23,6 +23,11 @@ async function toggle(page: Page, label: string, on: boolean) {
   await page.getByRole("switch", { name: `Show ${label} on the website` }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: on ? "Turn on" : "Turn off" }).click();
   await expect(page.getByText(`${label} turned ${on ? "on" : "off"}.`).first()).toBeVisible();
+}
+
+async function pickTrack(page: Page, dialog: Locator, option: string) {
+  await dialog.getByRole("combobox", { name: "Track" }).click();
+  await page.getByRole("option", { name: option, exact: true }).click();
 }
 
 function rows(page: Page) {
@@ -173,6 +178,66 @@ test("agenda: speakers and a session for 2026 reach the old app's schedule", asy
   const bundle = (await readFirestoreDoc("bundles/edition-2026")) as { sessions: { id: string; speakers: Json[] }[] };
   expect(bundle.sessions[0]).toMatchObject({ id: "opening-keynote-1000" });
   expect(bundle.sessions[0].speakers.map((speaker) => speaker.id)).toEqual(["ada-speaker", "grace-speaker"]);
+});
+
+test("speakers: a track can be added, changed and removed, and optional text cleared", async ({ page }) => {
+  await openEditor(page, "/devfest/2026/event");
+  await page.getByRole("tab", { name: "Tracks" }).click();
+  for (const [label, color] of [["Cloud Track", "#4285F4"], ["Web Track", "#34A853"]]) {
+    await page.getByRole("button", { name: "Add track" }).click();
+    const dialog = page.getByRole("dialog", { name: "Add track" });
+    await dialog.getByLabel("Track name").fill(label);
+    await dialog.getByRole("textbox", { name: "Colour", exact: true }).fill(color);
+    await dialog.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(dialog).toBeHidden();
+  }
+  await publish(page, "2026 · Event");
+
+  await page.goto("/devfest/2026/speakers");
+  await page.getByRole("button", { name: "Add speaker" }).click();
+  const added = page.getByRole("dialog", { name: "Add speaker" });
+  await added.getByLabel("Name").fill("Tracy Speaker");
+  await added.getByLabel("Headline").fill("Temporary headline");
+  await added.getByRole("textbox", { name: "Photo URL" }).fill("https://ik.imagekit.io/gdgsiliguri1/speakers/Tracy.png");
+  await pickTrack(page, added, "Cloud Track");
+  await added.getByRole("button", { name: "Add", exact: true }).click();
+  await expect(added).toBeHidden();
+  await publish(page, "2026 · Speakers");
+  expect(await readFirestoreDoc("editions/2026/speakers/tracy-speaker")).toMatchObject({ trackId: "cloud-track" });
+
+  const editTracy = async () => {
+    await page.getByRole("button", { name: "Edit Tracy Speaker" }).click();
+    return page.getByRole("dialog", { name: "Edit speaker" });
+  };
+  const trackOf = (dialog: Locator) => dialog.getByRole("combobox", { name: "Track" });
+
+  let dialog = await editTracy();
+  await pickTrack(page, dialog, "Web Track");
+  await expect(trackOf(dialog)).toHaveText(/Web Track/);
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(dialog).toBeHidden();
+
+  dialog = await editTracy();
+  await expect(trackOf(dialog)).toHaveText(/Web Track/);
+  await pickTrack(page, dialog, "No track");
+  await expect(trackOf(dialog)).toHaveText(/No track/);
+  await dialog.getByLabel("Headline").fill("");
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(dialog).toBeHidden();
+
+  dialog = await editTracy();
+  await expect(trackOf(dialog)).toHaveText(/No track/);
+  await expect(dialog.getByLabel("Headline")).toHaveValue("");
+  await dialog.getByRole("button", { name: "Done" }).click();
+  await expect(dialog).toBeHidden();
+
+  await publish(page, "2026 · Speakers");
+  await expect
+    .poll(async () => {
+      const saved = await readFirestoreDoc("editions/2026/speakers/tracy-speaker");
+      return { name: saved?.name, hasTrack: "trackId" in (saved ?? {}), hasHeadline: "headline" in (saved ?? {}) };
+    })
+    .toEqual({ name: "Tracy Speaker", hasTrack: false, hasHeadline: false });
 });
 
 test("event: edit the venue and publish the event details", async ({ page }) => {

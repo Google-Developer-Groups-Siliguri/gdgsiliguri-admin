@@ -500,7 +500,7 @@ export function OptionalSelectInput<T extends FieldValues>({
           name={field.name}
           value={(field.value as string | undefined) || NONE}
           options={[{ value: NONE, label: noneLabel }, ...options]}
-          onValueChange={(value) => field.onChange(value === NONE ? undefined : value)}
+          onValueChange={(value) => field.onChange(value === NONE ? "" : value)}
           error={fieldState.error?.message}
           supportingText={supportingText}
         />
